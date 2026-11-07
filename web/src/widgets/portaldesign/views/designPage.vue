@@ -1,5 +1,5 @@
 <template>
-	<PortalDesign :name="code" :isCopy="_isCopy" @finishCopy="finishCopy"/>
+	<PortalDesign :name="code" :isCopy="_isCopy" embedded @finishCopy="finishCopy" @back="handleBack"/>
 </template>
 
 <script>
@@ -72,6 +72,9 @@ export default {
 		finishCopy(name) {
 			this._name = name;
 			this._isCopy = false;
+		},
+		handleBack() {
+			this.$router.back(-1);
 		}
 	}
 }

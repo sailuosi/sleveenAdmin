@@ -3,11 +3,13 @@
 		v-if="show"
 		:name="name"
 		:isCopy="isCopy"
+		:embedded="embedded"
 		:portlets="portlets"
 		:portal="portal"
 		:applets="applets"
 		:selectedApplet="selectedApplet"
 		:deleteAppletIds="deleteAppletIds"
+		@back="$emit('back')"
 		@updateSelectd="updateSelectd"
 		@deleteApplet="deleteApplet"
 		@clearApplet="clearApplet"
@@ -48,8 +50,13 @@ export default {
 		isCopy: {
 			type: Boolean,
 			default: false
+		},
+		embedded: {
+			type: Boolean,
+			default: false
 		}
 	},
+	emits: ['finishCopy', 'back'],
 	mounted() {
 		this.loadPortlets();
 		this.loadConfig();
@@ -58,11 +65,14 @@ export default {
 	methods: {
 		async loadPortlets() {
 			this.portlets = [];
-			var para = {
-				type: "1"
-			};
-			const res = await loadConfigApplets(para);
-			this.portlets = res.data;
+			try {
+				const res = await loadConfigApplets({ type: "1" });
+				const list = res?.data ?? res;
+				this.portlets = Array.isArray(list) ? list : [];
+			} catch (e) {
+				console.warn('loadConfigApplets failed', e);
+				this.portlets = [];
+			}
 		},
 		async loadConfig() {
 			this.loading = true;
@@ -73,13 +83,18 @@ export default {
 			const res = await getPortConfig(this.name);
 			
 			if(res.status == "success") {
-				this.portal = res.data.portal;
+				const portal = res.data.portal || {};
 				if (this.isCopy === true) {
-					this.portal.P_Key = "";
-					this.portal.oid = "new";
+					portal.P_Key = "";
+					portal.oid = "new";
 				}
+				const col = Number(portal.colnum);
+				portal.colnum = Number.isFinite(col) && col > 0 ? col : 24;
+				const row = Number(portal.rowheight);
+				portal.rowheight = Number.isFinite(row) && row > 0 ? row : 30;
+				this.portal = portal;
 				
-				var applets = res.data.cells;
+				var applets = Array.isArray(res.data.cells) ? res.data.cells : [];
 				var vclist = res.data.applets;
 				if(!Array.isArray(vclist)) {
 					vclist = [];
@@ -89,15 +104,19 @@ export default {
 						vc.oid = "new";
 					});
 				}
-				applets.forEach(applet => {
+				const num = (v, d) => {
+					const n = Number(v);
+					return Number.isFinite(n) ? n : d;
+				};
+				applets.forEach((applet, idx) => {
 					if (this.isCopy === true) {
 						applet.oid = "new";
 					}
-					applet.x = applet.x * 1;
-					applet.y = applet.y * 1;
-					applet.w = applet.w * 1;
-					applet.h = applet.h * 1;
-					applet.i = applet.i * 1;
+					applet.x = num(applet.x, 0);
+					applet.y = num(applet.y, 0);
+					applet.w = Math.max(1, num(applet.w, 1));
+					applet.h = Math.max(1, num(applet.h, 1));
+					applet.i = num(applet.i, idx + 1);
 					applet.mode = applet.mode || "1";
 					
 					applet.vclist = vclist.filter((app) => {

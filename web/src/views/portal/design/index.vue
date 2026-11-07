@@ -5,35 +5,10 @@ import DesignPage from '@/widgets/portaldesign/views/designPage.vue';
 </script>
 
 <template>
-  <div class="portal-view-root h-full">
+  <!-- 对齐 minehub：Teleport + design.vue embedded(is-viewport) 自管视口高度 -->
+  <Teleport to="body">
     <ElConfigProvider :locale="zhCn">
-      <div class="portal-page h-full">
-        <DesignPage />
-      </div>
+      <DesignPage />
     </ElConfigProvider>
-  </div>
+  </Teleport>
 </template>
-
-<style scoped>
-.portal-view-root {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  height: 100%;
-}
-
-.portal-page {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  padding: 0;
-  height: 100%;
-}
-
-.portal-page :deep(.flexpan.flexed) {
-  flex: 1;
-  min-height: 0;
-}
-</style>

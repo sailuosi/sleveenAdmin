@@ -246,6 +246,58 @@ public sealed class SysPortalCommonService : IScoped
             .queryRow();
     }
 
+    /// <summary>
+    /// 设计器左侧组件库：按分类分组的可用组件（对齐 minehub loadapplets）。
+    /// </summary>
+    public JsonArray LoadConfigApplets(string? cataFk = null)
+    {
+        var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
+        var hasCata = Guid.TryParse(cataFk, out var cataId) && cataId != Guid.Empty;
+
+        var appletKit = kit.clear()
+            .select(
+                "a.Sa_Id as id,a.A_Title as name,a.A_Idx,a.A_Type,a.A_Key,a.A_Para,a.A_Url,a.A_TitleAlign,a.A_Remark,a.Sa_AppletCataId as cataFK")
+            .from($"{PortalSchema.TableApplet} a")
+            .join($"inner join {PortalSchema.TableAppletCata} c on a.Sa_AppletCataId=c.Sac_Id")
+            .where("a.A_IsOn", true)
+            .where("(a.Sa_Deleted is null or a.Sa_Deleted=0)")
+            .where("(c.Sac_Deleted is null or c.Sac_Deleted=0)");
+        if (hasCata)
+            appletKit.where("a.Sa_AppletCataId", cataId);
+        var applets = appletKit.orderBy("a.A_Idx asc").top(500).query();
+
+        var cataKit = kit.clear()
+            .select("Sac_Id as id,AC_Name as typeName,AC_Remark as AC_Note")
+            .from(PortalSchema.TableAppletCata)
+            .where("(Sac_Deleted is null or Sac_Deleted=0)");
+        if (hasCata)
+            cataKit.where("Sac_Id", cataId);
+        var catas = cataKit.orderBy("AC_Idx asc").query();
+
+        var data = new JsonArray();
+        foreach (DataRow row in catas.Rows)
+        {
+            var id = row["id"]?.ToString() ?? "";
+            if (string.IsNullOrEmpty(id)) continue;
+
+            var portlets = new JsonArray();
+            foreach (DataRow applet in applets.Rows)
+            {
+                if (!string.Equals(applet["cataFK"]?.ToString(), id, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                portlets.Add(RowToJson(applet));
+            }
+
+            if (portlets.Count == 0) continue;
+
+            var cata = RowToJson(row);
+            cata["portlets"] = portlets;
+            data.Add(cata);
+        }
+
+        return data;
+    }
+
     public void SaveCells(Guid portalId, JsonArray cells, ClaimsPrincipal user)
     {
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);

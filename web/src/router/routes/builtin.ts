@@ -145,11 +145,11 @@ const builtinRoutes: CustomRoute[] = [
       }
     ]
   },
-  // 门户设计：列表「设计」入口，不依赖动态菜单（portal_design 为 IsHide）
+  // 门户设计：列表「设计」入口；blank-layout + 全屏（对齐 minehub Teleport/embedded）
   {
     name: 'portal-design',
     path: '/portal/design',
-    component: () => import('@/layouts/base-layout/index.vue'),
+    component: () => import('@/layouts/blank-layout/index.vue'),
     meta: {
       title: '门户设计',
       constant: false,

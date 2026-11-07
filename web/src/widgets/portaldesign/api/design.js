@@ -10,7 +10,7 @@ export function getPortPageConfig(data) {
 
 export function loadConfigApplets(data) {
   return request({
-    url: '/api/sysPortal/common/loadportalconfig',
+    url: '/api/sysPortal/common/loadapplets',
     method: 'post',
     data
   });

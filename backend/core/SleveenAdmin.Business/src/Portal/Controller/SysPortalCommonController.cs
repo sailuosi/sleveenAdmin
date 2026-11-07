@@ -43,6 +43,26 @@ public class SysPortalCommonController : ControllerBase
         return AjaxResult.ToContent(WrapConfig(data));
     }
 
+    /// <summary>设计器组件库列表（按分类分组），对齐 minehub /qmpaotao/loadapplets</summary>
+    [HttpPost("loadapplets")]
+    public ContentResult LoadApplets([FromBody] JsonObject? body)
+    {
+        string? cataFk = null;
+        if (body is not null)
+        {
+            if (body.TryGetPropertyValue("ZH_AppletCata_FK", out var fk1))
+                cataFk = fk1?.ToString();
+            else if (body.TryGetPropertyValue("saAppletCataId", out var fk2))
+                cataFk = fk2?.ToString();
+            else if (body.TryGetPropertyValue("Sac_Id", out var fk3))
+                cataFk = fk3?.ToString();
+        }
+
+        var data = _service.LoadConfigApplets(cataFk);
+        var token = JToken.Parse(data.ToJsonString());
+        return AjaxResult.ToContent(AjaxResult.success(token as JArray ?? new JArray()));
+    }
+
     [HttpPost("savecell")]
     public ContentResult SaveCell([FromBody] JsonObject? body)
     {

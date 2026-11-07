@@ -1,8 +1,8 @@
 ﻿<template>
-	<div class="form-designer">
-		<el-container class="form-designer-container">
+	<div class="form-designer" :class="{ 'is-viewport': embedded }">
+		<el-container class="form-designer-container" style="height: 100%">
 			<!-- 左侧字段 -->
-			<el-aside :width="fullScreen ? '0' : '270px'">
+			<el-aside class="library-aside" :width="fullScreen ? '0px' : '270px'">
 				<div class="fields-list">
 					<!--<el-divider>剪切板内组件</el-divider>
 					<div @click="getContentInClipBoard" title="点击粘贴">
@@ -35,7 +35,7 @@
 			</el-aside>
 			<!-- 中间主布局 -->
 			<el-container class="widget-container" direction="vertical">
-				<el-header class="widget-portal-container-header">
+				<el-header class="widget-portal-container-header" height="40px">
 					<span v-if="isCopy" class="widget-container-warning">当前为复制模式，保存后将生成新的门户配置。</span>
 					<el-button icon="ele-Back" size="default" text type="primary" @click="handleBack">返回</el-button>
 					<el-button icon="ele-Check" size="default" text type="primary" @click="handleSubmit">保存</el-button>
@@ -45,7 +45,7 @@
 						{{ fullScreen ? "退出全屏" : "全屏" }}
 					</el-button>
 				</el-header>
-				<el-main>
+				<el-main class="designer-main">
 					<widget-portal
 						ref="paotal" 
 						:name="name"
@@ -60,7 +60,7 @@
 				</el-main>
 			</el-container>
 			<!-- 右侧配置 -->
-			<el-aside :width="fullScreen ? '0' : '380px'">
+			<el-aside class="properties-aside" :width="fullScreen ? '0px' : '380px'">
 				<el-tabs class="config-container-tabs" v-model="configTab" stretch>
 					<el-tab-pane label="区块属性" name="widget">
 						<widget-config :applet="selectedApplet" :isCopy="isCopy"></widget-config>
@@ -103,6 +103,11 @@ export default {
 			type: Boolean,
 			default: false
 		},
+		/** 对齐 minehub：Teleport 全屏时由自身 position:fixed 接管视口高度 */
+		embedded: {
+			type: Boolean,
+			default: false
+		},
 		api: {
 			type: Object,
 			default: null
@@ -136,6 +141,10 @@ export default {
 			this.$emit('deleteApplet', applet, index);
 		},
 		handleBack() {
+			if (this.embedded) {
+				this.$emit('back');
+				return;
+			}
 			this.$router.back(-1);
 		},
 		handleSubmit() {
@@ -242,42 +251,93 @@ export default {
 	background-color: #337ecc;
 }
 
+/* 视口自管高度：不用 height:0 压垮 Element Plus el-container */
 .form-designer {
-	background: #fff;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	width: 100%;
 	height: 100%;
+	min-height: 0;
+	overflow: hidden;
+	background: #fff;
+	color: #233243;
+}
+
+.form-designer.is-viewport {
+	position: fixed;
+	inset: 0;
+	z-index: 1900;
+	width: 100vw;
+	height: 100vh;
+	height: 100dvh;
+	padding: 0;
 }
 
 .form-designer-container {
-	height: 100%;
+	flex: 1 1 auto;
+	width: 100%;
+	height: 100% !important;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
 }
 
-.el-tag {
-	margin-left: 10px;
-	cursor: pointer;
+.library-aside,
+.properties-aside {
+	display: flex !important;
+	flex-direction: column;
+	height: 100% !important;
+	min-height: 0;
+	overflow: hidden;
+	box-sizing: border-box;
+	background: #fff;
+	border-right: 1px solid #e6edf7;
 }
 
-.button-new-tag {
-	margin-left: 10px;
-	height: 32px;
-	line-height: 30px;
-	padding-top: 0;
-	padding-bottom: 0;
+.properties-aside {
+	border-right: 0;
+	border-left: 1px solid #e6edf7;
 }
 
-.input-new-tag {
-	width: 90px;
-	margin-left: 10px;
-	vertical-align: bottom;
+.widget-container {
+	flex: 1 1 auto !important;
+	min-width: 0;
+	min-height: 0;
+	height: 100% !important;
+	overflow: hidden;
 }
 
-:deep(.el-drawer__header) {
-	-webkit-box-align: center;
-	align-items: center;
-	color: #72767b;
+.widget-portal-container-header {
+	flex-shrink: 0;
 	display: flex;
-	font-weight: 700;
-	margin-bottom: 0;
-	padding: 10px;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 0;
+	padding: 0 8px;
+	box-sizing: border-box;
+	border-bottom: 1px solid #e6edf7;
+	background: #fff;
+}
+
+.designer-main {
+	flex: 1 1 auto !important;
+	min-height: 0 !important;
+	height: auto !important;
+	padding: 8px;
+	overflow: auto;
+	background: #f8fafd;
+}
+
+.fields-list {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	padding: 8px 0;
+	box-sizing: border-box;
+	overflow-x: hidden;
+	overflow-y: auto;
 }
 
 .field-title {
@@ -331,16 +391,11 @@ export default {
 	font-size: 14px;
 }
 
-.widget-portal-container-header {
-	height: 30px;
-	line-height: 30px;
-	text-align: right;
-}
-
 .widget-container-warning {
-	color: red;
+	color: #ad6800;
 	font-weight: bold;
-	float: left;
+	margin-right: auto;
+	font-size: 12px;
 }
 
 :deep(.el-button+.el-button) {
@@ -356,27 +411,23 @@ export default {
 }
 
 .config-container-tabs {
-	height: 100%;
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	height: 0;
+	min-height: 0;
+	overflow: hidden;
 }
 
-.el-main {
-	padding: 5px;
+.config-container-tabs > :deep(.el-tabs__header) {
+	flex-shrink: 0;
+	margin: 0;
 }
 
-.el-main::-webkit-scrollbar {
-	width: 0;
-}
-
-:deep(.el-tabs__header) {
-	margin-bottom: 0;
-}
-
-:deep(.el-tabs__content) {
-	height: calc(100% - 60px);
+.config-container-tabs > :deep(.el-tabs__content) {
+	flex: 1 1 0;
+	height: 0;
+	min-height: 0;
 	overflow-y: auto;
-}
-
-:deep(.el-tabs__content::-webkit-scrollbar) {
-	width: 0;
 }
 </style>
