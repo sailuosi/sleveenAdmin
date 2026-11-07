@@ -145,6 +145,29 @@ const builtinRoutes: CustomRoute[] = [
       }
     ]
   },
+  // 门户设计：列表「设计」入口，不依赖动态菜单（portal_design 为 IsHide）
+  {
+    name: 'portal-design',
+    path: '/portal/design',
+    component: () => import('@/layouts/base-layout/index.vue'),
+    meta: {
+      title: '门户设计',
+      constant: false,
+      hideInMenu: true
+    },
+    children: [
+      {
+        name: 'portal-design-page',
+        path: '',
+        component: () => import('@/views/portal/design/index.vue'),
+        meta: {
+          title: '门户设计',
+          constant: false,
+          hideInMenu: true
+        }
+      }
+    ]
+  },
   {
     name: 'sail-ruleset',
     path: '/sail/rulesets',

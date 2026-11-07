@@ -3,6 +3,7 @@ import type { RouteKey } from '@elegant-router/types';
 import { useRouterPush } from '@/hooks/common/router';
 import { useMenuLabel } from '@/layouts/modules/global-menu/components/usemenulabel';
 import EpMenuItems from '@/layouts/modules/global-menu/components/EpMenuItems.vue';
+import { canNavigateMenu, collectLeafMenus } from '@/layouts/modules/global-menu/utils/megaMenuSections';
 
 defineOptions({
   name: 'EpMenuItems'
@@ -16,7 +17,14 @@ const { routerPushByKeyWithMetaQuery } = useRouterPush();
 const { menulabel: MenuLabel } = useMenuLabel();
 
 function onParentNavigate(menu: App.Global.Menu) {
-  routerPushByKeyWithMetaQuery(menu.key as RouteKey);
+  // 目录（layout.base 等）本身没有路由名，点标题时落到第一个可跳转子页
+  if (canNavigateMenu(menu)) {
+    routerPushByKeyWithMetaQuery(menu.key as RouteKey, menu);
+    return;
+  }
+  const leaf = collectLeafMenus(menu)[0];
+  if (!leaf) return;
+  routerPushByKeyWithMetaQuery((leaf.routeKey || leaf.key) as RouteKey, leaf);
 }
 </script>
 

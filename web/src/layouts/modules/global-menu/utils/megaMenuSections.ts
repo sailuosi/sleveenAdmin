@@ -19,7 +19,7 @@ function isDisabled(menu: App.Global.Menu) {
   return Boolean((menu as MenuNode).disabled);
 }
 
-/** 父级分组是否可跳转（配置了页面组件或外链，且非 inner 目录） */
+/** 父级分组是否可跳转（配置了页面组件或外链；layout.* / inner 仅作目录） */
 export function canNavigateMenu(menu?: App.Global.Menu | null): menu is App.Global.Menu {
   if (!menu || isDisabled(menu)) return false;
   const withMeta = menu as MenuWithMeta;
@@ -27,8 +27,10 @@ export function canNavigateMenu(menu?: App.Global.Menu | null): menu is App.Glob
   const fromRaw = String(withMeta.raw?.component || withMeta.raw?.meta?.componentPath || '').trim();
   const componentPath = fromMeta || fromRaw;
   const menuAddress = String(withMeta.menuAddress || withMeta.raw?.meta?.isLink || withMeta.raw?.meta?.href || '').trim();
-  if (componentPath && componentPath !== 'inner') return true;
-  return Boolean(menuAddress);
+  if (!componentPath || componentPath === 'inner' || /^layout\./i.test(componentPath)) {
+    return Boolean(menuAddress);
+  }
+  return true;
 }
 
 /** 递归收集末级可跳转菜单 */
