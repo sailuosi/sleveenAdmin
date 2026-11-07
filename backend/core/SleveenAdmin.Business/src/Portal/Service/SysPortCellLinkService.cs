@@ -22,12 +22,19 @@ public sealed class SysPortCellLinkService : IScoped
             .where("(Spcl_Deleted is null or Spcl_Deleted=0)");
         if (query.SpPortalId.HasValue)
             kit.where("Spcl_PortalId", query.SpPortalId.Value);
-        return kit.setPage(pageSize, pageNum).orderBy("CL_Idx asc").queryPaged();
+        if (query.SpPortCellId.HasValue)
+            kit.where("Spcl_PortCellId", query.SpPortCellId.Value);
+        var page = kit.setPage(pageSize, pageNum).orderBy("CL_Idx asc").queryPaged();
+        PortalRowAlias.Alias(page.Items, PortalRowAlias.CellLink);
+        return page;
     }
 
-    public DataRow? GetById(Guid id) =>
-        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+    public DataRow? GetById(Guid id)
+    {
+        var row = DBCash.useSQL(MooSqlSetup.DefaultPosition)
             .select("*").from(PortalSchema.TablePortCellLink).where("Spcl_Id", id).queryRow();
+        return PortalRowAlias.Alias(row, PortalRowAlias.CellLink);
+    }
 
     public void SaveBatch(IReadOnlyList<SysPortCellLink> rows)
     {

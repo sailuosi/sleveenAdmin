@@ -27,12 +27,17 @@ public sealed class SysPortPageService : IScoped
             .where("(Spp_Deleted is null or Spp_Deleted=0)");
         if (!string.IsNullOrWhiteSpace(query.Keyword))
             kit.whereLike("PP_Title", query.Keyword);
-        return kit.setPage(pageSize, pageNum).orderBy("Spp_CreateTime desc").queryPaged();
+        var page = kit.setPage(pageSize, pageNum).orderBy("Spp_CreateTime desc").queryPaged();
+        PortalRowAlias.Alias(page.Items, PortalRowAlias.PortPage);
+        return page;
     }
 
-    public DataRow? GetById(Guid id) =>
-        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+    public DataRow? GetById(Guid id)
+    {
+        var row = DBCash.useSQL(MooSqlSetup.DefaultPosition)
             .select("*").from(PortalSchema.TablePortPage).where("Spp_Id", id).queryRow();
+        return PortalRowAlias.Alias(row, PortalRowAlias.PortPage);
+    }
 
     public void SaveBatch(IReadOnlyList<SysPortPage> rows)
     {

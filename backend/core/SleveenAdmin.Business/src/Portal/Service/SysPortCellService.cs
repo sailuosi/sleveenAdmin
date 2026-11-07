@@ -22,12 +22,17 @@ public sealed class SysPortCellService : IScoped
             .where("(Spc_Deleted is null or Spc_Deleted=0)");
         if (query.SpPortalId.HasValue)
             kit.where("Spc_PortalId", query.SpPortalId.Value);
-        return kit.setPage(pageSize, pageNum).orderBy("PC_Idx asc").queryPaged();
+        var page = kit.setPage(pageSize, pageNum).orderBy("PC_Idx asc").queryPaged();
+        PortalRowAlias.Alias(page.Items, PortalRowAlias.Cell);
+        return page;
     }
 
-    public DataRow? GetById(Guid id) =>
-        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+    public DataRow? GetById(Guid id)
+    {
+        var row = DBCash.useSQL(MooSqlSetup.DefaultPosition)
             .select("*").from(PortalSchema.TablePortCell).where("Spc_Id", id).queryRow();
+        return PortalRowAlias.Alias(row, PortalRowAlias.Cell);
+    }
 
     public void SaveBatch(IReadOnlyList<SysPortCell> rows)
     {

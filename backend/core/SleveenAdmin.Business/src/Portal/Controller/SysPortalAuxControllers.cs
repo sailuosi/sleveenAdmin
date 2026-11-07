@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Business.Portal.Service;
-using SleveenAdmin.Foundation.AspNet;
+using SleveenAdmin.Foundation;
 
 namespace SleveenAdmin.Business.Portal.Controller;
 
@@ -16,27 +16,28 @@ public class SysPortalRoleController : ControllerBase
     public SysPortalRoleController(SysPortalAuxService service) => _service = service;
 
     [HttpGet("page")]
-    [ApiResult]
-    public IActionResult Page([FromQuery] PortalPageQuery query) => Ok(_service.GetRolePage(query));
+    public ContentResult Page([FromQuery] PortalPageQuery query)
+    {
+        var page = _service.GetRolePage(query);
+        return AjaxResult.ToContent(AjaxResult.success(page.Total, page.Items));
+    }
 
     [HttpGet("{id:guid}")]
-    [ApiResult]
-    public IActionResult Get(Guid id) => Ok(_service.GetRole(id));
+    public ContentResult Get(Guid id)
+        => AjaxResult.ToContent(AjaxResult.success(_service.GetRole(id)!));
 
     [HttpPost]
-    [ApiResult]
-    public IActionResult Save([FromBody] List<SysPortalRole> rows)
+    public ContentResult Save([FromBody] List<SysPortalRole> rows)
     {
         _service.SaveRoles(rows);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
-    [ApiResult]
-    public IActionResult Delete(Guid id)
+    public ContentResult Delete(Guid id)
     {
         _service.DeleteRole(id);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("删除成功"));
     }
 }
 
@@ -49,27 +50,28 @@ public class SysPortalLinkController : ControllerBase
     public SysPortalLinkController(SysPortalAuxService service) => _service = service;
 
     [HttpGet("page")]
-    [ApiResult]
-    public IActionResult Page([FromQuery] PortalPageQuery query) => Ok(_service.GetLinkPage(query));
+    public ContentResult Page([FromQuery] PortalPageQuery query)
+    {
+        var page = _service.GetLinkPage(query);
+        return AjaxResult.ToContent(AjaxResult.success(page.Total, page.Items));
+    }
 
     [HttpGet("{id:guid}")]
-    [ApiResult]
-    public IActionResult Get(Guid id) => Ok(_service.GetLink(id));
+    public ContentResult Get(Guid id)
+        => AjaxResult.ToContent(AjaxResult.success(_service.GetLink(id)!));
 
     [HttpPost]
-    [ApiResult]
-    public IActionResult Save([FromBody] List<SysPortalLink> rows)
+    public ContentResult Save([FromBody] List<SysPortalLink> rows)
     {
         _service.SaveLinks(rows);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
-    [ApiResult]
-    public IActionResult Delete(Guid id)
+    public ContentResult Delete(Guid id)
     {
         _service.DeleteLink(id);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("删除成功"));
     }
 }
 
@@ -82,27 +84,28 @@ public class SysPageSelectController : ControllerBase
     public SysPageSelectController(SysPortalAuxService service) => _service = service;
 
     [HttpGet("page")]
-    [ApiResult]
-    public IActionResult Page([FromQuery] PortalPageQuery query) => Ok(_service.GetSelectPage(query));
+    public ContentResult Page([FromQuery] PortalPageQuery query)
+    {
+        var page = _service.GetSelectPage(query);
+        return AjaxResult.ToContent(AjaxResult.success(page.Total, page.Items));
+    }
 
     [HttpGet("{id:guid}")]
-    [ApiResult]
-    public IActionResult Get(Guid id) => Ok(_service.GetSelect(id));
+    public ContentResult Get(Guid id)
+        => AjaxResult.ToContent(AjaxResult.success(_service.GetSelect(id)!));
 
     [HttpPost]
-    [ApiResult]
-    public IActionResult Save([FromBody] List<SysPageSelect> rows)
+    public ContentResult Save([FromBody] List<SysPageSelect> rows)
     {
         _service.SaveSelects(rows);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
-    [ApiResult]
-    public IActionResult Delete(Guid id)
+    public ContentResult Delete(Guid id)
     {
         _service.DeleteSelect(id);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("删除成功"));
     }
 }
 
@@ -115,27 +118,28 @@ public class SysPageFieldController : ControllerBase
     public SysPageFieldController(SysPortalAuxService service) => _service = service;
 
     [HttpGet("page")]
-    [ApiResult]
-    public IActionResult Page([FromQuery] PortalPageQuery query) => Ok(_service.GetFieldPage(query));
+    public ContentResult Page([FromQuery] PortalPageQuery query)
+    {
+        var page = _service.GetFieldPage(query);
+        return AjaxResult.ToContent(AjaxResult.success(page.Total, page.Items));
+    }
 
     [HttpGet("{id:guid}")]
-    [ApiResult]
-    public IActionResult Get(Guid id) => Ok(_service.GetField(id));
+    public ContentResult Get(Guid id)
+        => AjaxResult.ToContent(AjaxResult.success(_service.GetField(id)!));
 
     [HttpPost]
-    [ApiResult]
-    public IActionResult Save([FromBody] List<SysPageField> rows)
+    public ContentResult Save([FromBody] List<SysPageField> rows)
     {
         _service.SaveFields(rows);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
-    [ApiResult]
-    public IActionResult Delete(Guid id)
+    public ContentResult Delete(Guid id)
     {
         _service.DeleteField(id);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("删除成功"));
     }
 }
 
@@ -148,26 +152,27 @@ public class SysPageConnectController : ControllerBase
     public SysPageConnectController(SysPortalAuxService service) => _service = service;
 
     [HttpGet("page")]
-    [ApiResult]
-    public IActionResult Page([FromQuery] PortalPageQuery query) => Ok(_service.GetConnectPage(query));
+    public ContentResult Page([FromQuery] PortalPageQuery query)
+    {
+        var page = _service.GetConnectPage(query);
+        return AjaxResult.ToContent(AjaxResult.success(page.Total, page.Items));
+    }
 
     [HttpGet("{id:guid}")]
-    [ApiResult]
-    public IActionResult Get(Guid id) => Ok(_service.GetConnect(id));
+    public ContentResult Get(Guid id)
+        => AjaxResult.ToContent(AjaxResult.success(_service.GetConnect(id)!));
 
     [HttpPost]
-    [ApiResult]
-    public IActionResult Save([FromBody] List<SysPageConnect> rows)
+    public ContentResult Save([FromBody] List<SysPageConnect> rows)
     {
         _service.SaveConnects(rows);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
-    [ApiResult]
-    public IActionResult Delete(Guid id)
+    public ContentResult Delete(Guid id)
     {
         _service.DeleteConnect(id);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("删除成功"));
     }
 }

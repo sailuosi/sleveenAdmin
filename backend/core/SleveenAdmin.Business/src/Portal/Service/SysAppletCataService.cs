@@ -20,12 +20,17 @@ public sealed class SysAppletCataService : IScoped
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
         kit.select("*").from(PortalSchema.TableAppletCata)
             .where("(Sac_Deleted is null or Sac_Deleted=0)");
-        return kit.setPage(pageSize, pageNum).orderBy("AC_Idx asc").queryPaged();
+        var page = kit.setPage(pageSize, pageNum).orderBy("AC_Idx asc").queryPaged();
+        PortalRowAlias.Alias(page.Items, PortalRowAlias.AppletCata);
+        return page;
     }
 
-    public DataRow? GetById(Guid id) =>
-        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+    public DataRow? GetById(Guid id)
+    {
+        var row = DBCash.useSQL(MooSqlSetup.DefaultPosition)
             .select("*").from(PortalSchema.TableAppletCata).where("Sac_Id", id).queryRow();
+        return PortalRowAlias.Alias(row, PortalRowAlias.AppletCata);
+    }
 
     public void SaveBatch(IReadOnlyList<SysAppletCata> rows)
     {

@@ -59,36 +59,84 @@ public sealed class PortalDbInitializer : IScoped
             .doInsert();
     }
 
+    /// <summary>
+    /// 门户码表种子（对齐 minehub PortalDictSeedData，编码沿用前端已用的 Sys*/KB_*）。
+    /// 幂等：类型已存在则复用 Id，仅补缺失的字典项。
+    /// </summary>
     private static void EnsurePortalDicts(DBInstance db)
     {
-        SeedDict(db, "SysPtTask", "门户业务", [("1", "通用"), ("2", "办公"), ("3", "生产")]);
-        SeedDict(db, "SysPtCellTheme", "门户主题", [("default", "默认"), ("dark", "深色"), ("light", "浅色")]);
-        SeedDict(db, "SysShareStatus", "共享状态", [("1", "公共"), ("2", "个人"), ("0", "私有")]);
-        SeedDict(db, "SysAppletTitle", "显示标题", [("1", "显示"), ("0", "隐藏")]);
-        SeedDict(db, "SysPtDisplay", "布局方式", [("grid", "网格"), ("flex", "弹性")]);
-        SeedDict(db, "SysAppletType", "组件类型", [("1", "Vue组件"), ("2", "URL"), ("3", "HTML"), ("5", "图表"), ("7", "子门户")]);
+        // minehub: HH_AppletMany / HH_AppletType / HH_ApplteTool / HH_PtCellTheme / HH_PtDisplay / HH_ShareStatus / HH_AppletTitle
+        SeedDict(db, "SysAppletMany", "门户多播",
+            [("1", "tab"), ("2", "瀑布流"), ("3", "轮播"), ("4", "卡片")]);
+        SeedDict(db, "SysAppletType", "门户控件类型",
+        [
+            ("1", "vue组件"), ("11", "APP组件"), ("2", "url"), ("3", "富文本"),
+            ("4", "本地页面BPO"), ("5", "echart"), ("6", "本地VC"), ("7", "子门户"), ("9", "伪组件")
+        ]);
+        SeedDict(db, "SysApplteTool", "门户工具栏",
+            [("1", "刷新"), ("2", "更多"), ("3", "最大化")]);
+        SeedDict(db, "SysPtCellTheme", "门户主题",
+            [("0", "无"), ("1", "白色"), ("2", "蓝色"), ("3", "透明")]);
+        SeedDict(db, "SysPtDisplay", "门户布局方式",
+            [("1", "grid布局"), ("2", "弹性布局"), ("3", "table布局"), ("9", "开发者布局")]);
+        SeedDict(db, "SysShareStatus", "门户共享类型",
+            [("1", "共享"), ("2", "个人")]);
+        SeedDict(db, "SysAppletTitle", "控件标题位置",
+            [("0", "隐藏"), ("1", "顶部"), ("2", "左侧"), ("3", "右侧"), ("4", "底部")]);
+
+        // sleveen 前端额外用到、minehub 门户种子未覆盖的码表
+        SeedDict(db, "SysPtTask", "门户业务",
+            [("1", "通用"), ("2", "办公"), ("3", "生产")]);
+        SeedDict(db, "SysCellDisabled", "可用性",
+            [("0", "可用"), ("1", "禁用")]);
+        SeedDict(db, "KB_PtPagePose", "页面位置",
+            [("1", "顶部"), ("2", "左侧"), ("3", "右侧"), ("4", "底部")]);
+        SeedDict(db, "KB_HOPtLinkPlace", "链接位置",
+            [("1", "顶部"), ("2", "侧边"), ("3", "底部")]);
+        SeedDict(db, "KB_Wether", "是否",
+            [("1", "是"), ("0", "否")]);
     }
 
     private static void SeedDict(DBInstance db, string code, string name, (string value, string label)[] items)
     {
-        var typeId = Guid.CreateVersion7();
         var kit = db.useSQL();
-        if (kit.from(PortalSchema.TableSysDictType).where("Sdt_Code", code).count() > 0)
-            return;
-        kit.setTable(PortalSchema.TableSysDictType)
-            .set("Sdt_Id", typeId)
-            .set("Sdt_Code", code)
-            .set("Sdt_Name", name)
-            .doInsert();
+        Guid typeId;
+        var exist = kit.clear()
+            .select("Sdt_Id")
+            .from(PortalSchema.TableSysDictType)
+            .where("Sdt_Code", code)
+            .queryRow();
+        if (exist is null)
+        {
+            typeId = Guid.CreateVersion7();
+            kit.clear().setTable(PortalSchema.TableSysDictType)
+                .set("Sdt_Id", typeId)
+                .set("Sdt_Code", code)
+                .set("Sdt_Name", name)
+                .doInsert();
+        }
+        else
+        {
+            typeId = exist["Sdt_Id"] is Guid g ? g : Guid.Parse(exist["Sdt_Id"]!.ToString()!);
+        }
+
         var idx = 0;
         foreach (var (value, label) in items)
         {
+            idx++;
+            var has = kit.clear()
+                .from(PortalSchema.TableSysDictData)
+                .where("Sdd_TypeId", typeId)
+                .where("Sdd_Value", value)
+                .count() > 0;
+            if (has) continue;
+
             kit.clear().setTable(PortalSchema.TableSysDictData)
                 .set("Sdd_Id", Guid.CreateVersion7())
                 .set("Sdd_TypeId", typeId)
                 .set("Sdd_Label", label)
                 .set("Sdd_Value", value)
-                .set("Sdd_OrderNo", ++idx)
+                .set("Sdd_OrderNo", idx)
                 .doInsert();
         }
     }

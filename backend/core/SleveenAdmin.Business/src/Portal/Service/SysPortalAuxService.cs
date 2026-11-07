@@ -1,9 +1,9 @@
 using System.Data;
+using mooSQL.data;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Foundation.Data;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Foundation.Models;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
@@ -30,11 +30,11 @@ public sealed class SysPortalAuxService : IScoped
         _connects = connects;
     }
 
-    public PagedResult<DataRow> GetRolePage(PortalPageQuery q) => QueryPage(PortalSchema.TablePortalRole, "Spr_Deleted", q);
-    public PagedResult<DataRow> GetLinkPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePortalLink, "Spl_Deleted", q);
-    public PagedResult<DataRow> GetSelectPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePageSelect, "Sps_Deleted", q);
-    public PagedResult<DataRow> GetFieldPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePageField, "Spf_Deleted", q);
-    public PagedResult<DataRow> GetConnectPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePageConnect, "Spcn_Deleted", q);
+    public PagedDataTable GetRolePage(PortalPageQuery q) => QueryPage(PortalSchema.TablePortalRole, "Spr_Deleted", q);
+    public PagedDataTable GetLinkPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePortalLink, "Spl_Deleted", q);
+    public PagedDataTable GetSelectPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePageSelect, "Sps_Deleted", q);
+    public PagedDataTable GetFieldPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePageField, "Spf_Deleted", q);
+    public PagedDataTable GetConnectPage(PortalPageQuery q) => QueryPage(PortalSchema.TablePageConnect, "Spcn_Deleted", q);
 
     public void SaveRoles(IReadOnlyList<SysPortalRole> rows) => SaveBatch(_roles, rows);
     public void SaveLinks(IReadOnlyList<SysPortalLink> rows) => SaveBatch(_links, rows);
@@ -54,14 +54,13 @@ public sealed class SysPortalAuxService : IScoped
     public DataRow? GetField(Guid id) => Get(PortalSchema.TablePageField, "Spf_Id", id);
     public DataRow? GetConnect(Guid id) => Get(PortalSchema.TablePageConnect, "Spcn_Id", id);
 
-    private static PagedResult<DataRow> QueryPage(string table, string deletedCol, PortalPageQuery query)
+    private static PagedDataTable QueryPage(string table, string deletedCol, PortalPageQuery query)
     {
-        var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
-        kit.select("*").from(table).where($"({deletedCol} is null or {deletedCol}=0)");
         var pageSize = query.PageSize <= 0 ? 10 : query.PageSize;
         var pageNum = query.Page <= 0 ? 1 : query.Page;
-        var dt = kit.setPage(pageSize, pageNum).query();
-        return PagedResult<DataRow>.Create(dt.Rows.Cast<DataRow>().ToList(), pageNum, pageSize, kit.count());
+        var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
+        kit.select("*").from(table).where($"({deletedCol} is null or {deletedCol}=0)");
+        return kit.setPage(pageSize, pageNum).queryPaged();
     }
 
     private static DataRow? Get(string table, string idCol, Guid id) =>

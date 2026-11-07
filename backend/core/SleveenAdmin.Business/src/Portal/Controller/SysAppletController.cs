@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Business.Portal.Service;
@@ -20,30 +19,24 @@ public class SysAppletController : ControllerBase
     public ContentResult Page([FromQuery] PortalPageQuery query)
     {
         var page = _service.GetPage(query);
-        return JsonContent(AjaxResult.success(page.Total, page.Items));
+        return AjaxResult.ToContent(AjaxResult.success(page.Total, page.Items));
     }
 
     [HttpGet("{id:guid}")]
     public ContentResult Get(Guid id)
-        => JsonContent(AjaxResult.success(_service.GetById(id)!));
+        => AjaxResult.ToContent(AjaxResult.success(_service.GetById(id)!));
 
     [HttpPost]
     public ContentResult Save([FromBody] List<SysApplet> rows)
     {
         _service.SaveBatch(rows);
-        return JsonContent(AjaxResult.success("保存成功"));
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
     public ContentResult Delete(Guid id)
     {
         _service.Delete(id);
-        return JsonContent(AjaxResult.success("删除成功"));
+        return AjaxResult.ToContent(AjaxResult.success("删除成功"));
     }
-
-    static ContentResult JsonContent(Newtonsoft.Json.Linq.JObject jobj) => new()
-    {
-        Content = jobj.ToString(Formatting.None),
-        ContentType = "application/json"
-    };
 }

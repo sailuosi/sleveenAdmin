@@ -1,5 +1,6 @@
 // 从 minehub HHNY.NET.Core.AjaxResult 抄入，用于返回 Newtonsoft JObject。
 using System.Data;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -234,5 +235,12 @@ public class AjaxResult
         }
         return jObject;
     }
+
+    /// <summary>用 Newtonsoft 写出，避免 System.Text.Json 把 JObject 序列化成空对象。</summary>
+    public static ContentResult ToContent(JObject jobj) => new()
+    {
+        Content = jobj.ToString(Formatting.None),
+        ContentType = "application/json"
+    };
     #endregion
 }

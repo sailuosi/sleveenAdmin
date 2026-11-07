@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Business.Portal.Service;
-using SleveenAdmin.Foundation.AspNet;
-using SleveenAdmin.Foundation.Models;
+using SleveenAdmin.Foundation;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace SleveenAdmin.Business.Portal.Controller;
@@ -19,52 +20,54 @@ public class SysPortalCommonController : ControllerBase
     public SysPortalCommonController(SysPortalCommonService service) => _service = service;
 
     [HttpPost("loadportalconfig")]
-    [ApiResult]
-    public IActionResult LoadPortalConfig([FromBody] StringValueInput input)
+    public ContentResult LoadPortalConfig([FromBody] StringValueInput input)
     {
         var data = _service.LoadPortalConfig(input.Value ?? "", User);
-        return Ok(data);
+        return AjaxResult.ToContent(WrapConfig(data));
     }
 
     [HttpPost("loadportalconfigbyoid")]
-    [ApiResult]
-    public IActionResult LoadPortalConfigByOid([FromBody] StringValueInput input)
+    public ContentResult LoadPortalConfigByOid([FromBody] StringValueInput input)
     {
-        // minehub ParaValue.value 为字符串 OID；避免 Guid 绑定失败 → Empty → 假 404
         if (!Guid.TryParse(input.Value, out var oid) || oid == Guid.Empty)
-            return Ok(null);
+            return AjaxResult.ToContent(AjaxResult.success(new JObject()));
 
         var data = _service.LoadPortalConfigByOid(oid, User);
-        return Ok(data);
+        return AjaxResult.ToContent(WrapConfig(data));
     }
 
     [HttpPost("loadhomeportal")]
-    [ApiResult]
-    public IActionResult LoadHomePortal([FromBody] StringValueInput input)
+    public ContentResult LoadHomePortal([FromBody] StringValueInput input)
     {
-        // 未命中时仍 200 + data=null，避免首页被 request 当成 HTTP 404；前端 parse 后空渲染
         var data = _service.LoadHomePortal(input.Value ?? "home", User);
-        return Ok(data);
+        return AjaxResult.ToContent(WrapConfig(data));
     }
 
     [HttpPost("savecell")]
-    [ApiResult]
-    public IActionResult SaveCell([FromBody] JsonObject? body)
+    public ContentResult SaveCell([FromBody] JsonObject? body)
     {
-        // 标准：{ portalId, cells }；兼容旧前端：{ key: portalOid, value: cellsJsonString|array }
         var (portalId, cells) = ParseSaveCellsBody(body);
         if (portalId == Guid.Empty)
-            return BadRequest(new { message = "portalId 无效" });
+            return AjaxResult.ToContent(AjaxResult.error("portalId 无效"));
         _service.SaveCells(portalId, cells, User);
-        return Ok(new { message = "保存成功" });
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpPost("saveapplets")]
-    [ApiResult]
-    public IActionResult SaveApplets([FromBody] SaveAppletsInput input)
+    public ContentResult SaveApplets([FromBody] SaveAppletsInput input)
     {
         _service.SaveApplets(input.PortalId, input.Applets ?? new JsonArray());
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
+    }
+
+    static JObject WrapConfig(JsonObject? data)
+    {
+        if (data is null)
+            return AjaxResult.success(new JObject());
+        var token = JToken.Parse(data.ToJsonString());
+        return token is JObject jo
+            ? AjaxResult.success(jo)
+            : AjaxResult.success(new JObject { ["value"] = token });
     }
 
     private static (Guid portalId, JsonArray cells) ParseSaveCellsBody(JsonObject? body)

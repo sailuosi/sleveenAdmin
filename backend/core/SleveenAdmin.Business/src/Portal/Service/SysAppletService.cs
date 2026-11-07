@@ -23,13 +23,18 @@ public sealed class SysAppletService : IScoped
         if (query.SaAppletCataId.HasValue)
             kit.where("Sa_AppletCataId", query.SaAppletCataId.Value);
         if (!string.IsNullOrWhiteSpace(query.Keyword))
-            kit.whereLike("A_Name", query.Keyword);
-        return kit.setPage(pageSize, pageNum).orderBy("Sa_CreateTime desc").queryPaged();
+            kit.whereLike("A_Title", query.Keyword);
+        var page = kit.setPage(pageSize, pageNum).orderBy("Sa_CreateTime desc").queryPaged();
+        PortalRowAlias.Alias(page.Items, PortalRowAlias.Applet);
+        return page;
     }
 
-    public DataRow? GetById(Guid id) =>
-        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+    public DataRow? GetById(Guid id)
+    {
+        var row = DBCash.useSQL(MooSqlSetup.DefaultPosition)
             .select("*").from(PortalSchema.TableApplet).where("Sa_Id", id).queryRow();
+        return PortalRowAlias.Alias(row, PortalRowAlias.Applet);
+    }
 
     public void SaveBatch(IReadOnlyList<SysApplet> rows)
     {

@@ -1,25 +1,23 @@
 using System.Data;
 using System.Security.Claims;
+using mooSQL.data;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Foundation.Data;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Foundation.Models;
-using mooSQL.data;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
 public sealed class SysPortalService : IScoped
 {
-    public PagedResult<SysPortalDto> GetPage(PortalPageQuery query)
+    public PagedDataTable GetPage(PortalPageQuery query)
     {
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
         kit.select("a.Sp_Id as spId,a.Sp_OrgId as spOrgId,a.Sp_UserId as spUserId,a.Sp_PortPageId as spPortPageId")
-            .select("a.P_IsOn as pIsOn,a.P_Name as pName,a.P_Note as pNote,a.P_Theme as pTheme,a.P_Idx as pIdx")
-            .select("a.P_Group as pGroup,a.P_ShowTitle as pShowTitle,a.P_Style as pStyle,a.P_Icon as pIcon")
-            .select("a.P_Css as pCss,a.P_Display as pDisplay,a.P_ColNum as pColNum,a.P_Rows as pRows")
-            .select("a.P_Editable as pEditable,a.P_Remark as pRemark,a.P_Task as pTask,a.P_Key as pKey")
-            .select("a.P_Pulic as pPulic,a.P_Para as pPara,p.PP_Title as ppTitle,o.So_Name as orgName")
+            .select("a.P_IsOn,a.P_Name,a.P_Note,a.P_Theme,a.P_Idx,a.P_Group,a.P_ShowTitle,a.P_Style,a.P_Icon")
+            .select("a.P_Css,a.P_Display,a.P_ColNum,a.P_Rows,a.P_Editable,a.P_Remark,a.P_Task,a.P_Key,a.P_Pulic,a.P_Para")
+            .select("a.Sp_CreateTime as SYS_Created,a.Sp_UpdateTime as SYS_LAST_UPD")
+            .select("p.PP_Title,o.So_Name as OrgName")
             .from($"{PortalSchema.TablePortal} a")
             .join($"left join {PortalSchema.TablePortPage} p on a.Sp_PortPageId=p.Spp_Id")
             .join($"left join {PortalSchema.TableSysOrg} o on a.Sp_OrgId=o.So_Id")
@@ -40,31 +38,21 @@ public sealed class SysPortalService : IScoped
 
         var pageSize = query.PageSize <= 0 ? 10 : query.PageSize;
         var pageNum = query.Page <= 0 ? 1 : query.Page;
-        var dt = kit.setPage(pageSize, pageNum)
-            .orderBy("a.Sp_CreateTime desc")
-            .query();
-        var total = kit.count();
-        var rows = MapPortalRows(dt);
-        return PagedResult<SysPortalDto>.Create(rows, pageNum, pageSize, total);
+        return kit.setPage(pageSize, pageNum).orderBy("a.Sp_CreateTime desc").queryPaged();
     }
 
-    public SysPortalDto? GetById(Guid id)
-    {
-        var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
-        var row = kit.select("a.Sp_Id as spId,a.Sp_OrgId as spOrgId,a.Sp_UserId as spUserId,a.Sp_PortPageId as spPortPageId")
-            .select("a.P_IsOn as pIsOn,a.P_Name as pName,a.P_Note as pNote,a.P_Theme as pTheme,a.P_Idx as pIdx")
-            .select("a.P_Group as pGroup,a.P_ShowTitle as pShowTitle,a.P_Style as pStyle,a.P_Icon as pIcon")
-            .select("a.P_Css as pCss,a.P_Display as pDisplay,a.P_ColNum as pColNum,a.P_Rows as pRows")
-            .select("a.P_Editable as pEditable,a.P_Remark as pRemark,a.P_Task as pTask,a.P_Key as pKey")
-            .select("a.P_Pulic as pPulic,a.P_Para as pPara,a.Sp_CreateTime as sysCreated,a.Sp_UpdateTime as sysLastUpd")
-            .select("p.PP_Title as ppTitle,o.So_Name as orgName")
+    public DataRow? GetById(Guid id) =>
+        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+            .select("a.Sp_Id as spId,a.Sp_OrgId as spOrgId,a.Sp_UserId as spUserId,a.Sp_PortPageId as spPortPageId")
+            .select("a.P_IsOn,a.P_Name,a.P_Note,a.P_Theme,a.P_Idx,a.P_Group,a.P_ShowTitle,a.P_Style,a.P_Icon")
+            .select("a.P_Css,a.P_Display,a.P_ColNum,a.P_Rows,a.P_Editable,a.P_Remark,a.P_Task,a.P_Key,a.P_Pulic,a.P_Para")
+            .select("a.Sp_CreateTime as SYS_Created,a.Sp_UpdateTime as SYS_LAST_UPD")
+            .select("p.PP_Title,o.So_Name as OrgName")
             .from($"{PortalSchema.TablePortal} a")
             .join($"left join {PortalSchema.TablePortPage} p on a.Sp_PortPageId=p.Spp_Id")
             .join($"left join {PortalSchema.TableSysOrg} o on a.Sp_OrgId=o.So_Id")
             .where("a.Sp_Id", id)
             .queryRow();
-        return row is null ? null : MapPortalRow(row);
-    }
 
     public void SaveBatch(IReadOnlyList<SysPortal> rows, ClaimsPrincipal user)
     {
@@ -73,7 +61,6 @@ public sealed class SysPortalService : IScoped
         var now = DateTime.Now;
         foreach (var row in rows)
         {
-            // 数字表单字段可能以 number 进来，ColNum/Rows 已是 string?；Idx 保持 int?
             NormalizeStringFields(row);
 
             if (row.Id == Guid.Empty)
@@ -97,8 +84,6 @@ public sealed class SysPortalService : IScoped
 
     private static void NormalizeStringFields(SysPortal row)
     {
-        // STJ 对 string 属性收到 number 时可能失败；前端 P_ColNum/P_Rows 常为数字——若已绑定为 string 则无需处理。
-        // 空 Key 时用名称兜底，避免列表空白难辨。
         if (string.IsNullOrWhiteSpace(row.Key) && !string.IsNullOrWhiteSpace(row.Name))
             row.Key = row.Name.Trim();
     }
@@ -178,88 +163,5 @@ public sealed class SysPortalService : IScoped
             .set("P_Para", row.Para)
             .where("Sp_Id", row.Id)
             .doUpdate();
-    }
-
-    private static List<SysPortalDto> MapPortalRows(DataTable dt)
-    {
-        var list = new List<SysPortalDto>();
-        foreach (DataRow row in dt.Rows)
-            list.Add(MapPortalRow(row));
-        return list;
-    }
-
-    private static SysPortalDto MapPortalRow(DataRow row) => new()
-    {
-        SpId = row.Table.Columns.Contains("spId") ? Guid.Parse(row["spId"].ToString()!) : Guid.Parse(row["Sp_Id"].ToString()!),
-        SpOrgId = GetGuid(row, "spOrgId", "Sp_OrgId"),
-        SpUserId = GetGuid(row, "spUserId", "Sp_UserId"),
-        SpPortPageId = GetGuid(row, "spPortPageId", "Sp_PortPageId"),
-        PIsOn = GetBool(row, "pIsOn", "P_IsOn"),
-        PName = GetStr(row, "pName", "P_Name"),
-        PNote = GetStr(row, "pNote", "P_Note"),
-        PTheme = GetStr(row, "pTheme", "P_Theme"),
-        PIdx = GetInt(row, "pIdx", "P_Idx"),
-        PGroup = GetStr(row, "pGroup", "P_Group"),
-        PShowTitle = GetStr(row, "pShowTitle", "P_ShowTitle"),
-        PStyle = GetStr(row, "pStyle", "P_Style"),
-        PIcon = GetStr(row, "pIcon", "P_Icon"),
-        PCss = GetStr(row, "pCss", "P_Css"),
-        PDisplay = GetStr(row, "pDisplay", "P_Display"),
-        PColNum = GetStr(row, "pColNum", "P_ColNum"),
-        PRows = GetStr(row, "pRows", "P_Rows"),
-        PEditable = GetBool(row, "pEditable", "P_Editable"),
-        PRemark = GetStr(row, "pRemark", "P_Remark"),
-        PTask = GetStr(row, "pTask", "P_Task"),
-        PKey = GetStr(row, "pKey", "P_Key"),
-        PPulic = GetStr(row, "pPulic", "P_Pulic"),
-        PPara = GetStr(row, "pPara", "P_Para"),
-        PpTitle = GetStr(row, "ppTitle", "PP_Title"),
-        OrgName = GetStr(row, "orgName", "So_Name"),
-        SysCreated = GetDate(row, "sysCreated", "Sp_CreateTime"),
-        SysLastUpd = GetDate(row, "sysLastUpd", "Sp_UpdateTime")
-    };
-
-    private static DateTime? GetDate(DataRow row, params string[] cols)
-    {
-        foreach (var c in cols)
-        {
-            if (!row.Table.Columns.Contains(c) || row[c] == DBNull.Value) continue;
-            return Convert.ToDateTime(row[c]);
-        }
-        return null;
-    }
-
-    private static string? GetStr(DataRow row, params string[] cols)
-    {
-        foreach (var c in cols)
-            if (row.Table.Columns.Contains(c) && row[c] != DBNull.Value)
-                return row[c]?.ToString();
-        return null;
-    }
-
-    private static Guid? GetGuid(DataRow row, params string[] cols)
-    {
-        foreach (var c in cols)
-        {
-            if (!row.Table.Columns.Contains(c) || row[c] == DBNull.Value) continue;
-            return Guid.TryParse(row[c].ToString(), out var g) ? g : null;
-        }
-        return null;
-    }
-
-    private static bool? GetBool(DataRow row, params string[] cols)
-    {
-        foreach (var c in cols)
-            if (row.Table.Columns.Contains(c) && row[c] != DBNull.Value)
-                return Convert.ToBoolean(row[c]);
-        return null;
-    }
-
-    private static int? GetInt(DataRow row, params string[] cols)
-    {
-        foreach (var c in cols)
-            if (row.Table.Columns.Contains(c) && row[c] != DBNull.Value)
-                return Convert.ToInt32(row[c]);
-        return null;
     }
 }

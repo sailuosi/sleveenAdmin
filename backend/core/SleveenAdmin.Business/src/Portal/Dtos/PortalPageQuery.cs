@@ -29,5 +29,9 @@ public sealed class PortalPageQuery : PageQuery
     public bool? PIsOn { get; set; }
 
     public Guid? SpPortalId { get; set; }
+
+    /// <summary>区块下控件列表：前端传 spPortCellId</summary>
+    public Guid? SpPortCellId { get; set; }
+
     public Guid? SaAppletCataId { get; set; }
 }

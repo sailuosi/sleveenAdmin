@@ -3,8 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Business.Portal.Service;
-using SleveenAdmin.Foundation.AspNet;
-using SleveenAdmin.Foundation.Models;
+using SleveenAdmin.Foundation;
 
 namespace SleveenAdmin.Business.Portal.Controller;
 
@@ -18,43 +17,39 @@ public class SysPortalController : ControllerBase
     public SysPortalController(SysPortalService service) => _service = service;
 
     [HttpGet("page")]
-    [ApiResult]
-    public IActionResult Page([FromQuery] PortalPageQuery query)
+    public ContentResult Page([FromQuery] PortalPageQuery query)
     {
-        // sysext vclist：requestAPI6 解包后读 res.data / res.total
         var page = _service.GetPage(query);
-        return Ok(new { data = page.Records, total = page.Total });
+        return AjaxResult.ToContent(AjaxResult.success(page.Total, page.Items));
     }
 
     [HttpGet("{id:guid}")]
-    [ApiResult]
-    public IActionResult Get(Guid id)
+    public ContentResult Get(Guid id)
     {
-        var dto = _service.GetById(id);
-        return dto is null ? NotFound(ApiResult.Fail("门户不存在")) : Ok(dto);
+        var row = _service.GetById(id);
+        return row is null
+            ? AjaxResult.ToContent(AjaxResult.error("门户不存在"))
+            : AjaxResult.ToContent(AjaxResult.success(row));
     }
 
     [HttpPost]
-    [ApiResult]
-    public IActionResult Create([FromBody] List<SysPortal> rows)
+    public ContentResult Create([FromBody] List<SysPortal> rows)
     {
         _service.SaveBatch(rows ?? [], User);
-        return Ok("保存成功");
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpPut]
-    [ApiResult]
-    public IActionResult Update([FromBody] List<SysPortal> rows)
+    public ContentResult Update([FromBody] List<SysPortal> rows)
     {
         _service.SaveBatch(rows ?? [], User);
-        return Ok("保存成功");
+        return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
-    [ApiResult]
-    public IActionResult Delete(Guid id)
+    public ContentResult Delete(Guid id)
     {
         _service.Delete(id);
-        return Ok();
+        return AjaxResult.ToContent(AjaxResult.success("删除成功"));
     }
 }
