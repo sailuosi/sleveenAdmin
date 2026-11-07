@@ -4,10 +4,10 @@
         <teleport :to="position" :disabled="!position"><slot name="toolbar"></slot></teleport>
     </div>
 
-    <div class="note-report-crumb">AI 拆解报告 &gt; 内容数据分析</div>
+    <div class="note-report-crumb">笔记详情 &gt; 内容数据</div>
 
     <div class="note-report-head">
-        <el-input v-model="focusRow.En_Title" class="note-report-title" placeholder="报告标题" :disabled="disabled" />
+        <el-input v-model="focusRow.En_Title" class="note-report-title" placeholder="笔记标题" :disabled="disabled" />
         <div class="note-report-meta">
             <el-input v-model="categoryText" class="note-report-cats" placeholder="分类，逗号分隔，如：小红书,干货 / 教程" :disabled="disabled" />
             <el-date-picker
@@ -51,7 +51,7 @@
     </div>
 
     <div class="note-report-section">
-        <div class="note-report-section-title">拆解要点</div>
+        <div class="note-report-section-title">内容要点</div>
         <div class="note-report-table">
             <div class="note-report-row" v-for="field in previewFields" :key="field.key">
                 <div class="note-report-row-lab">{{ field.label }}</div>
@@ -67,15 +67,14 @@
     <div class="note-ops-box">
         <div class="note-ops-title"><SvgIcon name="fa fa-pencil" /> 运营建议</div>
         <el-input v-model="report.opsAdvice" type="textarea" :rows="3" :disabled="disabled"
-            placeholder="例如：可复用「痛点提问 + 步骤拆解」结构，适合技能类选题…" />
+            placeholder="例如：可复用「痛点提问 + 步骤说明」结构，适合技能类选题…" />
     </div>
 
     <el-form class="note-extra-form" label-width="110px" :disabled="disabled">
-        <fminput v-model="focusRow.En_SourceUrl" label="原文链接" type="text"></fminput>
         <fminput v-model="focusRow.En_ViewCount" label="浏览" type="text"></fminput>
         <fminput v-model="focusRow.En_Status" label="状态" type="dict" :dictlist="codeTables.EbTopicStatus"></fminput>
         <fminput v-model="focusRow.En_TopicOID" label="关联选题OID" type="text"></fminput>
-        <fminput v-model="focusRow.En_Content" label="原文/备注" type="textarea"></fminput>
+        <fminput v-model="focusRow.En_Content" label="正文/备注" type="textarea"></fminput>
         <slot></slot>
     </el-form>
 </div>
@@ -191,12 +190,10 @@ function saveChange() {
         : { ...para, En_ReportJson: focusRow.value.En_ReportJson }
 
     if (payload == null) {
-        // report-only edits still need save when compare misses nested json
         if (focusRow.value[oidField]) {
             props.api.saveBizSaEbNoteList([{
                 [oidField]: focusRow.value[oidField],
                 En_Title: focusRow.value.En_Title,
-                En_SourceUrl: focusRow.value.En_SourceUrl,
                 En_Status: focusRow.value.En_Status,
                 En_LikeCount: focusRow.value.En_LikeCount,
                 En_BookmarkCount: focusRow.value.En_BookmarkCount,

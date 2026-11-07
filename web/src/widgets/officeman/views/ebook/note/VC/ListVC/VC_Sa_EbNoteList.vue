@@ -12,24 +12,8 @@
         </template>
         <template #default="p">
             <div class="note-shell" v-loading="loading">
-                <div class="note-intro">粘贴笔记链接，自动提取标题、数据、文案结构与热门评论</div>
-
-                <div class="note-url-bar">
-                    <el-input
-                        v-model="sourceUrl"
-                        clearable
-                        class="note-url-input"
-                        placeholder="https://www.xiaohongshu.com/explore/..."
-                        @keyup.enter="startDeconstruct"
-                    />
-                    <el-button class="note-deconstruct-btn" :loading="deconstructing" @click="startDeconstruct">
-                        开始拆解
-                    </el-button>
-                </div>
-                <div class="note-url-hint">支持小红书图文 / 视频笔记链接 · AI 拆解即将完善，当前可先建草稿再补全报告</div>
-
                 <div class="note-preview-head">
-                    <span>拆解结果预览</span>
+                    <span>笔记列表</span>
                     <span class="note-preview-count">共 {{ total }} 份</span>
                 </div>
 
@@ -40,7 +24,7 @@
                     :orderCol="listFace === 'table'" :stripe="true" row-key="Sa_EbNoteOID">
                     <template #li="{ row }">
                         <div class="note-card" @click="openRow(row)">
-                            <div class="note-card-title">{{ row.En_Title || '未命名拆解报告' }}</div>
+                            <div class="note-card-title">{{ row.En_Title || '未命名笔记' }}</div>
 
                             <div class="note-metrics">
                                 <div class="note-metric">
@@ -80,7 +64,7 @@
                                     <span v-if="!categoriesOf(row).length" class="note-cat-empty">未分类</span>
                                 </div>
                                 <div class="note-card-actions">
-                                    <el-button size="small" type="primary" plain @click="openRow(row)">下载报告</el-button>
+                                    <el-button size="small" type="primary" plain @click="openRow(row)">查看详情</el-button>
                                     <el-button size="small" text type="danger" @click="removeRow(row)">删除</el-button>
                                 </div>
                             </div>
@@ -99,7 +83,6 @@
                         </template>
                     </vccol>
                     <vccol field="En_Title" caption="标题" width="220px" type="text" align="left" headerAlign="center"></vccol>
-                    <vccol field="En_SourceUrl" caption="原文链接" width="220px" type="text" align="left" headerAlign="center"></vccol>
                     <vccol field="En_Status" caption="状态" width="100px" type="text" :dictlist="codeTables.EbTopicStatus" align="center" headerAlign="center"></vccol>
                     <vccol field="En_LikeCount" caption="点赞" width="90px" type="text" align="center" headerAlign="center"></vccol>
                     <vccol field="SYS_Created" caption="创建日期" width="168px" type="datetime" align="center" headerAlign="center"></vccol>
@@ -111,7 +94,7 @@
                 append-to-body @close="closeRowEdit">
                 <template #header>
                     <div class="dialog-header">
-                        <span>AI 拆解报告</span>
+                        <span>笔记详情</span>
                         <el-button class="toolbar-action-btn toolbar-btn-primary" @click="onDialogSave">
                             <SvgIcon name="fa fa-save" /> 保存
                         </el-button>
@@ -157,8 +140,6 @@ const diaEditOpened = ref(false)
 const editingRow = ref({})
 const editLiveVCRef = ref(null)
 const listFace = ref('card')
-const sourceUrl = ref('')
-const deconstructing = ref(false)
 
 const codeTables = computed(() => props.page?.codeTable || {})
 const busData = computed(() => props.bus?.dataMap?.[VCName] || { conditions: [] })
@@ -208,59 +189,6 @@ function formatCount(v) {
     if (n >= 10000) return (n / 10000).toFixed(n >= 100000 ? 0 : 1).replace(/\.0$/, '') + 'w'
     if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
     return String(n)
-}
-
-function guessTitleFromUrl(url) {
-    try {
-        const u = new URL(url)
-        const last = u.pathname.split('/').filter(Boolean).pop() || ''
-        if (u.hostname.includes('xiaohongshu') || u.hostname.includes('xhslink')) return '小红书笔记拆解'
-        if (last && last.length > 4) return `笔记拆解 · ${last.slice(0, 12)}`
-    } catch { /* ignore */ }
-    return '新拆解报告'
-}
-
-function startDeconstruct() {
-    const url = String(sourceUrl.value || '').trim()
-    if (!url) {
-        swal({ text: '请先粘贴笔记链接', icon: 'info', button: '关闭' })
-        return
-    }
-    deconstructing.value = true
-    const draft = {
-        En_Status: 'draft',
-        En_SourceUrl: url,
-        En_Title: guessTitleFromUrl(url),
-        En_LikeCount: '',
-        En_BookmarkCount: '',
-        En_CommentCount: '',
-        En_ViewCount: '',
-        En_ShareCount: '',
-        En_ReportJson: JSON.stringify({
-            titleHighlight: '',
-            coverDesign: '',
-            contentStructure: '',
-            engageGuide: '',
-            suitTopics: '',
-            takeaways: '拆解草稿已创建，请补充数据与分析要点。',
-            categories: url.includes('xiaohongshu') || url.includes('xhslink') ? ['小红书'] : [],
-            topicDirection: '',
-            contentFormat: '',
-            coreSell: '',
-            contentFramework: '',
-            engageDesign: '',
-            opsAdvice: '',
-        }),
-    }
-    props.api.saveBizSaEbNoteList([draft]).then(() => {
-        deconstructing.value = false
-        sourceUrl.value = ''
-        getlist()
-        swal({ text: '已创建拆解草稿，可打开完善报告', icon: 'success', button: '关闭' })
-    }).catch((err) => {
-        deconstructing.value = false
-        swal({ text: err.message || '创建失败', icon: 'error', button: '关闭' })
-    })
 }
 
 const getlist = () => {
@@ -338,24 +266,9 @@ function onBtnAddClick() {
 .dialog-header { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
 .note-shell { display: flex; flex-direction: column; gap: 12px; min-height: 0; height: 100%; }
-.note-intro { font-size: 13px; color: #667085; }
-
-.note-url-bar { display: flex; gap: 10px; align-items: center; }
-.note-url-input { flex: 1; }
-.note-url-input :deep(.el-input__wrapper) { border-radius: 12px; min-height: 42px; }
-.note-deconstruct-btn {
-    --el-button-text-color: #fff;
-    --el-button-bg-color: #7A5AF8;
-    --el-button-border-color: #7A5AF8;
-    --el-button-hover-bg-color: #6938ef;
-    --el-button-hover-border-color: #6938ef;
-    --el-button-hover-text-color: #fff;
-    height: 42px; border-radius: 12px; padding: 0 18px; font-weight: 600;
-}
-.note-url-hint { font-size: 12px; color: #98a2b3; margin-top: -4px; }
 .note-preview-head {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 14px; font-weight: 700; color: #101828; margin-top: 4px;
+    font-size: 14px; font-weight: 700; color: #101828;
 }
 .note-preview-count { font-size: 12px; font-weight: 500; color: #98a2b3; }
 
@@ -408,8 +321,5 @@ function onBtnAddClick() {
 
 @media (max-width: 1100px) {
     :deep(.vc-card-list) { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
-}
-@media (max-width: 720px) {
-    .note-url-bar { flex-direction: column; align-items: stretch; }
 }
 </style>

@@ -1,12 +1,12 @@
 <template>
-<formcard title="爆款笔记拆解" width="" flex stretch>
+<formcard title="笔记" width="" flex stretch>
     <template #toolbar>
         <div ref="VC_Sa_EbNoteListHead"></div>
     </template>
     <VC_Sa_EbNoteList
         :api="api" :bus="bus" :page="pageData"
         :showTitle="false"
-        title="爆款笔记拆解"
+        title="笔记"
         ref="VC_Sa_EbNoteListBody"
         :pageSize="30"
         :flex="true"

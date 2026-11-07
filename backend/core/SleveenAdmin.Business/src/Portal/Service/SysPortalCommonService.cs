@@ -273,7 +273,7 @@ public sealed class SysPortalCommonService : IScoped
                 kit.doInsert();
             }
         }
-        ClearPortalCache(portalId);
+        ClearPortalCache(portalId, user);
     }
 
     public void SaveApplets(Guid portalId, JsonArray applets)
@@ -300,12 +300,25 @@ public sealed class SysPortalCommonService : IScoped
         ClearPortalCache(portalId);
     }
 
-    private void ClearPortalCache(Guid portalId)
+    /// <summary>
+    /// 与 LoadPortalConfig / LoadPortalConfigByOid 的 cache key 对齐：portalconfig:{key}_{account}、portalconfig_oid:{oid}_{account}。
+    /// </summary>
+    private void ClearPortalCache(Guid portalId, ClaimsPrincipal? user = null)
     {
+        if (portalId == Guid.Empty) return;
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
         var key = kit.clear().select("P_Key").from(PortalSchema.TablePortal).where("Sp_Id", portalId).queryRowString("");
-        if (!string.IsNullOrEmpty(key))
-            _cache.Remove($"portalconfig:{key}_");
+        var account = CurrentUser.GetAccount(user);
+        var accounts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "anon" };
+        if (!string.IsNullOrWhiteSpace(account))
+            accounts.Add(account);
+
+        foreach (var acc in accounts)
+        {
+            if (!string.IsNullOrEmpty(key))
+                _cache.Remove($"portalconfig:{key}_{acc}");
+            _cache.Remove($"portalconfig_oid:{portalId}_{acc}");
+        }
     }
 
     private static string? ResolveUserOrgClassCode(Guid? userId)

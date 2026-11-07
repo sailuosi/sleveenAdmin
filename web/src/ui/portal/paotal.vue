@@ -141,7 +141,7 @@ export default {
             return res;
         },
         mydisable(){
-            //return false;
+            return false;
             if(this.disabled){
                 return true;
             }
@@ -272,28 +272,39 @@ export default {
             return this.appletsDemo;
         },
         save(){
-            var str=JSON.stringify(this.applets);
-            savePortCells(str,this.portal.oid).then((e)=>{
-                this.$message(e.data);
-                // 保存成功后清除所有相关缓存
+            var portalId = this.portal?.oid || this.oid;
+            if (!portalId) {
+                this.$message.error("门户 OID 缺失，无法保存");
+                return;
+            }
+            // 只提交格子几何；去掉运行时 vclist，避免无用大包
+            var cells = (this.applets || []).map((c) => ({
+                oid: c.oid,
+                x: c.x,
+                y: c.y,
+                w: c.w,
+                h: c.h,
+                i: c.i,
+                ckey: c.ckey,
+                name: c.name,
+                theme: c.theme,
+                mode: c.mode
+            }));
+            savePortCells(cells, portalId).then(()=>{
                 var sid = this.oid ? ("oid_"+this.oid) : this.name;
                 var cacheId = this.oid ? ("oid:"+this.oid) : ("key:"+this.name);
-                // 清除当前缓存
                 delete this.paotalMap[cacheId];
-                // 🔥 同时清除可能存在的其他缓存key（避免oid/key互相覆盖）
-                var otherCacheId = this.oid ? ("key:"+this.portal.P_Key) : ("oid:"+this.portal.oid);
-                delete this.paotalMap[otherCacheId];
-                // 同时清除可能存在的样式缓存
+                var portalKey = this.portal?.P_Key || this.portal?.key || this.name;
+                if (portalKey) delete this.paotalMap["key:"+portalKey];
+                if (portalId) delete this.paotalMap["oid:"+portalId];
                 var myid = "css" + sid;
                 var t = document.getElementById(myid);
                 if(t){
                     t.innerHTML = "";
                 }
-                this.$message.success("保存成功，3秒后自动刷新页面");
-                // 🔥 自动刷新页面，确保获取最新数据
-                setTimeout(()=>{
-                    window.location.reload();
-                }, 3000);
+                this.$message.success("保存成功");
+            }).catch((err)=>{
+                this.$message.error(err?.message || "保存失败");
             })
         },
         moveEvent: function(i, newX, newY){

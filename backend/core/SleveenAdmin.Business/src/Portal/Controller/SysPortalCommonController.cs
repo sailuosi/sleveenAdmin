@@ -49,10 +49,14 @@ public class SysPortalCommonController : ControllerBase
 
     [HttpPost("savecell")]
     [ApiResult]
-    public IActionResult SaveCell([FromBody] SaveCellsInput input)
+    public IActionResult SaveCell([FromBody] JsonObject? body)
     {
-        _service.SaveCells(input.PortalId, input.Cells ?? new JsonArray(), User);
-        return Ok();
+        // 标准：{ portalId, cells }；兼容旧前端：{ key: portalOid, value: cellsJsonString|array }
+        var (portalId, cells) = ParseSaveCellsBody(body);
+        if (portalId == Guid.Empty)
+            return BadRequest(new { message = "portalId 无效" });
+        _service.SaveCells(portalId, cells, User);
+        return Ok(new { message = "保存成功" });
     }
 
     [HttpPost("saveapplets")]
@@ -61,5 +65,43 @@ public class SysPortalCommonController : ControllerBase
     {
         _service.SaveApplets(input.PortalId, input.Applets ?? new JsonArray());
         return Ok();
+    }
+
+    private static (Guid portalId, JsonArray cells) ParseSaveCellsBody(JsonObject? body)
+    {
+        if (body is null) return (Guid.Empty, new JsonArray());
+
+        Guid portalId = Guid.Empty;
+        if (body.TryGetPropertyValue("portalId", out var pidNode) && Guid.TryParse(pidNode?.ToString(), out var g1))
+            portalId = g1;
+        else if (body.TryGetPropertyValue("key", out var keyNode) && Guid.TryParse(keyNode?.ToString(), out var g2))
+            portalId = g2;
+
+        JsonArray cells = new();
+        if (body.TryGetPropertyValue("cells", out var cellsNode) && cellsNode is JsonArray arr1)
+            cells = arr1;
+        else if (body.TryGetPropertyValue("value", out var valNode))
+        {
+            if (valNode is JsonArray arr2)
+                cells = arr2;
+            else if (valNode is JsonValue jv)
+            {
+                var raw = jv.ToString();
+                if (!string.IsNullOrWhiteSpace(raw))
+                {
+                    try
+                    {
+                        var parsed = JsonNode.Parse(raw);
+                        if (parsed is JsonArray arr3) cells = arr3;
+                    }
+                    catch
+                    {
+                        // ignore malformed legacy payload
+                    }
+                }
+            }
+        }
+
+        return (portalId, cells);
     }
 }

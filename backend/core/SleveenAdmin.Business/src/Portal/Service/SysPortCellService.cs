@@ -1,9 +1,9 @@
 using System.Data;
+using mooSQL.data;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Foundation.Data;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Foundation.Models;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
@@ -13,21 +13,21 @@ public sealed class SysPortCellService : IScoped
 
     public SysPortCellService(MooRepository<SysPortCell> cells) => _cells = cells;
 
-    public PagedResult<DataRow> GetPage(PortalPageQuery query)
+    public PagedDataTable GetPage(PortalPageQuery query)
     {
+        var pageSize = query.PageSize <= 0 ? 10 : query.PageSize;
+        var pageNum = query.Page <= 0 ? 1 : query.Page;
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
         kit.select("*").from(PortalSchema.TablePortCell)
             .where("(Spc_Deleted is null or Spc_Deleted=0)");
         if (query.SpPortalId.HasValue)
             kit.where("Spc_PortalId", query.SpPortalId.Value);
-        var pageSize = query.PageSize <= 0 ? 10 : query.PageSize;
-        var pageNum = query.Page <= 0 ? 1 : query.Page;
-        var dt = kit.setPage(pageSize, pageNum).orderBy("PC_Idx asc").query();
-        return PagedResult<DataRow>.Create(dt.Rows.Cast<DataRow>().ToList(), pageNum, pageSize, kit.count());
+        return kit.setPage(pageSize, pageNum).orderBy("PC_Idx asc").queryPaged();
     }
 
     public DataRow? GetById(Guid id) =>
-        DBCash.useSQL(MooSqlSetup.DefaultPosition).select("*").from(PortalSchema.TablePortCell).where("Spc_Id", id).queryRow();
+        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+            .select("*").from(PortalSchema.TablePortCell).where("Spc_Id", id).queryRow();
 
     public void SaveBatch(IReadOnlyList<SysPortCell> rows)
     {

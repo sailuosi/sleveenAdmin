@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Business.Portal.Service;
+using SleveenAdmin.Foundation;
 using SleveenAdmin.Foundation.AspNet;
 
 namespace SleveenAdmin.Business.Portal.Controller;
@@ -17,11 +19,16 @@ public class SysPortPageController : ControllerBase
 
     [HttpGet("page")]
     [ApiResult]
-    public IActionResult Page([FromQuery] PortalPageQuery query) => Ok(_service.GetPage(query));
+    public JObject Page([FromQuery] PortalPageQuery query)
+    {
+        var page = _service.GetPage(query);
+        return AjaxResult.success(page.Total, page.Items);
+    }
 
     [HttpGet("{id:guid}")]
     [ApiResult]
-    public IActionResult Get(Guid id) => Ok(_service.GetById(id));
+    public JObject Get(Guid id)
+        => AjaxResult.success(_service.GetById(id)!);
 
     [HttpPost]
     [ApiResult]

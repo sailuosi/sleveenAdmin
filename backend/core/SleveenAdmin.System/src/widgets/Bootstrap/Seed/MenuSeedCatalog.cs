@@ -1531,7 +1531,7 @@ public static class MenuSeedCatalog
                 Pid = Guid.Parse("00000000-0000-0000-0000-0000000000A0"),
                 Type = 2,
                 Name = "officeman_note",
-                Title = "爆款笔记拆解",
+                Title = "笔记",
                 Path = "/officeman/note",
                 Component = "widgets/officeman/views/ebook/note/Page/Biz_Sa_EbNoteList.vue",
                 Icon = "mdi:note-text-outline",

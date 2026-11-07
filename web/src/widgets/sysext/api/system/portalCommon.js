@@ -64,13 +64,27 @@ export function loadPortalList(pageCode = 'home'){
     })
 }
 
-export function savePortCells(val,moid){
+/**
+ * 保存门户格子布局。
+ * @param {string|object[]} cellsOrJson 格子数组，或 JSON 字符串（兼容旧调用）
+ * @param {string} portalId 门户 OID
+ */
+export function savePortCells(cellsOrJson, portalId){
+    let cells = cellsOrJson;
+    if (typeof cellsOrJson === 'string') {
+        try {
+            cells = JSON.parse(cellsOrJson);
+        } catch {
+            cells = [];
+        }
+    }
+    if (!Array.isArray(cells)) cells = [];
     return request({
         url: '/portal/common/savecell',
         method: 'post',
-        data:{
-            value:val,
-            key:moid
+        data: {
+            portalId,
+            cells
         }
     })
 }

@@ -1,9 +1,9 @@
 using System.Data;
+using mooSQL.data;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Foundation.Data;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Foundation.Models;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
@@ -13,19 +13,19 @@ public sealed class SysAppletCataService : IScoped
 
     public SysAppletCataService(MooRepository<SysAppletCata> catas) => _catas = catas;
 
-    public PagedResult<DataRow> GetPage(PortalPageQuery query)
+    public PagedDataTable GetPage(PortalPageQuery query)
     {
+        var pageSize = query.PageSize <= 0 ? 10 : query.PageSize;
+        var pageNum = query.Page <= 0 ? 1 : query.Page;
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
         kit.select("*").from(PortalSchema.TableAppletCata)
             .where("(Sac_Deleted is null or Sac_Deleted=0)");
-        var pageSize = query.PageSize <= 0 ? 10 : query.PageSize;
-        var pageNum = query.Page <= 0 ? 1 : query.Page;
-        var dt = kit.setPage(pageSize, pageNum).orderBy("AC_Idx asc").query();
-        return PagedResult<DataRow>.Create(dt.Rows.Cast<DataRow>().ToList(), pageNum, pageSize, kit.count());
+        return kit.setPage(pageSize, pageNum).orderBy("AC_Idx asc").queryPaged();
     }
 
     public DataRow? GetById(Guid id) =>
-        DBCash.useSQL(MooSqlSetup.DefaultPosition).select("*").from(PortalSchema.TableAppletCata).where("Sac_Id", id).queryRow();
+        DBCash.useSQL(MooSqlSetup.DefaultPosition)
+            .select("*").from(PortalSchema.TableAppletCata).where("Sac_Id", id).queryRow();
 
     public void SaveBatch(IReadOnlyList<SysAppletCata> rows)
     {
