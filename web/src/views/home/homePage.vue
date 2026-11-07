@@ -1,7 +1,9 @@
 ﻿<template>
-  <BorderlessDiv>
-    <paotal v-if="portalKey || portalOid" :name="portalKey" :oid="portalOid" :disabled="true" />
-  </BorderlessDiv>
+  <div class="home-page">
+    <BorderlessDiv>
+      <paotal v-if="portalKey || portalOid" :name="portalKey" :oid="portalOid" :disabled="true" />
+    </BorderlessDiv>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -72,3 +74,16 @@ onActivated(() => {
   loadHomePortalKey(currentPageCode.value || 'home');
 });
 </script>
+
+<style scoped>
+.home-page {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background:
+    linear-gradient(135deg, rgba(74, 144, 226, 0.22), rgba(255, 255, 255, 0.35)),
+    radial-gradient(circle at 80% 20%, rgba(126, 200, 255, 0.45), transparent 45%),
+    linear-gradient(160deg, #d7e9fb 0%, #eef5fc 45%, #f7fbff 100%);
+}
+</style>

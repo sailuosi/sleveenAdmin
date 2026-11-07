@@ -403,9 +403,7 @@ export default {
     font-size:var(--paotal-cell-font-size,14px);
     min-height: 100%;
 	--portal-gap: 8px;
-    --portal-page-bg:
-        linear-gradient(180deg, rgba(245, 249, 255, 0.92), rgba(245, 247, 250, 0.96)),
-        repeating-linear-gradient(135deg, rgba(17, 120, 204, 0.035) 0 1px, transparent 1px 96px);
+    --portal-page-bg: transparent;
     --portal-card-bg: #fff;
     --portal-card-border: #e6edf5;
     --portal-card-radius: 8px;

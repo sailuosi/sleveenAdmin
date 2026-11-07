@@ -178,10 +178,7 @@ defineExpose({ refresh });
   height: 100%;
   border-radius: 18px;
   padding: 18px 20px;
-  background:
-    linear-gradient(135deg, rgba(74, 144, 226, 0.22), rgba(255, 255, 255, 0.35)),
-    radial-gradient(circle at 80% 20%, rgba(126, 200, 255, 0.45), transparent 45%),
-    linear-gradient(160deg, #d7e9fb 0%, #eef5fc 45%, #f7fbff 100%);
+  background: transparent;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
