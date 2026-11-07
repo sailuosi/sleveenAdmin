@@ -1,1 +1,10 @@
 @forward 'scrollbar';
+
+.vertical-card{
+    .formcard-shell.formcard-shell--vc{
+        background: none;
+    }
+    div.mainpan-lv2{
+        background-color: transparent;
+    }
+}

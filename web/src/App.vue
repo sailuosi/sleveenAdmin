@@ -14,11 +14,14 @@ const appStore = useAppStore();
 const themeStore = useThemeStore();
 
 const elementLocale = computed(() => (appStore.locale === 'zh-CN' ? zhCn : en));
+
+/** 与主题布局 mode 同名，挂在 App 根便于全局 CSS 选择（如 .vertical-card） */
+const layoutModeClass = computed(() => themeStore.layout.mode);
 </script>
 
 <template>
   <ElConfigProvider :locale="elementLocale">
-    <div class="h-full">
+    <div class="h-full" :class="layoutModeClass">
       <AppProvider>
         <RouterView class="bg-layout" />
         <AppWatermark
