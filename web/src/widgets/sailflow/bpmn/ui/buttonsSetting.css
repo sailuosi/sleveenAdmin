@@ -1,0 +1,145 @@
+/* 属性面板标题栏右侧齿轮 */
+.bio-properties-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.sf-node-config-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #606266;
+  cursor: pointer;
+}
+.sf-node-config-gear:hover {
+  background: rgba(64, 158, 255, 0.12);
+  color: #409eff;
+}
+.sf-node-config-gear svg {
+  display: block;
+}
+
+.sf-assignee-params-btn {
+  margin: 0 0 8px 12px;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border, #dcdfe6);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--color-primary, #409eff);
+  cursor: pointer;
+  font-size: 12px;
+}
+.sf-assignee-params-btn:hover {
+  border-color: var(--color-primary, #409eff);
+}
+
+/* 对齐 n_flowable 操作按钮列表：操作按钮 | 显示名称 | 启用 */
+.sf-button-setting-pane {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  margin: 0 0 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sf-button-setting-desc {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text, #222);
+}
+
+.sf-button-setting-title,
+.sf-button-setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px 0 10px;
+  border: 1px solid rgba(31, 56, 88, 0.12);
+  box-sizing: border-box;
+}
+
+.sf-button-setting-title {
+  height: 40px;
+  background: rgba(248, 250, 252, 0.9);
+  font-weight: 700;
+}
+
+.sf-button-setting-item {
+  height: 36px;
+  border-top: 0;
+  background: #fff;
+}
+
+.sf-button-title-label,
+.sf-button-setting-item-label {
+  width: 33%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+}
+
+.sf-button-title-enable,
+.sf-button-enable-cell {
+  text-align: center !important;
+  width: 56px;
+  flex: 0 0 56px;
+}
+
+.sf-button-name-btn {
+  max-width: 100%;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary, #409eff);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.sf-button-name-btn:hover {
+  text-decoration: underline;
+}
+
+.sf-editable-title-input {
+  width: 100%;
+  max-width: 120px;
+  height: 24px;
+  padding: 0 6px;
+  line-height: 24px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.sf-editable-title-input:focus {
+  border-color: #40a9ff;
+  outline: 0;
+  box-shadow: 0 0 0 2px rgb(24 144 255 / 20%);
+}
+
+.sf-button-enable-switch {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #409eff;
+}
+
+/* 属性面板条目去掉默认上下留白，列表贴边 */
+.bio-properties-panel-entry:has(.sf-button-setting-pane) {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.bio-properties-panel-entry:has(.sf-button-setting-pane) .bio-properties-panel-label {
+  display: none;
+}

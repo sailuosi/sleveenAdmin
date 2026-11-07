@@ -1,0 +1,24 @@
+{
+  "UnifiedReport": {
+    "Enabled": false,
+    "BaseUrl": "http://127.0.0.1:9090",
+    "ScheduleBaseUrl": "http://127.0.0.1/api",
+    "ClientId": "",
+    "BasicAuthorization": "",
+    "GrantType": "client_credentials",
+    "TokenOperationCode": "jcpt.uums.oauth.token",
+    "ReportOperationCode": "jcpt.uums.userinfo.reportUser",
+    "AppId": "",
+    "AppCode": "",
+    "AppName": "SleveenAdmin",
+    "PcUrlBase": "http://127.0.0.1:5173/#/",
+    "PhUrlBase": "",
+    "Type": "",
+    "TokenAheadSeconds": 60,
+    "ConnectTimeoutMs": 5000,
+    "ReadTimeoutMs": 10000,
+    "AddScheduleOperationCode": "jcpt.portal.schedule.addSchedules",
+    "UpdateScheduleOperationCode": "jcpt.portal.schedule.updateSchedules",
+    "DeleteScheduleOperationCode": "jcpt.portal.schedule.deleteSchedules"
+  }
+}

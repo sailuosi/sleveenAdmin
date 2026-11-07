@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-cmn-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>%VITE_APP_TITLE%</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+    <script language="javascript" src="/js/sweetalert.min.js" charset="utf-8"></script>
+    <script language="javascript">
+		function alertIsOK(text,callback,content, dangerMode=true, icon="warning", moreButtons={}){
+          var nameEl=document.createElement("div");
+          nameEl.className="tipcontent";
+          if(content !=void 0){
+            nameEl.innerHTML=content;	
+                nameEl.setAttribute('style','max-height:700px;overflow:auto;');	
+          }
+          swal({
+            text: text,icon: icon,
+            content: nameEl,
+            dangerMode: dangerMode,
+            buttons: Object.assign({
+              confirm: {text:"确认",value: "yes", visible: true,closeModal: true},
+              cancel:  {text:"取消",value:"no", visible: true,},
+            }, moreButtons),
+          })
+          .then((value) => {
+            //swal(`You typed: ${value}`);
+            if(typeof callback=="function"){
+              callback(value);
+            }
+          });
+        }
+//         function alertIsOK(text,callback,content){
+// 	var nameEl=document.createElement("div");
+// 	nameEl.className="tipcontent";
+// 	if(content !=void 0){
+// 		nameEl.innerHTML=content;	
+//         nameEl.setAttribute('style','max-height:700px;overflow:auto;');	
+// 	}
+// 	swal({
+// 	  text: text,icon: "warning",
+// 	  content: nameEl,
+// 	  dangerMode: true,
+// 	  buttons: {
+// 		confirm: {text:"确认",value: "yes", visible: true,closeModal: true},
+// 		cancel:  {text:"取消",value:"no", visible: true,},
+// 	  },
+// 	})
+// 	.then((value) => {
+// 	  //swal(`You typed: ${value}`);
+// 		if(typeof callback=="function"){
+// 			callback(value);
+// 		}
+// 	});
+// }
+    </script>
+  </body>
+</html>

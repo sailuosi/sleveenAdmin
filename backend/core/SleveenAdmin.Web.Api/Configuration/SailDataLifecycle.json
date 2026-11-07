@@ -1,0 +1,21 @@
+{
+  "Sail": {
+    "DataLifecycle": {
+      "ArchiveRetentionDays": 90,
+      "ArchiveBatchSize": 100,
+      "HistTableNameFormat": "wf_{0}_hist_{1}",
+      "ColdStoreUsePrimaryDatabase": true,
+      "ColdStoreConnectionName": null,
+      "LogSinkKind": "Table",
+      "LogShardGranularity": "Month",
+      "LogUsePrimaryDatabase": true,
+      "LogTableBaseName": "wf_log",
+      "JobLogTableBaseName": "wf_job_log",
+      "LogRetentionDays": 90,
+      "LogFileDirectory": "logs/sail",
+      "HotShardProcessIds": [],
+      "HotShardTableNameFormat": "wf_{0}__{1}",
+      "HotShardSuffixMaxLength": 64
+    }
+  }
+}

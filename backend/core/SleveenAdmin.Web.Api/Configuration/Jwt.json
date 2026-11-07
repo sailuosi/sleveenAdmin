@@ -1,0 +1,9 @@
+{
+  "Jwt": {
+    "Issuer": "sleveen-admin",
+    "Audience": "sleveen-admin",
+    "SigningKey": "sleveen-admin-dev-signing-key-change-in-production-32bytes!!",
+    "AccessTokenMinutes": 120,
+    "RefreshTokenDays": 7
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "nodePolicy": [
+    {
+      "name": "NodePolicy",
+      "superClass": ["Element"],
+      "properties": [
+        {
+          "name": "json",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    }
+  ]
+}

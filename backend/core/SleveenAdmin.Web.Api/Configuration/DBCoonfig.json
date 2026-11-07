@@ -1,0 +1,24 @@
+{
+  "DBCoonfig": {
+    "Connections": [
+      {
+        "Position": 0,
+        "Name": "Master",
+        "DbType": "SQLite",
+        "ConnectString": "Data Source=App_Data/sleveenadmin.db",
+        "Version": "3.0",
+        "WatchSQL": true,
+        "MinTimeSpan": 900
+      },
+      {
+        "Position": 4,
+        "Name": "saiflow",
+        "DbType": "SQLite",
+        "ConnectString": "Data Source=App_Data/sailflow.sqlite;Mode=ReadWriteCreate",
+        "Version": "3.0",
+        "WatchSQL": false,
+        "MinTimeSpan": 900
+      }
+    ]
+  }
+}

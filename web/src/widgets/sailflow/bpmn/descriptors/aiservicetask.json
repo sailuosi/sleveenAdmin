@@ -1,0 +1,35 @@
+{
+  "aiService": [
+    {
+      "name": "AiServices",
+      "superClass": [ "Element" ],
+      "properties": [
+        {
+          "name": "aiServices",
+          "isMany": true,
+          "type": "AiService"
+        }
+      ]
+    },
+    {
+      "name": "AiService",
+      "properties": [
+        {
+          "name": "configUUID",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "type",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "toolSetName",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    }
+  ]
+}

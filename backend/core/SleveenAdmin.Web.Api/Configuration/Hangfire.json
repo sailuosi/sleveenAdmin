@@ -1,0 +1,10 @@
+{
+  "Hangfire": {
+    "Enabled": false,
+    "DashboardPath": "/hangfire",
+    "SchemaName": "Hangfire",
+    "RefreshTokenCleanupCron": "0 3 * * *",
+    "SailProcessArchiveEnabled": true,
+    "SailProcessArchiveCron": "30 3 * * *"
+  }
+}

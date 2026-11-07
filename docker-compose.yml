@@ -1,0 +1,20 @@
+services:
+  sleveenadmin:
+    build:
+      context: ../..
+      dockerfile: admin/sleveenAdmin/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DBCoonfig__Connections__0__DbType: "SQLite"
+      DBCoonfig__Connections__0__ConnectString: "Data Source=/app/App_Data/sleveenadmin.db"
+      DBCoonfig__Connections__0__Version: "3.0"
+      Hangfire__Enabled: "false"
+    volumes:
+      - sleveenadmin-uploads:/app/uploads
+      - sleveenadmin-data:/app/App_Data
+
+volumes:
+  sleveenadmin-uploads:
+  sleveenadmin-data:

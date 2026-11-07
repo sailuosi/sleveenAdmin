@@ -1,0 +1,8 @@
+{
+  "Frontend": {
+    "DevProxyEnabled": false,
+    "DevServerUrl": "http://localhost:9527",
+    "StaticRootPath": "wwwroot",
+    "FallbackFile": "index.html"
+  }
+}

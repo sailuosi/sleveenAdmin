@@ -1,0 +1,6 @@
+{
+  "Redis": {
+    "ConnectionString": "",
+    "InstanceName": "sleveen-admin:"
+  }
+}

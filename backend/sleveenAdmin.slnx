@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/mooSQL/">
+    <Project Path="../../../moo-sqlm/mooSQL2024/ext/mooSQL.Ext.csproj" />
+    <Project Path="../../../moo-sqlm/mooSQL2024/pure/mooSQL.Pure.csproj" />
+  </Folder>
+  <Folder Name="/core/">
+    <Project Path="core/SleveenAdmin.Foundation/SleveenAdmin.Foundation.csproj" />
+    <Project Path="core/SleveenAdmin.System/SleveenAdmin.System.csproj" />
+    <Project Path="core/SleveenAdmin.Business/SleveenAdmin.Business.csproj" />
+    <Project Path="core/SleveenAdmin.Web.Api/SleveenAdmin.Web.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SleveenAdmin.Tests/SleveenAdmin.Tests.csproj" />
+  </Folder>
+</Solution>

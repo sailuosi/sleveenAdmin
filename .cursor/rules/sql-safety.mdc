@@ -1,0 +1,54 @@
+---
+description: mooSQL 查询安全禁令（SleveenAdmin）：禁止字符串拼接 WHERE/LIKE，强制参数化
+globs: backend/**/*.cs
+alwaysApply: false
+---
+
+# SQL 安全（SleveenAdmin）
+
+完整规范见：
+- [doc/pc/design/代码风格规范.md](doc/pc/design/代码风格规范.md) §2.4
+- [doc/pc/design/数据库查询.md](doc/pc/design/数据库查询.md)
+- [doc/pc/audit/SQL安全审计要求.md](doc/pc/audit/SQL安全审计要求.md)
+
+## 红线（P0）
+
+**禁止**把外部可控值拼进 SQL / where 串：
+
+```csharp
+// ❌
+kit.where($"(mtb.En_Title like '%{kw}%')");
+kit.where("Id='" + id + "'");
+var safe = kw.Replace("'", "''");
+kit.where($"mtb.Name like '%{safe}%'");   // 转义后拼接仍禁止
+```
+
+## 正确写法
+
+```csharp
+// ✅ 模糊：whereLike / whereLikes（自动参数化）
+kit.whereLike("mtb.Em_Title", keyword);
+kit.whereLikes(["mtb.Em_Title", "mtb.Em_Summary"], keyword);
+
+// ✅ 相等 / 比较
+kit.where("mtb.Em_Status", status);
+kit.where("mtb.SYS_Created", weekStart, ">=");
+kit.whereGuid("mtb.Sa_EbMatOID", oid);
+
+// ✅ 软删可空
+kit.whereIsOrNull("mtb.SYS_Deleted", 0);
+
+// ✅ OR 组合用 whereFormat 占位符（值进参数）
+kit.whereFormat("(mtb.Ec_Scope = {0} or mtb.Ec_Scope = {1} or mtb.Ec_Scope is null)", scope, "all");
+```
+
+## 标识符
+
+- 表名/列名若来自请求：必须白名单（`IsSafeSqlIdent` 或枚举常量），**禁止** `kit.where($"mtb.{userKey}", v)`。
+- `BizServiceBase.ApplyFilters` 已对 Filters key 做标识符校验。
+
+## 其它
+
+- 纯行数用 `.count()`，勿仅为计数写 `select("count(1) as cnt")…queryRow`。
+- 限行用 `.top(n)`，勿 `.select("TOP 1 …")`。
+- Guid 相等用 `.whereGuid`。

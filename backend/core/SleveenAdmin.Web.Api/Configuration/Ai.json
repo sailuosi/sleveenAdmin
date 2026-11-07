@@ -1,0 +1,10 @@
+{
+  "Ai": {
+    "Provider": "OpenAI",
+    "Model": "qwen-plus",
+    "ApiKey": "",
+    "Endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "AgentName": "sleveen-admin助手",
+    "Instructions": "你是 sleveen-admin 后台管理系统的智能助手，请用简洁、准确的中文回答用户问题。"
+  }
+}

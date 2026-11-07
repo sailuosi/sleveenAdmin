@@ -1,0 +1,8 @@
+{
+  "FileStorage": {
+    "RootPath": "uploads",
+    "PublicPathPrefix": "/uploads",
+    "MaxSizeMb": 20,
+    "AllowedExtensions": [ ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".zip", ".txt" ]
+  }
+}

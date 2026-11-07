@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SleveenAdmin.Web.Api</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SleveenAdmin.Foundation\SleveenAdmin.Foundation.csproj" />
+    <ProjectReference Include="..\SleveenAdmin.System\SleveenAdmin.System.csproj" />
+    <ProjectReference Include="..\SleveenAdmin.Business\SleveenAdmin.Business.csproj" />
+    <ProjectReference Include="..\..\saiflow\SleveenAdmin.Saiflow.csproj" />
+    <ProjectReference Include="..\..\officeman\SleveenAdmin.Officeman.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
+    <PackageReference Include="Hangfire.SqlServer" Version="1.8.23" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Configuration\**\*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- 若 web/dist 已构建，发布时自动复制至 wwwroot -->
+  <Target Name="CopyFrontendDist" BeforeTargets="ComputeFilesToPublish">
+    <PropertyGroup>
+      <FrontendDistPath>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..\web\dist'))</FrontendDistPath>
+    </PropertyGroup>
+    <ItemGroup Condition="Exists('$(FrontendDistPath)\index.html')">
+      <FrontendDistFiles Include="$(FrontendDistPath)\**\*.*" />
+    </ItemGroup>
+    <Copy Condition="'@(FrontendDistFiles)' != ''" SourceFiles="@(FrontendDistFiles)" DestinationFiles="@(FrontendDistFiles->'$(MSBuildProjectDirectory)\wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

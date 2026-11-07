@@ -1,0 +1,6 @@
+{
+  "Captcha": {
+    "Enabled": true,
+    "ExpireMinutes": 5
+  }
+}

@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SleveenAdmin.Saiflow</RootNamespace>
+    <AssemblyName>SleveenAdmin.Saiflow</AssemblyName>
+    <Description>Sailflow host thin layer for SleveenAdmin (controllers + DI)</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="samples\bpmn\**\*.bpmn">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\sailflow\src\biz\host\sailflow.biz.csproj" />
+    <ProjectReference Include="..\..\..\sailflow\src\core\ext\form\sailflow.form.csproj" />
+    <ProjectReference Include="..\core\SleveenAdmin.Foundation\SleveenAdmin.Foundation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>

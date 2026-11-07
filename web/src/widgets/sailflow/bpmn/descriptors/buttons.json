@@ -1,0 +1,15 @@
+{
+  "buttons": [
+    {
+      "name": "ButtonsSetting",
+      "superClass": ["Element"],
+      "properties": [
+        {
+          "name": "json",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
+    }
+  ]
+}

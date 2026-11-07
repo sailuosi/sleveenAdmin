@@ -1,0 +1,7 @@
+{
+  "ModelProvider": {
+    "EndPoint": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+    "ApiKey": "your-api-key",
+    "ModelId": "qwen-plus"
+  }
+}
