@@ -1,9 +1,10 @@
 # sleveen-admin 建设方案与架构约束
 
-> 更新：2026-11-01  
+> 更新：2026-11-08  
 > 仓库：**sleveen-admin**  
 > 历史实施归档：[doc/archive/IMPLEMENTATION-R1-R11.md](./doc/archive/IMPLEMENTATION-R1-R11.md)  
-> 功能蓝本曾参考 Admin.NET；ORM：`mooSQL.Ext`；流程引擎：独立仓 **sailflow**（本仓 `backend/saiflow` Host）
+> 功能蓝本曾参考 Admin.NET；ORM：`mooSQL.Ext`；流程引擎：独立仓 **sailflow**（本仓 `backend/saiflow` Host）  
+> 壳层专题：[doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md)
 
 ---
 
@@ -218,16 +219,34 @@ web/src/
 
 ## 7. 未来路线图
 
-总原则：**在 AI 开发场景下，业务分层清晰、堆叠不崩**——文档、目录、配置、范式先于「再堆功能」。
+总原则：**在 AI 开发场景下，业务分层清晰、堆叠不崩**——文档、目录、配置、范式先于「再堆功能」；壳层继续向「无界一体」演进。
 
-### 7.1 AI 能力
+入口摘要与勾选状态亦见 [README.md](./README.md)「路线图」。
+
+### 7.0 已落地（底座与壳，摘要）
+
+- [x] R1–R11 平台底座 — [归档](./doc/archive/IMPLEMENTATION-R1-R11.md)  
+- [x] Sailflow 流程工作台挂载（见 `doc/sailflow-*.md`）  
+- [x] 左栏无界默认布局（`vertical-card`）+ App 根布局 class  
+- [x] 无界 Vue（`menuType=4`）：悬浮侧栏、压缩顶栏/页签、mainpan 穿透  
+- [x] 首页门户：`homePage` 氛围底 + `BorderlessDiv` + `paotal` 穿透  
+- [x] 专题：[doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md)
+
+### 7.1 无界与门户
+
+- [ ] 业务子门户 `Biz_*Portal` 按 [实施计划](./doc/pc/design/业务子门户工作台实施计划.md) 落地  
+- [ ] 更多工作台菜单切 `menuType=4`，外壳统一「外层氛围 + BorderlessDiv + 穿透 paotal」  
+- [ ] 门户切换本地缓存与多方案切换打通  
+- [ ] 氛围一体感与卡片玻璃继续打磨（勿再叠 mainpan 实色壳）
+
+### 7.2 AI 能力
 
 - [ ] 会话持久化与历史检索  
 - [ ] 知识库与业务/流程活动联动（不仅聊天窗）  
 - [ ] Agent 工具调用边界（只碰 Biz/API，不直接改宿主管道）  
 - [ ] 管理端可配置模型/指令（与 `Configuration/Ai.json`、SysConfig 双轨对齐）
 
-### 7.2 审批工作流优化
+### 7.3 审批工作流优化
 
 - [ ] 办理闭环 UAT 与体验打磨（选人、下一跳、按钮设置、详情布局）  
 - [ ] 待办人策略与宿主主数据持续对齐（Account / 角色展开）  
@@ -236,17 +255,18 @@ web/src/
 
 权威说明：[doc/sailflow-features.md](./doc/sailflow-features.md) 及同目录其它 `sailflow-*.md`。
 
-### 7.3 AI 开发文档齐备
+### 7.4 AI 开发文档齐备
 
 目标：新人 / Agent 只靠仓库文档就能「加一个业务模块」而不拆架构。
 
 - [ ] 保持 [biz-module-paradigm.md](./doc/biz-module-paradigm.md)、[mooSQL-integration.md](./doc/mooSQL-integration.md)、配置分片文档与代码同步  
 - [x] Sailflow Host 能力包写法：[sailflow-host-capability-pack.md](./doc/sailflow-host-capability-pack.md) + 引擎 [最佳实践-宿主能力包UseXxx](../sailflow/doc/sail/最佳实践-宿主能力包UseXxx.md)  
+- [x] 无界 / 门户壳层专题：[无界模式.md](./doc/无界模式/无界模式.md)  
 - [ ] 补齐「如何新增 widgets 业务包 / 如何挂菜单 / 如何加 Configuration 分片」短操作手册  
 - [ ] Cursor / Agent 可用的规则与技能与范式对齐（避免生成反模式：业务接口对、单文件巨类、配置写死在代码）  
 - [ ] 流程与平台文档交叉索引清晰，减少口头约定
 
-### 7.4 平台与稳定性（并行）
+### 7.5 平台与稳定性（并行）
 
 - [ ] 细粒度数据权限与租户边界补强  
 - [ ] Seed / 菜单 / 权限标识一致性  
@@ -259,6 +279,8 @@ web/src/
 | 文档 | 说明 |
 |------|------|
 | [README.md](./README.md) | 仓库入口与快速开始 |
+| [doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md) | 无界理念、左栏无界 / 无界 Vue / 门户、背景穿透 |
+| [doc/pc/design/业务子门户工作台实施计划.md](./doc/pc/design/业务子门户工作台实施计划.md) | 子门户外壳标准路径 |
 | [doc/archive/IMPLEMENTATION-R1-R11.md](./doc/archive/IMPLEMENTATION-R1-R11.md) | R1–R11 实施归档 |
 | [doc/biz-module-paradigm.md](./doc/biz-module-paradigm.md) | 业务 Page / VC / Biz 范式 |
 | [doc/mooSQL-integration.md](./doc/mooSQL-integration.md) | mooSQL 集成 |
@@ -274,4 +296,5 @@ web/src/
 - 按范式新增一个最小 Biz 模块（前后端）不改动 Foundation / Web.Api 管道  
 - 新增配置只增加 `Configuration/*.json` + Options，不污染无关分片  
 - 流程关键路径可浏览器走通；AI 相关改动有文档落点  
-- Agent 按文档生成的代码可通过 code review 中的「分层 / 命名 / 无第二 UI 栈」检查
+- Agent 按文档生成的代码可通过 code review 中的「分层 / 命名 / 无第二 UI 栈」检查  
+- 新无界/门户页：外层氛围 + BorderlessDiv + paotal 穿透，无多余 mainpan 实色壳

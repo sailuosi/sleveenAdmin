@@ -1,9 +1,10 @@
 # sleveen-admin
 
-基于 **.NET 10** 与 **Soybean Admin** 的现代化后台管理系统（仓库名 **sleveen-admin**）。以 Admin.NET 标准版为功能蓝本，采用自研 ORM **mooSQL** 与清晰的分层架构，提供认证授权、RBAC、多租户、基础设施运维等开箱即用的平台能力，并已接入独立引擎仓 **sailflow** 的流程工作台。
+基于 **.NET 10** 与 **Soybean Admin** 的现代化后台管理系统（仓库名 **sleveen-admin**）。以 Admin.NET 标准版为功能蓝本，采用自研 ORM **mooSQL** 与清晰的分层架构，提供认证授权、RBAC、多租户、基础设施运维等开箱即用的平台能力；前端深度改造为 Element Plus + Biz/VC 范式，并接入独立引擎仓 **sailflow** 的流程工作台。
 
-> **当前重点**：权限与基础场景打磨；**Sailflow 流程工作台**（设计 → 表单 → 发起/待办办理 → 运维）已挂载，按文档联调与 UAT  
-> **引擎**：运行语义走独立仓 **sailflow**（`Start/Run/Reject/…`）
+> **当前重点**：权限与基础场景打磨；**无界壳 + 门户工作台**一体感；**Sailflow 流程工作台**联调与 UAT  
+> **引擎**：运行语义走独立仓 **sailflow**（`Start/Run/Reject/…`）  
+> **壳层**：默认主题「左栏无界」；首页等为无界 Vue + 门户装配（详见 [doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md)）
 
 ---
 
@@ -15,9 +16,15 @@
 | **RBAC** | 用户 / 角色 / 菜单 / 组织，动态路由与菜单 |
 | **平台扩展** | 多租户隔离、公告与站内信、SignalR 在线用户、Hangfire 定时任务 |
 | **基础设施** | 文件上传、操作/访问日志、服务器监控、Redis 键值管理 |
+| **无界壳** | 左栏无界布局（`vertical-card`）、无界 Vue 页（`menuType=4`）、悬浮侧栏 / 压缩顶栏页签、内容背景可铺满全屏 |
+| **门户工作台** | `paotal` 可配置卡片网格；首页 / 业务子门户外壳；与无界组合达到菜单与内容浑然一体 |
 | **AI 助手** | Microsoft Agents Framework (MAF) 流式对话，SSE 接口 |
 | **Sailflow 流程** | BPMN 设计器（`sf:` 扩展）、动态表单、待办/已办/抄送、发起与办理台、分类/模板/报表、规则集·AI 活动·知识库·Outbox |
 | **部署** | YARP 开发代理、生产 SPA 静态托管、Docker 单端口部署 |
+
+### 无界理念（摘要）
+
+打破传统 Admin「菜单栏 · 页签栏 · 内容栏」三层下巴的臃肿感，让菜单与内容区干净整洁、浑然一体。无界页压缩顶栏与页签，侧栏以悬浮卡片融入同一画幅，内容组件背景可铺满屏幕。完整说明见 [无界模式专题](./doc/无界模式/无界模式.md)。
 
 ---
 
@@ -38,7 +45,8 @@
 ### 前端
 
 - **Vue 3** + **Vite 7** + **TypeScript**
-- **Element Plus** + **UnoCSS**（Soybean Admin Element 壳）
+- **Element Plus** + **UnoCSS**（Soybean Admin Element 壳，深度改造）
+- **门户引擎** — `@/ui/portal/paotal.vue` + Portlet VC；首页 `homePage` + `BorderlessDiv`
 - **vue-element-plus-x** — AI 助手流式 UI
 - **SignalR** — 在线用户实时连接
 - **widgets/sailflow** — 流程工作台（待办办理壳 + BPMN 设计器，API 为 Sail 形状）
@@ -58,9 +66,18 @@ sleveen-admin/
 │   │   └── SleveenAdmin.Web.Api/    # 宿主：Program、JWT、中间件
 │   ├── saiflow/                     # Sailflow Host：Wf2Xml、办理聚合、Assignee 适配
 │   └── tests/SleveenAdmin.Tests/
-├── web/                             # 前端（Element Plus / Soybean）
-│   └── src/widgets/sailflow/        # 流程菜单页、设计器、办理壳
-├── doc/                             # 专题文档 + archive
+├── web/                             # 前端（Element Plus / Soybean 改造）
+│   └── src/
+│       ├── layouts/                 # base-layout：左栏无界 / 无界页编排
+│       ├── ui/portal/               # paotal 门户引擎
+│       ├── views/home/              # 首页无界 + 门户外壳
+│       └── widgets/                 # 业务域（含 sailflow、officeman …）
+├── doc/
+│   ├── 无界模式/无界模式.md         # 左栏无界 / 无界 Vue / 门户 / 背景穿透
+│   ├── pc/design/                   # 前端设计规范与实施计划
+│   ├── pc/audit/                    # 审计要求
+│   ├── sailflow-*.md                # 流程接入与能力说明
+│   └── archive/                     # R1–R11 等归档
 ├── PLAN.md                          # 现行架构与路线图
 └── IMPLEMENTATION.md                # 指向 R1–R11 归档
 ```
@@ -73,6 +90,92 @@ sleveen-admin/
 - 域内 `DBLayer → Service → Controller` 纵向切片；配置拆 `Configuration/*.json`
 - 前端为 Soybean **深度改造副本**（Element Plus + Biz/VC 范式），非上游 Naive 原样
 - 主键 **Guid v7**，列名带表前缀；流程身份键对齐 **`SysUser.Account`**
+- 壳层优先「无界」观感：菜单与内容同一画幅，避免多余实色嵌套壳
+
+---
+
+## 功能清单
+
+以下为种子菜单 / 内置页面能力（随 Seed 幂等写入，可在「菜单管理」调整）。隐藏路由（设计器、详情等）不列入侧栏展示项。
+
+### 首页与壳
+
+| 功能 | 说明 |
+|------|------|
+| **首页** | 无界 Vue + 门户装配（`homePage` → `paotal`），氛围底铺满 |
+| **左栏无界布局** | 默认主题 `vertical-card`：圆角卡片侧栏、内容整页 |
+| **无界页面形态** | 菜单类型 `menuType=4`：悬浮侧栏、压缩顶栏/页签、内容背景可全屏 |
+
+### 系统管理
+
+| 功能 | 说明 |
+|------|------|
+| 用户管理 | 账号与资料 |
+| 菜单管理 | 路由 / 组件 / 权限标识 / 菜单类型（含无界 Vue） |
+| 组织管理 | 组织树 |
+| 字典管理 | 数据字典 |
+| 配置管理 | 系统配置 |
+| 权限配置 | AuthBag 权限包（查看 / 编辑） |
+
+### 平台扩展
+
+| 功能 | 说明 |
+|------|------|
+| 租户管理 | 多租户 |
+| 通知管理 / 我的通知 | 公告与站内信 |
+| 在线用户 | SignalR 在线列表 |
+| 定时任务 | Hangfire 控制台入口（主库 MSSQL 且启用时） |
+
+### 基础设施
+
+| 功能 | 说明 |
+|------|------|
+| 文件管理 | 上传与文件元数据 |
+| 操作日志 / 访问日志 | 审计日志 |
+| 服务器监控 | 主机指标 |
+| Redis 管理 | 键值浏览 |
+
+### 门户管理
+
+| 功能 | 说明 |
+|------|------|
+| 门户配置 | 门户方案 |
+| 页面管理 | 门户页 |
+| 组件库 | Portlet / 小程序控件 |
+| 门户设计 | 可视化设计器 |
+
+### AI
+
+| 功能 | 说明 |
+|------|------|
+| AI 助手 | MAF 流式对话（SSE） |
+
+### 流程引擎（Sailflow）
+
+| 分组 | 功能 |
+|------|------|
+| **办理** | 我的待办、我的已办、抄送我的、发起流程、我的流程 |
+| **管理** | 任务管理、流程实例管理、流程定义、流程表单 |
+| **特色** | 规则集、AI 模型、知识库、回调死信、流程模板库、请假样例 |
+| **运维** | 流程分类、流程报表 |
+| **设计入口** | 流程设计器 / 表单设计器 / 流程详情 / 流程编辑（侧栏常隐藏，从列表跳入） |
+
+挂载字段与路径见 [doc/sailflow-menu-mount.md](./doc/sailflow-menu-mount.md)。
+
+### 创作工作台（officeman 示例域）
+
+| 功能 | 说明 |
+|------|------|
+| 素材库 / 选题池 / 笔记 / 分类设置 | 电子书创作域 Biz 示例，可作业务子门户扩展参照 |
+
+### 平台横切能力（非菜单）
+
+| 能力 | 说明 |
+|------|------|
+| 认证授权 | JWT + RefreshToken、图形验证码、按钮级权限 |
+| 动态路由 | 登录菜单树驱动前端路由 |
+| 门户引擎 | `paotal` 可配置卡片网格与个性化布局 |
+| 单端口部署 | YARP 开发代理 / 生产 SPA 静态托管 / Docker |
 
 ---
 
@@ -139,7 +242,7 @@ pnpm dev
 
 前端默认运行于 `http://localhost:9527`，API 代理到 `http://localhost:5000`。
 
-流程菜单需在「系统管理 → 菜单管理」按 [doc/sailflow-menu-mount.md](./doc/sailflow-menu-mount.md) 挂载。
+流程菜单需在「系统管理 → 菜单管理」按 [doc/sailflow-menu-mount.md](./doc/sailflow-menu-mount.md) 挂载。无界页在菜单中选择类型「无界 Vue 组件」（`menuType=4`），说明见 [无界模式](./doc/无界模式/无界模式.md)。
 
 ### 4. 生产 / Docker
 
@@ -172,25 +275,56 @@ dotnet test
 
 ## 路线图
 
-下一阶段以 **AI、审批工作流优化、AI 开发文档齐备** 为主，保障业务分层清晰、堆叠不崩（详见 [PLAN.md](./PLAN.md) §7）：
+总原则：在 AI 辅助开发场景下，**业务分层清晰、堆叠不崩**；壳层继续向「无界一体」演进。细则见 [PLAN.md](./PLAN.md) §7。
 
-- [ ] **AI** — 会话持久化、知识库联动、可配置 Agent 边界
-- [ ] **审批工作流优化** — 办理闭环 UAT、选人与办理体验、设计器/表单缺口收口
-- [ ] **AI 开发文档齐备** — 范式/配置/挂菜单手册与 Agent 规则对齐
-- [ ] **平台稳定性** — 数据权限、Seed/菜单一致性、审计（并行）
+### 已落地（底座与壳）
 
-R1–R11 平台底座实施记录：[doc/archive/IMPLEMENTATION-R1-R11.md](./doc/archive/IMPLEMENTATION-R1-R11.md)。
+- [x] R1–R11 平台底座（RBAC、基础设施、YARP、AuthForm、MAF AI 骨架等）— [归档](./doc/archive/IMPLEMENTATION-R1-R11.md)
+- [x] Sailflow 流程工作台挂载（设计 / 表单 / 待办办理等，见 `doc/sailflow-*.md`）
+- [x] **左栏无界**默认布局（`vertical-card`）+ App 根布局 class
+- [x] **无界 Vue**（`menuType=4`）：悬浮侧栏、压缩顶栏/页签、mainpan 穿透
+- [x] **首页门户**：`homePage` 外层氛围底 + `BorderlessDiv` + `paotal` 穿透
+- [x] 无界专题文档：[doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md)
+
+### 进行中 / 下一阶段
+
+| 轨道 | 要点 |
+|------|------|
+| **无界与门户** | 业务子门户 `Biz_*Portal` 按规范落地；更多菜单切无界页；氛围一体感与卡片玻璃打磨；门户切换缓存 |
+| **AI** | 会话持久化与历史；知识库/流程活动联动；Agent 工具边界；模型/指令可配置 |
+| **审批工作流** | 办理闭环 UAT；选人/下一跳/按钮；待办人与宿主主数据对齐；设计器与表单缺口收口 |
+| **开发文档** | widgets 新增 / 挂菜单 / Configuration 分片短手册；Cursor 规则与范式对齐；文档交叉索引 |
+| **平台稳定性** | 数据权限与租户边界；Seed/菜单/权限标识一致；日志审计与运维体验（并行） |
 
 ---
 
 ## 相关文档
 
+### 壳层与前端设计
+
+| 文档 | 说明 |
+|------|------|
+| [doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md) | **无界理念**、左栏无界 / 无界 Vue / 门户模式、背景穿透与选择器 |
+| [doc/pc/design/业务子门户工作台实施计划.md](./doc/pc/design/业务子门户工作台实施计划.md) | 业务子门户外壳 + `paotal` 标准路径 |
+| [doc/pc/design/代码风格规范.md](./doc/pc/design/代码风格规范.md) | 前后端代码风格与落位 |
+| [doc/pc/design/biz-module-paradigm.md](./doc/pc/design/biz-module-paradigm.md) | 业务模块 Page / VC / Biz 范式（design 目录） |
+| [doc/biz-module-paradigm.md](./doc/biz-module-paradigm.md) | 业务模块范式（仓根摘要/副本） |
+| [doc/pc/design/选择器设计规范.md](./doc/pc/design/选择器设计规范.md) | 选择器设计 |
+| [doc/pc/design/树查询.md](./doc/pc/design/树查询.md) / [数据库查询.md](./doc/pc/design/数据库查询.md) | 查询约定 |
+| [doc/pc/audit/审计要求.md](./doc/pc/audit/审计要求.md) | 审计总册 |
+
+### 平台与架构
+
 | 文档 | 说明 |
 |------|------|
 | [PLAN.md](./PLAN.md) | 架构约束、Soybean 改造、分层/配置、未来路线图 |
 | [doc/archive/IMPLEMENTATION-R1-R11.md](./doc/archive/IMPLEMENTATION-R1-R11.md) | R1–R11 实施归档 |
-| [doc/biz-module-paradigm.md](./doc/biz-module-paradigm.md) | 业务模块 Page / VC / Biz 范式 |
 | [doc/mooSQL-integration.md](./doc/mooSQL-integration.md) | mooSQL 在本仓的用法 |
+
+### Sailflow 流程
+
+| 文档 | 说明 |
+|------|------|
 | [doc/sailflow-features.md](./doc/sailflow-features.md) | **Sailflow 现行能力**（产品/接入/开发） |
 | [doc/sailflow-host-capability-pack.md](./doc/sailflow-host-capability-pack.md) | Host 能力包：`UseDebugConsoleHook` / Leave / Portal 等 |
 | [doc/sailflow-menu-mount.md](./doc/sailflow-menu-mount.md) | 流程菜单挂载字段表 |
@@ -199,6 +333,8 @@ R1–R11 平台底座实施记录：[doc/archive/IMPLEMENTATION-R1-R11.md](./doc
 | [doc/sailflow-buttons-capability.md](./doc/sailflow-buttons-capability.md) | 办理按钮 `sf:ButtonsSetting` |
 | [doc/sailflow-designer-sidebar-gap.md](./doc/sailflow-designer-sidebar-gap.md) | 设计器侧栏 / 齿轮弹窗缺口 |
 | [doc/sailflow-portal-todo-push.md](./doc/sailflow-portal-todo-push.md) | 待办推送集成平台（统一日程） |
+| [doc/sailflow-form-biz-handler.md](./doc/sailflow-form-biz-handler.md) | 表单业务处理器 |
+| [doc/sailflow-field-modes.md](./doc/sailflow-field-modes.md) | 字段模式 |
 
 引擎仓另有《特性说明-引擎能力基线》《特性说明-待办人管道》等，以 **sailflow** 仓库 `doc/sail/` 为准。
 
