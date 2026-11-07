@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using SleveenAdmin.Business.Portal.DBLayer;
 using SleveenAdmin.Business.Portal.Dtos;
 using SleveenAdmin.Business.Portal.Service;
 using SleveenAdmin.Foundation;
-using SleveenAdmin.Foundation.AspNet;
 
 namespace SleveenAdmin.Business.Portal.Controller;
 
@@ -18,31 +17,33 @@ public class SysPortCellLinkController : ControllerBase
     public SysPortCellLinkController(SysPortCellLinkService service) => _service = service;
 
     [HttpGet("page")]
-    [ApiResult]
-    public JObject Page([FromQuery] PortalPageQuery query)
+    public ContentResult Page([FromQuery] PortalPageQuery query)
     {
         var page = _service.GetPage(query);
-        return AjaxResult.success(page.Total, page.Items);
+        return JsonContent(AjaxResult.success(page.Total, page.Items));
     }
 
     [HttpGet("{id:guid}")]
-    [ApiResult]
-    public JObject Get(Guid id)
-        => AjaxResult.success(_service.GetById(id)!);
+    public ContentResult Get(Guid id)
+        => JsonContent(AjaxResult.success(_service.GetById(id)!));
 
     [HttpPost]
-    [ApiResult]
-    public IActionResult Save([FromBody] List<SysPortCellLink> rows)
+    public ContentResult Save([FromBody] List<SysPortCellLink> rows)
     {
         _service.SaveBatch(rows);
-        return Ok();
+        return JsonContent(AjaxResult.success("保存成功"));
     }
 
     [HttpDelete("{id:guid}")]
-    [ApiResult]
-    public IActionResult Delete(Guid id)
+    public ContentResult Delete(Guid id)
     {
         _service.Delete(id);
-        return Ok();
+        return JsonContent(AjaxResult.success("删除成功"));
     }
+
+    static ContentResult JsonContent(Newtonsoft.Json.Linq.JObject jobj) => new()
+    {
+        Content = jobj.ToString(Formatting.None),
+        ContentType = "application/json"
+    };
 }

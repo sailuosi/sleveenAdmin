@@ -24,10 +24,11 @@ service.interceptors.response.use(
     if (data && (data.code === '0000' || data.code === 0)) {
       return data.data ?? data;
     }
-    if (data && data.status === 200) {
+    // minehub AjaxResult：{ status:'success', total, data }
+    if (data && (data.status === 'success' || data.status === 200)) {
       return data;
     }
-    return Promise.reject(new Error(data?.msg || data?.message || '请求失败'));
+    return Promise.reject(new Error(data?.msg || data?.message || data?.info || '请求失败'));
   },
   error => Promise.reject(error)
 );

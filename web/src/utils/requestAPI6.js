@@ -24,8 +24,8 @@ service.interceptors.response.use(
     if (data && (data.code === '0000' || data.code === 0)) {
       return data.data ?? data;
     }
-    // HTTP 风格 / 部分门户
-    if (data && data.status === 200) {
+    // minehub AjaxResult / HTTP 风格门户
+    if (data && (data.status === 'success' || data.status === 200)) {
       return data;
     }
     // Sailflow ResponseResult：Status=1 成功，-1 失败（JSON 多为 camelCase）
