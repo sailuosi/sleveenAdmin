@@ -22,9 +22,21 @@ public abstract class BizServiceBase : IScoped
     /// <summary>对外暴露主键列名（Controller 删除入参解析等）。</summary>
     public string PrimaryOidColumn => OidColumn;
 
+    /// <summary>对外暴露主键别名（如 spId），供删除入参解析。</summary>
+    public string? PrimaryOidAlias => OidAlias;
+
     protected virtual string SoftDeleteColumn => "SYS_Deleted";
 
-    protected virtual string DefaultOrderBy => $"{OidColumn} desc";
+    /// <summary>创建时间列；门户等表可覆盖为 Sp*_CreateTime。</summary>
+    protected virtual string CreatedAtColumn => "SYS_Created";
+
+    /// <summary>更新时间列；门户等表可覆盖为 Sp*_UpdateTime。</summary>
+    protected virtual string UpdatedAtColumn => "SYS_LAST_UPD";
+
+    /// <summary>前端主键别名（如 spcId）；空表示不使用。</summary>
+    protected virtual string? OidAlias => null;
+
+    protected virtual string DefaultOrderBy => $"mtb.{OidColumn} desc";
 
     protected DBInstance Db => DBCash.GetDBInstance(MooSqlSetup.DefaultPosition);
 
@@ -94,7 +106,7 @@ public abstract class BizServiceBase : IScoped
             var kit = Db.useSQL();
             kit.setTable(TableName)
                 .set(SoftDeleteColumn, 1)
-                .set("SYS_LAST_UPD", DateTime.Now)
+                .set(UpdatedAtColumn, DateTime.Now)
                 .whereGuid(OidColumn, id)
                 .doUpdate();
             n++;
@@ -146,13 +158,86 @@ public abstract class BizServiceBase : IScoped
         return ident[0] is (>= 'a' and <= 'z') or (>= 'A' and <= 'Z') or '_';
     }
 
-    protected virtual void OnBeforeSave(Dictionary<string, object?> map) { }
+    protected virtual void OnBeforeSave(Dictionary<string, object?> map)
+    {
+        // 前端主键别名 → 真实列
+        if (!string.IsNullOrEmpty(OidAlias) &&
+            map.TryGetValue(OidAlias, out var aliasOid) &&
+            !map.ContainsKey(OidColumn))
+        {
+            map[OidColumn] = aliasOid;
+        }
+
+        // 审计别名 → 真实列（若前端带回）
+        CopyIfMissing(map, "SYS_Created", CreatedAtColumn);
+        CopyIfMissing(map, "SYS_LAST_UPD", UpdatedAtColumn);
+        CopyIfMissing(map, "SYS_Deleted", SoftDeleteColumn);
+
+        // 去掉不可写入的别名键，避免 set 到不存在的列
+        StripAliasKeys(map);
+    }
 
     protected virtual void OnAfterSave(Dictionary<string, object?> map) { }
 
     protected virtual void OnBeforeDelete(Guid id) { }
 
     protected virtual void OnAfterDelete(Guid id) { }
+
+    /// <summary>输出行字典时可追加前端别名；默认原样列名。</summary>
+    protected virtual Dictionary<string, object?> RowToDictionary(DataRow row)
+    {
+        var map = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+        foreach (DataColumn col in row.Table.Columns)
+        {
+            var v = row[col];
+            map[col.ColumnName] = v == DBNull.Value ? null : v;
+        }
+
+        ApplyOutputAliases(map);
+        return map;
+    }
+
+    /// <summary>子类可覆盖，把 Spc_Id→spcId、Spc_CreateTime→SYS_Created 等写入 map（保留原列）。</summary>
+    protected virtual void ApplyOutputAliases(Dictionary<string, object?> map)
+    {
+        if (!string.IsNullOrEmpty(OidAlias) && map.TryGetValue(OidColumn, out var oid))
+            map[OidAlias] = oid;
+        if (!string.Equals(CreatedAtColumn, "SYS_Created", StringComparison.OrdinalIgnoreCase) &&
+            map.TryGetValue(CreatedAtColumn, out var c))
+            map["SYS_Created"] = c;
+        if (!string.Equals(UpdatedAtColumn, "SYS_LAST_UPD", StringComparison.OrdinalIgnoreCase) &&
+            map.TryGetValue(UpdatedAtColumn, out var u))
+            map["SYS_LAST_UPD"] = u;
+        if (!string.Equals(SoftDeleteColumn, "SYS_Deleted", StringComparison.OrdinalIgnoreCase) &&
+            map.TryGetValue(SoftDeleteColumn, out var d))
+            map["SYS_Deleted"] = d;
+    }
+
+    /// <summary>子类可追加需剥离的前端别名键。</summary>
+    protected virtual IEnumerable<string> AliasKeysToStrip()
+    {
+        if (!string.IsNullOrEmpty(OidAlias))
+            yield return OidAlias;
+        if (!string.Equals(CreatedAtColumn, "SYS_Created", StringComparison.OrdinalIgnoreCase))
+            yield return "SYS_Created";
+        if (!string.Equals(UpdatedAtColumn, "SYS_LAST_UPD", StringComparison.OrdinalIgnoreCase))
+            yield return "SYS_LAST_UPD";
+        if (!string.Equals(SoftDeleteColumn, "SYS_Deleted", StringComparison.OrdinalIgnoreCase))
+            yield return "SYS_Deleted";
+    }
+
+    void StripAliasKeys(Dictionary<string, object?> map)
+    {
+        foreach (var k in AliasKeysToStrip())
+            map.Remove(k);
+    }
+
+    static void CopyIfMissing(Dictionary<string, object?> map, string from, string to)
+    {
+        if (string.Equals(from, to, StringComparison.OrdinalIgnoreCase)) return;
+        if (map.TryGetValue(from, out var v) && !map.ContainsKey(to))
+            map[to] = v;
+    }
 
     protected int UpsertRow(Dictionary<string, object?> map)
     {
@@ -171,14 +256,15 @@ public abstract class BizServiceBase : IScoped
             // 始终写入本表主键，避免仅有外键 *OID 时漏列
             map[OidColumn] = oid;
 
-            map.TryAdd("SYS_Created", now);
-            map["SYS_LAST_UPD"] = now;
+            map.TryAdd(CreatedAtColumn, now);
+            map[UpdatedAtColumn] = now;
             map.TryAdd(SoftDeleteColumn, 0);
 
             var kit = Db.useSQL().setTable(TableName);
             foreach (var (k, v) in map)
             {
                 if (v is null) continue;
+                if (!IsSafeSqlIdent(k)) continue;
                 kit.set(k, v);
             }
 
@@ -186,12 +272,13 @@ public abstract class BizServiceBase : IScoped
         }
 
         map[OidColumn] = oid;
-        map["SYS_LAST_UPD"] = now;
+        map[UpdatedAtColumn] = now;
         var upd = Db.useSQL().setTable(TableName);
         foreach (var (k, v) in map)
         {
             if (k.Equals(OidColumn, StringComparison.OrdinalIgnoreCase)) continue;
             if (v is null) continue;
+            if (!IsSafeSqlIdent(k)) continue;
             upd.set(k, v);
         }
 
@@ -200,11 +287,15 @@ public abstract class BizServiceBase : IScoped
 
     /// <summary>
     /// 只认本表主键列 <see cref="OidColumn"/>，避免把 En_TopicOID 等外键误当主键。
-    /// 无主键时再兼容 id / Id。
+    /// 无主键时再兼容 OidAlias / id / Id。
     /// </summary>
     protected Guid ResolveOid(Dictionary<string, object?> map)
     {
         if (map.TryGetValue(OidColumn, out var pk) && TryToGuid(pk, out var g))
+            return g;
+
+        if (!string.IsNullOrEmpty(OidAlias) &&
+            map.TryGetValue(OidAlias, out var alias) && TryToGuid(alias, out g))
             return g;
 
         if (map.TryGetValue("id", out var id) && TryToGuid(id, out g))
@@ -246,18 +337,6 @@ public abstract class BizServiceBase : IScoped
         JsonValueKind.Array or JsonValueKind.Object => el.GetRawText(),
         _ => el.ToString()
     };
-
-    protected static Dictionary<string, object?> RowToDictionary(DataRow row)
-    {
-        var map = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
-        foreach (DataColumn col in row.Table.Columns)
-        {
-            var v = row[col];
-            map[col.ColumnName] = v == DBNull.Value ? null : v;
-        }
-
-        return map;
-    }
 
     protected Dictionary<string, List<object>> LoadDictItems(params string[] codes)
     {

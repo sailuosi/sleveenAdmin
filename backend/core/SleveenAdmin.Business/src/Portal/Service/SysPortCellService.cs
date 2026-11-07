@@ -10,8 +10,13 @@ namespace SleveenAdmin.Business.Portal.Service;
 public sealed class SysPortCellService : IScoped
 {
     private readonly MooRepository<SysPortCell> _cells;
+    private readonly SysPortalCommonService _portalCommon;
 
-    public SysPortCellService(MooRepository<SysPortCell> cells) => _cells = cells;
+    public SysPortCellService(MooRepository<SysPortCell> cells, SysPortalCommonService portalCommon)
+    {
+        _cells = cells;
+        _portalCommon = portalCommon;
+    }
 
     public PagedDataTable GetPage(PortalPageQuery query)
     {
@@ -37,6 +42,7 @@ public sealed class SysPortCellService : IScoped
     public void SaveBatch(IReadOnlyList<SysPortCell> rows)
     {
         var now = DateTime.Now;
+        var portalIds = new HashSet<Guid>();
         foreach (var row in rows)
         {
             if (row.Id == Guid.Empty) row.Id = Guid.CreateVersion7();
@@ -47,8 +53,27 @@ public sealed class SysPortCellService : IScoped
                 _cells.Repo.Insert(row);
             else
                 _cells.Repo.Update(row);
+
+            var pid = row.PortalId;
+            if (pid is null || pid == Guid.Empty)
+            {
+                var raw = DBCash.useSQL(MooSqlSetup.DefaultPosition)
+                    .select("Spc_PortalId").from(PortalSchema.TablePortCell).where("Spc_Id", row.Id).queryRowString("");
+                if (Guid.TryParse(raw, out var g)) pid = g;
+            }
+            if (pid.HasValue && pid.Value != Guid.Empty)
+                portalIds.Add(pid.Value);
         }
+        foreach (var pid in portalIds)
+            _portalCommon.InvalidatePortalConfig(pid);
     }
 
-    public void Delete(Guid id) => _cells.Repo.DeleteById(id);
+    public void Delete(Guid id)
+    {
+        var raw = DBCash.useSQL(MooSqlSetup.DefaultPosition)
+            .select("Spc_PortalId").from(PortalSchema.TablePortCell).where("Spc_Id", id).queryRowString("");
+        _cells.Repo.DeleteById(id);
+        if (Guid.TryParse(raw, out var portalId) && portalId != Guid.Empty)
+            _portalCommon.InvalidatePortalConfig(portalId);
+    }
 }

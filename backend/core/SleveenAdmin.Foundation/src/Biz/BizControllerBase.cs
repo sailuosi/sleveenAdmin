@@ -73,13 +73,15 @@ public abstract class BizControllerBase : ControllerBase
         return ids;
     }
 
-    /// <summary>对象中只取主键列或 id，不扫任意 *OID 外键。</summary>
-    static bool TryReadOidFromObject(JsonElement obj, string pkName, out Guid guid)
+    /// <summary>对象中只取主键列、别名或 id，不扫任意外键。</summary>
+    bool TryReadOidFromObject(JsonElement obj, string pkName, out Guid guid)
     {
         guid = Guid.Empty;
+        var alias = Service.PrimaryOidAlias;
         foreach (var p in obj.EnumerateObject())
         {
             if (p.Name.Equals(pkName, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrEmpty(alias) && p.Name.Equals(alias, StringComparison.OrdinalIgnoreCase)) ||
                 p.Name.Equals("id", StringComparison.OrdinalIgnoreCase))
             {
                 if (Guid.TryParse(p.Value.ToString(), out guid) && guid != Guid.Empty)

@@ -60,6 +60,14 @@ public class SysPortalCommonController : ControllerBase
         return AjaxResult.ToContent(AjaxResult.success("保存成功"));
     }
 
+    [HttpPost("clearportalconfigbyoid")]
+    public ContentResult ClearPortalConfigByOid([FromBody] StringValueInput input)
+    {
+        Guid.TryParse(input.Value, out var oid);
+        _service.InvalidatePortalConfig(oid, input.Key);
+        return AjaxResult.ToContent(AjaxResult.success("缓存已清除"));
+    }
+
     static JObject WrapConfig(JsonObject? data)
     {
         if (data is null)

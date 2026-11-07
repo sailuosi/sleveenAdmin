@@ -134,7 +134,7 @@ builder.Services.AddControllers(options =>
     })
     .AddApplicationPart(typeof(UserController).Assembly)
     .AddApplicationPart(typeof(AiChatController).Assembly)
-    .AddApplicationPart(typeof(SysPortalController).Assembly)
+    .AddApplicationPart(typeof(BizSysPortalListController).Assembly)
     .AddApplicationPart(typeof(TenantController).Assembly)
     .AddApplicationPart(typeof(ProbeController).Assembly)
     .AddApplicationPart(typeof(BizSaEbMatListController).Assembly);

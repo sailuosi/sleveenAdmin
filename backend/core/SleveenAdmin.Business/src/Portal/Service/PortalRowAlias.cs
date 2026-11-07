@@ -23,6 +23,18 @@ internal static class PortalRowAlias
         return row;
     }
 
+    public static readonly (string, string)[] Portal =
+    [
+        ("Sp_Id", "spId"),
+        ("Sp_OrgId", "spOrgId"),
+        ("Sp_UserId", "spUserId"),
+        ("Sp_PortPageId", "spPortPageId"),
+        ("Sp_SubjectId", "spSubjectId"),
+        ("Sp_CreateTime", "SYS_Created"),
+        ("Sp_UpdateTime", "SYS_LAST_UPD"),
+        ("Sp_Deleted", "SYS_Deleted"),
+    ];
+
     public static readonly (string, string)[] Cell =
     [
         ("Spc_Id", "spcId"),
@@ -31,6 +43,16 @@ internal static class PortalRowAlias
         ("Spc_UpdateTime", "SYS_LAST_UPD"),
         ("Spc_Deleted", "SYS_Deleted"),
     ];
+
+    /// <summary>在字典上追加别名（保留原列，供 Biz 输出）。</summary>
+    public static void ApplyToMap(Dictionary<string, object?> map, params (string from, string to)[] pairs)
+    {
+        foreach (var (from, to) in pairs)
+        {
+            if (map.TryGetValue(from, out var v) && !map.ContainsKey(to))
+                map[to] = v;
+        }
+    }
 
     public static readonly (string, string)[] CellLink =
     [

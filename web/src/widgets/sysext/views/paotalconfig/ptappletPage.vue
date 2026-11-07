@@ -1,21 +1,14 @@
 <template>
-    <ptapplet :cata="cata" :selecting="selecting"></ptapplet>
+    <Biz_Sys_AppletList :filters="filters" />
 </template>
 
-<script>
-import ptapplet from "./ptapplet.vue"
+<script setup>
+import { computed } from 'vue'
+import Biz_Sys_AppletList from '@/widgets/sysext/views/portal/applet/Page/Biz_Sys_AppletList.vue'
 
-export default {
-    name: "cnPtAppletPage",
-    components: {
-        ptapplet
-    },
-    props: {
-        cata: null,
-        selecting: {
-        	type: Boolean,
-        	default: false
-        }
-    }
-}
+const props = defineProps({ cata: null, selecting: { type: Boolean, default: false } })
+const filters = computed(() => {
+    if (!props.cata?.sacId) return null
+    return { SaAppletCataId: props.cata.sacId }
+})
 </script>

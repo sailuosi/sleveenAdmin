@@ -10,6 +10,10 @@ namespace SleveenAdmin.Business.Portal.Service;
 
 public sealed class SysPortalService : IScoped
 {
+    private readonly SysPortalCommonService _portalCommon;
+
+    public SysPortalService(SysPortalCommonService portalCommon) => _portalCommon = portalCommon;
+
     public PagedDataTable GetPage(PortalPageQuery query)
     {
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
@@ -79,6 +83,7 @@ public sealed class SysPortalService : IScoped
                 UpdateEntity(row);
             else
                 InsertEntity(row);
+            _portalCommon.InvalidatePortalConfig(row.Id, row.Key);
         }
     }
 
@@ -91,11 +96,13 @@ public sealed class SysPortalService : IScoped
     public void Delete(Guid id)
     {
         var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
-        kit.setTable(PortalSchema.TablePortal).where("Sp_Id", id).doDelete();
+        var key = kit.clear().select("P_Key").from(PortalSchema.TablePortal).where("Sp_Id", id).queryRowString("");
+        kit.clear().setTable(PortalSchema.TablePortal).where("Sp_Id", id).doDelete();
         kit.clear();
         kit.setTable(PortalSchema.TablePortCell).where("Spc_PortalId", id).doDelete();
         kit.clear();
         kit.setTable(PortalSchema.TablePortCellLink).where("Spcl_PortalId", id).doDelete();
+        _portalCommon.InvalidatePortalConfig(id, key);
     }
 
     private static void InsertEntity(SysPortal row)

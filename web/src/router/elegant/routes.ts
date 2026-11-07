@@ -448,6 +448,42 @@ export const routes: AutoRouterRoute[
       component: '_widgets_sysext_views_paotalconfig_ptpageviewPage',
     },
     {
+      name: '_widgets_sysext_views_portal_portal_Page_Biz_Sys_PortalList',
+      path: '/widgets/sysext/views/portal/portal/Page/Biz_Sys_PortalList',
+      layout: 'base',
+      component: '_widgets_sysext_views_portal_portal_Page_Biz_Sys_PortalList',
+    },
+    {
+      name: '_widgets_sysext_views_portal_portpage_Page_Biz_Sys_PortPageList',
+      path: '/widgets/sysext/views/portal/portpage/Page/Biz_Sys_PortPageList',
+      layout: 'base',
+      component: '_widgets_sysext_views_portal_portpage_Page_Biz_Sys_PortPageList',
+    },
+    {
+      name: '_widgets_sysext_views_portal_portcell_Page_Biz_Sys_PortCellList',
+      path: '/widgets/sysext/views/portal/portcell/Page/Biz_Sys_PortCellList',
+      layout: 'base',
+      component: '_widgets_sysext_views_portal_portcell_Page_Biz_Sys_PortCellList',
+    },
+    {
+      name: '_widgets_sysext_views_portal_portcelllink_Page_Biz_Sys_PortCellLinkList',
+      path: '/widgets/sysext/views/portal/portcelllink/Page/Biz_Sys_PortCellLinkList',
+      layout: 'base',
+      component: '_widgets_sysext_views_portal_portcelllink_Page_Biz_Sys_PortCellLinkList',
+    },
+    {
+      name: '_widgets_sysext_views_portal_applet_Page_Biz_Sys_AppletList',
+      path: '/widgets/sysext/views/portal/applet/Page/Biz_Sys_AppletList',
+      layout: 'base',
+      component: '_widgets_sysext_views_portal_applet_Page_Biz_Sys_AppletList',
+    },
+    {
+      name: '_widgets_sysext_views_portal_appletcata_Page_Biz_Sys_AppletCataList',
+      path: '/widgets/sysext/views/portal/appletcata/Page/Biz_Sys_AppletCataList',
+      layout: 'base',
+      component: '_widgets_sysext_views_portal_appletcata_Page_Biz_Sys_AppletCataList',
+    },
+    {
       name: '_widgets_sysext_views_sys_cache_cachePage',
       path: '/widgets/sysext/views/sys/cache/cachePage',
       layout: 'base',

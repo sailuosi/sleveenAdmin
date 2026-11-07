@@ -19,7 +19,8 @@ public sealed class SysPortalCommonService : IScoped
     {
         if (string.IsNullOrWhiteSpace(key)) return null;
         var account = CurrentUser.GetAccount(user) ?? "anon";
-        var cacheKey = $"portalconfig:{key}_{account}";
+        var ver = ConfigVersion($"key:{key}");
+        var cacheKey = $"portalconfig:{key}_{account}_v{ver}";
         if (_cache.TryGetValue(cacheKey, out JsonObject? cached) && cached is not null)
             return cached;
 
@@ -77,7 +78,8 @@ public sealed class SysPortalCommonService : IScoped
     {
         if (oid == Guid.Empty) return null;
         var account = CurrentUser.GetAccount(user) ?? "anon";
-        var cacheKey = $"portalconfig_oid:{oid}_{account}";
+        var ver = ConfigVersion($"oid:{oid}");
+        var cacheKey = $"portalconfig_oid:{oid}_{account}_v{ver}";
         if (_cache.TryGetValue(cacheKey, out JsonObject? cached) && cached is not null)
             return cached;
 
@@ -273,7 +275,7 @@ public sealed class SysPortalCommonService : IScoped
                 kit.doInsert();
             }
         }
-        ClearPortalCache(portalId, user);
+        InvalidatePortalConfig(portalId);
     }
 
     public void SaveApplets(Guid portalId, JsonArray applets)
@@ -297,29 +299,39 @@ public sealed class SysPortalCommonService : IScoped
                 .set("CL_IsOn", true)
                 .doInsert();
         }
-        ClearPortalCache(portalId);
+        InvalidatePortalConfig(portalId);
     }
 
     /// <summary>
-    /// 与 LoadPortalConfig / LoadPortalConfigByOid 的 cache key 对齐：portalconfig:{key}_{account}、portalconfig_oid:{oid}_{account}。
+    /// 使门户配置缓存失效（版本号 bump，对所有账号立即生效）。
     /// </summary>
-    private void ClearPortalCache(Guid portalId, ClaimsPrincipal? user = null)
+    public void InvalidatePortalConfig(Guid portalId, string? portalKey = null)
     {
-        if (portalId == Guid.Empty) return;
-        var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
-        var key = kit.clear().select("P_Key").from(PortalSchema.TablePortal).where("Sp_Id", portalId).queryRowString("");
-        var account = CurrentUser.GetAccount(user);
-        var accounts = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "anon" };
-        if (!string.IsNullOrWhiteSpace(account))
-            accounts.Add(account);
+        if (portalId == Guid.Empty && string.IsNullOrWhiteSpace(portalKey))
+            return;
 
-        foreach (var acc in accounts)
+        var key = portalKey;
+        if (portalId != Guid.Empty)
         {
-            if (!string.IsNullOrEmpty(key))
-                _cache.Remove($"portalconfig:{key}_{acc}");
-            _cache.Remove($"portalconfig_oid:{portalId}_{acc}");
+            BumpConfigVersion($"oid:{portalId}");
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                var kit = DBCash.useSQL(MooSqlSetup.DefaultPosition);
+                key = kit.clear().select("P_Key").from(PortalSchema.TablePortal).where("Sp_Id", portalId).queryRowString("");
+            }
         }
+
+        if (!string.IsNullOrWhiteSpace(key))
+            BumpConfigVersion($"key:{key.Trim()}");
     }
+
+    static string VerCacheKey(string scope) => $"portalconfig_ver:{scope}";
+
+    long ConfigVersion(string scope) =>
+        _cache.TryGetValue(VerCacheKey(scope), out long v) ? v : 0;
+
+    void BumpConfigVersion(string scope) =>
+        _cache.Set(VerCacheKey(scope), ConfigVersion(scope) + 1);
 
     private static string? ResolveUserOrgClassCode(Guid? userId)
     {
