@@ -131,7 +131,7 @@ const local: App.I18n.Schema = {
           'Borderless left card layout: rounded card menu on the left and full-page content on the right; tabs overlay by default and can be pinned.',
         horizontal_detail: 'Horizontal menu layout, with the menu at the top and content below.',
         'horizontal-card_detail':
-          'Borderless top island layout: floating glass header menu with immersive full-bleed content; hover dropdowns for submenus; tabs use overlay anchors.',
+          'Borderless top island layout: floating glass header; normal pages reserve top space for the island, borderless pages (menuType=4) may pierce full-bleed; hover dropdowns for submenus.',
         'top-hybrid-sidebar-first_detail':
           'Top hybrid layout, with the primary menu on the left and the secondary menu at the top.',
         'top-hybrid-header-first_detail':

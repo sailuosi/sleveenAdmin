@@ -130,7 +130,7 @@ const local: App.I18n.Schema = {
           '左栏无界布局，左侧为独立圆角卡片菜单，右侧为整页内容；页签默认可唤出并支持固定。',
         horizontal_detail: '顶部菜单布局，菜单在顶部，内容在下方。',
         'horizontal-card_detail':
-          '顶栏无界布局，顶部为简约毛玻璃浮岛菜单，内容区沉浸铺满；子菜单 hover 下拉，页签走浮层锚定。',
+          '顶栏无界布局，顶部为简约毛玻璃浮岛菜单；普通页强制避让顶栏，无界页（menuType=4）可穿透铺满；子菜单 hover 下拉。',
         'top-hybrid-sidebar-first_detail': '顶部混合布局，一级菜单在左侧，二级菜单在顶部。',
         'top-hybrid-header-first_detail': '顶部混合布局，一级菜单在顶部，二级菜单在左侧。'
       },

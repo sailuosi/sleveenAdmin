@@ -48,14 +48,11 @@ const isHorizontalCard = computed(() => themeStore.layout.mode === 'horizontal-c
 /** 左栏无界 / 顶栏无界：共享页签浮层与氛围底 */
 const isCardLayout = computed(() => isVerticalCard.value || isHorizontalCard.value);
 
-/** 无界 Vue 组件：menuType=4，内容全屏，侧栏/页签悬浮 */
+/** 无界 Vue 组件：menuType=4，内容全屏穿透；与布局 mode 正交 */
 const isBorderlessPage = computed(() => {
   const t = route.meta?.menuType as string | number | undefined;
   return t === '4' || t === 4;
 });
-
-/** 顶栏无界默认即沉浸无界；路由 menuType=4 仍可叠加 */
-const isImmersiveContent = computed(() => isBorderlessPage.value || isHorizontalCard.value);
 
 const layoutMode = computed(() => {
   const vertical: LayoutMode = 'vertical';
@@ -142,33 +139,38 @@ const headerVisible = computed(
 
 const cardAnchor = computed(() => themeStore.tab.cardAnchor);
 
-/** borderless / 顶栏无界：never embed tabs in flow as forced; card layouts use anchors */
+/**
+ * 顶栏无界浮岛不占文档流：top 锚定不能嵌入流式槽，改走浮层。
+ * 左栏无界仍可 top 嵌入。
+ */
 const showTopEmbedTab = computed(
   () =>
-    !isImmersiveContent.value &&
-    isCardLayout.value &&
+    !isBorderlessPage.value &&
+    isVerticalCard.value &&
     themeStore.tab.visible &&
     cardAnchor.value === 'top'
 );
 
 const showBottomEmbedTab = computed(
   () =>
-    !isImmersiveContent.value &&
+    !isBorderlessPage.value &&
     isCardLayout.value &&
     themeStore.tab.visible &&
     cardAnchor.value === 'bottom'
 );
 
-/** float dock for right always, or any anchor when immersive */
+/** float dock：无界页任意锚定；顶栏无界任意非 hidden；左栏无界仅 right */
 const showFloatTabDock = computed(() => {
   if (!themeStore.tab.visible) return false;
-  if (isImmersiveContent.value) return cardAnchor.value !== 'hidden';
-  return isCardLayout.value && cardAnchor.value === 'right';
+  if (isBorderlessPage.value) return cardAnchor.value !== 'hidden';
+  if (isHorizontalCard.value) return cardAnchor.value !== 'hidden';
+  return isVerticalCard.value && cardAnchor.value === 'right';
 });
 
 const tabVisible = computed(() => {
-  if (isImmersiveContent.value) return false;
-  if (isCardLayout.value) {
+  if (isBorderlessPage.value) return false;
+  if (isHorizontalCard.value) return false;
+  if (isVerticalCard.value) {
     return themeStore.tab.visible && cardAnchor.value === 'top';
   }
   return themeStore.tab.visible;
@@ -179,7 +181,7 @@ const fixedTop = computed(() =>
 );
 
 const footerVisible = computed(
-  () => !isImmersiveContent.value && (showBottomEmbedTab.value || themeStore.footer.visible)
+  () => !isBorderlessPage.value && (showBottomEmbedTab.value || themeStore.footer.visible)
 );
 
 const footerHeight = computed(() =>
@@ -191,10 +193,16 @@ const floatSider = computed(() => isBorderlessPage.value && !isHorizontalCard.va
 const cardContentClass = computed(() => {
   const classes: string[] = [];
   if (appStore.contentXScrollable) classes.push('overflow-x-hidden');
-  if (isImmersiveContent.value) {
+  if (isBorderlessPage.value) {
     classes.push('borderless-content');
-  } else if (isCardLayout.value && themeStore.tab.visible && cardAnchor.value === 'right') {
-    classes.push('card-content-pad-right');
+  } else {
+    if (isHorizontalCard.value) {
+      // 普通页强制避让浮岛顶栏（对齐 left-gap-card：inset*2 + 尺寸）
+      classes.push('horizontal-card-content-pad-top');
+    }
+    if (isCardLayout.value && themeStore.tab.visible && cardAnchor.value === 'right') {
+      classes.push('card-content-pad-right');
+    }
   }
   if (isCardLayout.value || isBorderlessPage.value) {
     classes.push('card-main-flow');
@@ -278,7 +286,7 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
       <GlobalSider />
     </template>
     <GlobalMenu />
-    <GlobalContent :show-padding="!isImmersiveContent" :borderless="isImmersiveContent" />
+    <GlobalContent :show-padding="!isBorderlessPage" :borderless="isBorderlessPage" />
     <CardTabHost v-if="isCardLayout || isBorderlessPage" variant="overlay" />
     <CardTabHost v-if="showFloatTabDock" variant="dock" force-float />
     <ThemeDrawer />
@@ -300,6 +308,11 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
 
 .card-content-pad-right {
   padding-right: 236px;
+}
+
+/* 顶栏无界 + 普通页：强制为浮岛预留顶部边距（无界页不挂此类，允许穿透） */
+.horizontal-card-content-pad-top {
+  padding-top: calc(var(--soy-header-inset) * 2 + var(--soy-header-height));
 }
 
 /* vertical-card / horizontal-card / 无界：纯 CSS 氛围底（无背景图） */
