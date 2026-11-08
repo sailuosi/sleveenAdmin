@@ -220,16 +220,16 @@ export const routes: AutoRouterRoute[
       component: '_widgets_sailflow_views_demo_SailLeavePage',
     },
     {
+      name: '_widgets_sailflow_views_form_Page_Biz_Sail_FormList',
+      path: '/widgets/sailflow/views/form/Page/Biz_Sail_FormList',
+      layout: 'base',
+      component: '_widgets_sailflow_views_form_Page_Biz_Sail_FormList',
+    },
+    {
       name: '_widgets_sailflow_views_form_SailFormEditorPage',
       path: '/widgets/sailflow/views/form/SailFormEditorPage',
       layout: 'base',
       component: '_widgets_sailflow_views_form_SailFormEditorPage',
-    },
-    {
-      name: '_widgets_sailflow_views_form_SailFormListPage',
-      path: '/widgets/sailflow/views/form/SailFormListPage',
-      layout: 'base',
-      component: '_widgets_sailflow_views_form_SailFormListPage',
     },
     {
       name: '_widgets_sailflow_views_model_form_SailProcessEditPage',
@@ -254,6 +254,12 @@ export const routes: AutoRouterRoute[
       path: '/widgets/sailflow/views/ops/SailReportPage',
       layout: 'base',
       component: '_widgets_sailflow_views_ops_SailReportPage',
+    },
+    {
+      name: '_widgets_sailflow_views_process_Page_Biz_Sail_ProcessList',
+      path: '/widgets/sailflow/views/process/Page/Biz_Sail_ProcessList',
+      layout: 'base',
+      component: '_widgets_sailflow_views_process_Page_Biz_Sail_ProcessList',
     },
     {
       name: '_widgets_sailflow_views_process_SailProcessCreatePage',
@@ -296,12 +302,6 @@ export const routes: AutoRouterRoute[
       path: '/widgets/sailflow/views/SailKnowledgeBasePage',
       layout: 'base',
       component: '_widgets_sailflow_views_SailKnowledgeBasePage',
-    },
-    {
-      name: '_widgets_sailflow_views_SailProcessListPage',
-      path: '/widgets/sailflow/views/SailProcessListPage',
-      layout: 'base',
-      component: '_widgets_sailflow_views_SailProcessListPage',
     },
     {
       name: '_widgets_sailflow_views_SailRuleSetPage',

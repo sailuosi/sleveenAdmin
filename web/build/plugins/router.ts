@@ -11,14 +11,14 @@ export function setupElegantRouter() {
     },
     //defaultLayout:'base',
     pageDir:"src/",
-    // *Page/BPO_ for widgets; views/**/index.vue for SleveenAdmin Soybean menus (view.xxx)
-    pageInclude:['**/*Page.vue','**/BPO_*.vue','**/views/**/index.vue'],
+    // *Page/Biz_ for widgets; views/**/index.vue for SleveenAdmin Soybean menus (view.xxx)
+    pageInclude:['**/*Page.vue','**/Biz_*.vue','**/views/**/index.vue'],
     getRouteName(node) {
       // hyphen in folder names (auth-bag) must become `_` for valid object keys
       return node.path.replaceAll('/', '_').replaceAll('-', '_');
     },
-    //pageInclude:['**‍/index.vue','**‍/[[]*[]].vue','**/*Page.{vue,tsx}','@/widgets/**/*Page.{vue,tsx}','@/widgets/**/BPO_*.vue'],
-    //pagePatterns: ['**‍/index.vue','**‍/[[]*[]].vue','**/*Page.{vue,tsx}','@/widgets/**/*Page.{vue,tsx}','@/widgets/**/BPO_*.vue'],
+    //pageInclude:['**/index.vue','**/*Page.{vue,tsx}','**/Biz_*.vue'],
+    //pagePatterns: ['**/index.vue','**/*Page.{vue,tsx}','**/Biz_*.vue'],
     // getRouteName(node) {
     //   const key =node.name;// routeName as RouteKey;
 
@@ -71,9 +71,9 @@ export function setupElegantRouter() {
   //   },
   //   defaultLayout:'base',
   //   pageDir:"src/",
-  //   pagePatterns:['**/*Page.vue','**/BPO_*.vue'],
-  //   //pageInclude:['**‍/index.vue','**‍/[[]*[]].vue','**/*Page.{vue,tsx}','@/widgets/**/*Page.{vue,tsx}','@/widgets/**/BPO_*.vue'],
-  //   //pagePatterns: ['**‍/index.vue','**‍/[[]*[]].vue','**/*Page.{vue,tsx}','@/widgets/**/*Page.{vue,tsx}','@/widgets/**/BPO_*.vue'],
+  //   pagePatterns:['**/*Page.vue','**/Biz_*.vue'],
+  //   //pageInclude:['**/index.vue','**/*Page.{vue,tsx}','**/Biz_*.vue'],
+  //   //pagePatterns: ['**/index.vue','**/*Page.{vue,tsx}','**/Biz_*.vue'],
   //   routePathTransformer(routeName, routePath) {
   //     const key = routeName as RouteKey;
 

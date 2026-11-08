@@ -116,7 +116,7 @@ const builtinRoutes: CustomRoute[] = [
       {
         name: 'sail-process-list-page',
         path: '',
-        component: () => import('@sail/views/SailProcessListPage.vue'),
+        component: () => import('@sail/views/process/Page/Biz_Sail_ProcessList.vue'),
         meta: {
           title: 'Sailflow 流程',
           constant: false
@@ -309,7 +309,7 @@ const builtinRoutes: CustomRoute[] = [
       {
         name: 'sail-forms-page',
         path: '',
-        component: () => import('@sail/views/form/SailFormListPage.vue'),
+        component: () => import('@sail/views/form/Page/Biz_Sail_FormList.vue'),
         meta: { title: '流程表单', constant: false }
       }
     ]
