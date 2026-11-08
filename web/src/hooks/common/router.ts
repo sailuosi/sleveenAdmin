@@ -19,8 +19,17 @@ export function useRouterPush(inSetup = true) {
 
     const routerBack = router.back;
 
+    async function pushNotFound() {
+        return routerPush({ name: '404' });
+    }
+
     async function routerPushByKey(key: RouteKey, options?: App.Global.RouterPushOptions) {
         const { query, params } = options || {};
+
+        // 无此 name 时不抛 No match，进内置 404 页
+        if (!router.hasRoute(key as string)) {
+            return pushNotFound();
+        }
 
         const routeLocation: RouteLocationRaw = {
             name: key
@@ -34,7 +43,11 @@ export function useRouterPush(inSetup = true) {
             routeLocation.params = params;
         }
 
-        return routerPush(routeLocation);
+        try {
+            return await routerPush(routeLocation);
+        } catch {
+            return pushNotFound();
+        }
     }
 
     function routerPushByKeyWithMetaQuery(key: RouteKey, menuItem?: any) {

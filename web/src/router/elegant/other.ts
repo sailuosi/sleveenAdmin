@@ -175,12 +175,14 @@ export function preFormatRoute(route: any) {
     }
     route.path = routePath.startsWith('/') ? routePath : `/${routePath}`;
 
-    if (component == void 0 || component == null || component == undefined) {
+    // 空 / 未配置 component → 注册为 404 页（仍挂菜单 name，点击可进内容区）
+    if (component == null || component === undefined || (typeof component === 'string' && !component.trim())) {
         component = '_views__builtin_404_404Page';
     }
     if (typeof component == 'string') {
         const comp = component.trim();
-        if (!comp || comp === 'inner' || /^layout$/i.test(comp)) {
+        // 布局占位不是页面，仍跳过注册
+        if (comp === 'inner' || /^layout$/i.test(comp)) {
             return null;
         }
         component = comp;
