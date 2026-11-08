@@ -10,7 +10,12 @@ public sealed class BizSysOrgTreeNode
 
     public string? Code { get; set; }
 
+    /// <summary>组织层级编码，权限包 Vi_Type=3 前缀匹配用。</summary>
+    public string? ClassCode { get; set; }
+
     public int OrderNo { get; set; }
+
+    public DateTime CreateTime { get; set; }
 
     public List<BizSysOrgTreeNode> Children { get; set; } = [];
 }

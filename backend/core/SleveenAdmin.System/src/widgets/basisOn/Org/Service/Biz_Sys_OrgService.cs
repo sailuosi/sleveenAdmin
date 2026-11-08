@@ -64,7 +64,9 @@ public sealed class BizSysOrgService : BizServiceBase<BizSysOrgRow>
                     Pid = o.Pid,
                     Name = o.Name,
                     Code = o.Code,
+                    ClassCode = o.ClassCode,
                     OrderNo = o.OrderNo,
+                    CreateTime = o.CreateTime,
                     Children = BuildTree(all, o.Id)
                 };
                 return node;

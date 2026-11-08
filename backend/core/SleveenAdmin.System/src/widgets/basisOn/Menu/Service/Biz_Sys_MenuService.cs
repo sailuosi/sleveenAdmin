@@ -68,14 +68,38 @@ public sealed class BizSysMenuService : BizServiceBase<BizSysMenuRow>
 
     static List<BizSysMenuTreeNode> BuildTree(List<BizSysMenuRow> all, Guid? pid) =>
         all.Where(m => m.Pid == pid)
-            .Select(m => new BizSysMenuTreeNode
+            .Select(m =>
             {
-                Id = m.Id,
-                Pid = m.Pid,
-                Name = m.Name,
-                Title = m.Title,
-                Type = m.Type,
-                OrderNo = m.OrderNo,
-                Children = BuildTree(all, m.Id)
+                var node = ToTreeNode(m);
+                node.Children = BuildTree(all, m.Id);
+                return node;
             }).ToList();
+
+    static BizSysMenuTreeNode ToTreeNode(BizSysMenuRow m) => new()
+    {
+        Id = m.Id,
+        Pid = m.Pid,
+        Name = m.Name,
+        Title = m.Title,
+        Path = m.Path,
+        Component = m.Component,
+        Icon = m.Icon,
+        Type = m.Type,
+        OrderNo = m.OrderNo,
+        Permission = m.Permission,
+        IsHide = m.IsHide,
+        CreateTime = m.CreateTime,
+        MenuCode = m.MenuCode,
+        MenuType = m.MenuType,
+        Redirect = m.Redirect,
+        OutLink = m.OutLink,
+        IsIframe = m.IsIframe ?? false,
+        IsKeepAlive = m.IsKeepAlive ?? true,
+        IsAffix = m.IsAffix ?? false,
+        Status = m.Status is null or <= 0 ? 1 : m.Status.Value,
+        Remark = m.Remark,
+        ExtPara = m.ExtPara,
+        MenuTheme = m.MenuTheme,
+        IsApp = m.IsApp ?? false
+    };
 }
