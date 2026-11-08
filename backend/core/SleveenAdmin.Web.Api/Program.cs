@@ -132,6 +132,11 @@ builder.Services.AddControllers(options =>
         options.Filters.Add<GlobalExceptionFilter>();
 
     })
+    .AddJsonOptions(options =>
+    {
+        // Biz 前端新增常传 id: null；非空 Guid 默认无法反序列化
+        options.JsonSerializerOptions.Converters.Add(new NullableGuidJsonConverter());
+    })
     .AddApplicationPart(typeof(BizSysUserListController).Assembly)
     .AddApplicationPart(typeof(AiChatController).Assembly)
     .AddApplicationPart(typeof(BizSysPortalListController).Assembly)

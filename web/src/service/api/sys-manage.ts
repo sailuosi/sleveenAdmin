@@ -14,6 +14,13 @@ function pageBody(params: PageParams) {
   };
 }
 
+/** Biz save：去掉 null/空 id，避免 STJ 无法把 null 绑到 Guid */
+function asBizSaveRow<T extends { id?: string | null }>(data: T) {
+  const row = { ...data } as T & Record<string, unknown>;
+  if (row.id == null || row.id === '') delete row.id;
+  return row;
+}
+
 /** 用户 — manage 页与权限包选人共用 Biz */
 export function fetchGetUserPage(params: PageParams) {
   return request<Api.Common.PaginatingQueryRecord<Api.SystemManage.User>>({
@@ -24,11 +31,11 @@ export function fetchGetUserPage(params: PageParams) {
 }
 
 export function fetchCreateUser(data: Api.SystemManage.UserInput) {
-  return request({ url: '/biz/sysuserlist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysuserlist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchUpdateUser(data: Api.SystemManage.UserInput) {
-  return request({ url: '/biz/sysuserlist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysuserlist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchDeleteUser(id: string) {
@@ -41,11 +48,11 @@ export function fetchGetMenuTree() {
 }
 
 export function fetchCreateMenu(data: Api.SystemManage.MenuInput) {
-  return request({ url: '/biz/sysmenulist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysmenulist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchUpdateMenu(data: Api.SystemManage.MenuInput) {
-  return request({ url: '/biz/sysmenulist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysmenulist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchDeleteMenu(id: string) {
@@ -58,11 +65,11 @@ export function fetchGetOrgTree() {
 }
 
 export function fetchCreateOrg(data: Api.SystemManage.OrgInput) {
-  return request({ url: '/biz/sysorglist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysorglist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchUpdateOrg(data: Api.SystemManage.OrgInput) {
-  return request({ url: '/biz/sysorglist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysorglist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchDeleteOrg(id: string) {
@@ -79,11 +86,11 @@ export function fetchGetDictTypePage(params: PageParams) {
 }
 
 export function fetchCreateDictType(data: Api.SystemManage.DictTypeInput) {
-  return request({ url: '/biz/sysdicttypelist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysdicttypelist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchUpdateDictType(data: Api.SystemManage.DictTypeInput) {
-  return request({ url: '/biz/sysdicttypelist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysdicttypelist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchDeleteDictType(id: string) {
@@ -103,11 +110,11 @@ export function fetchGetDictDataPage(typeId: string, params: PageParams) {
 }
 
 export function fetchCreateDictData(data: Api.SystemManage.DictDataInput) {
-  return request({ url: '/biz/sysdictdatalist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysdictdatalist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchUpdateDictData(data: Api.SystemManage.DictDataInput) {
-  return request({ url: '/biz/sysdictdatalist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysdictdatalist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchDeleteDictData(id: string) {
@@ -124,11 +131,11 @@ export function fetchGetConfigPage(params: PageParams) {
 }
 
 export function fetchCreateConfig(data: Api.SystemManage.ConfigInput) {
-  return request({ url: '/biz/sysconfiglist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysconfiglist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchUpdateConfig(data: Api.SystemManage.ConfigInput) {
-  return request({ url: '/biz/sysconfiglist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysconfiglist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchDeleteConfig(id: string) {
