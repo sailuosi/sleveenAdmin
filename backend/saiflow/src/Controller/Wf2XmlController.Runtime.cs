@@ -392,7 +392,7 @@ public partial class Wf2XmlController
 
     /// <summary>GET api/Wf2Xml/GetTaskView/{id}</summary>
     [HttpGet]
-    public ResponseResult<TaskViewEntity> GetTaskView(int id)
+    public ResponseResult<TaskViewEntity> GetTaskView(string id)
     {
         try
         {
@@ -479,16 +479,17 @@ public partial class Wf2XmlController
             var dto = new ApprovalWorkbenchDto();
 
             TaskViewEntity? task = null;
-            if (query.TaskId is > 0)
-                task = _workflowService.GetTaskView(query.TaskId.Value);
+            if (!string.IsNullOrWhiteSpace(query.TaskId))
+                task = _workflowService.GetTaskView(query.TaskId);
             dto.Task = task;
 
-            var processInstanceId = query.ProcessInstanceId
-                ?? task?.ProcessInstanceId;
-            if (processInstanceId is > 0)
+            var processInstanceId = !string.IsNullOrWhiteSpace(query.ProcessInstanceId)
+                ? query.ProcessInstanceId.Trim()
+                : task?.ProcessInstanceId;
+            if (!string.IsNullOrWhiteSpace(processInstanceId))
             {
-                dto.ProcessInstance = _workflowService.GetProcessInstance(processInstanceId.Value);
-                dto.ActivityInstances = _workflowService.GetActivityInstanceList(processInstanceId.Value)?.ToList()
+                dto.ProcessInstance = _workflowService.GetProcessInstance(processInstanceId);
+                dto.ActivityInstances = _workflowService.GetActivityInstanceList(processInstanceId)?.ToList()
                                         ?? new List<ActivityInstanceEntity>();
             }
 
@@ -538,12 +539,12 @@ public partial class Wf2XmlController
                 try
                 {
                     ActivityInstanceEntity? ai = null;
-                    if (task.ActivityInstanceId is > 0)
+                    if (!string.IsNullOrWhiteSpace(task.ActivityInstanceId))
                     {
                         ai = dto.ActivityInstances.FirstOrDefault(a => a.Id == task.ActivityInstanceId)
-                             ?? _workflowService.GetActivityInstance(task.ActivityInstanceId.Value);
+                             ?? _workflowService.GetActivityInstance(task.ActivityInstanceId);
                     }
-                    if (ai?.BackSrcActivityInstanceId is > 0)
+                    if (!string.IsNullOrWhiteSpace(ai?.BackSrcActivityInstanceId))
                     {
                         dto.HasBackSrc = true;
                         dto.BackSrcActivityInstanceId = ai.BackSrcActivityInstanceId;
@@ -641,9 +642,9 @@ public partial class Wf2XmlController
             dto.FieldModes = SailFieldModes.ToMap(modeItems);
 
             // 回填发起/办理写入的流程变量 → 动态表单值
-            if (processInstanceId is > 0)
+            if (!string.IsNullOrWhiteSpace(processInstanceId))
                 dto.FormValues = SailProcessVariableHelper.LoadFormValues(
-                    _workflowService, processInstanceId.Value, _logger);
+                    _workflowService, processInstanceId, _logger);
 
             return ResponseResult<ApprovalWorkbenchDto>.Success(dto);
         }
@@ -674,7 +675,7 @@ public partial class Wf2XmlController
 
     /// <summary>GET api/Wf2Xml/GetProcessInstance/{id}</summary>
     [HttpGet]
-    public ResponseResult<ProcessInstanceEntity> GetProcessInstance(int id)
+    public ResponseResult<ProcessInstanceEntity> GetProcessInstance(string id)
     {
         try
         {
@@ -770,7 +771,7 @@ public partial class Wf2XmlController
         }
 
         var result = ResponseResult.Success(wfResult.Message);
-        if (wfResult.ProcessInstanceIdStarted > 0)
+        if (!string.IsNullOrWhiteSpace(wfResult.ProcessInstanceIdStarted))
             result.NewId = wfResult.ProcessInstanceIdStarted;
         result.ExtraData = new
         {

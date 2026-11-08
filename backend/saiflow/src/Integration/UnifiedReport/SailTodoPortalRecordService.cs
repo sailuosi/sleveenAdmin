@@ -18,7 +18,7 @@ public sealed class SailTodoPortalRecordService
     }
 
     public void Insert(
-        int? taskId,
+        string? taskId,
         string? scheduleId,
         string? toMaincode,
         string? toNickname,

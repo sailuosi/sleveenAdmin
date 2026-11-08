@@ -310,9 +310,11 @@ async function load() {
   loading.value = true;
   err.value = '';
   try {
-    const taskId = route.query.taskId ? Number(route.query.taskId) : null;
+    const taskId = route.query.taskId
+      ? String(route.query.taskId).trim() || null
+      : null;
     const processInstanceId = route.query.processInstanceId
-      ? Number(route.query.processInstanceId)
+      ? String(route.query.processInstanceId).trim() || null
       : null;
     if (!taskId && !processInstanceId) {
       err.value = '缺少 taskId 或 processInstanceId';
@@ -332,10 +334,13 @@ async function load() {
     task.value = (pickField(entity, 'Task', 'task') as Record<string, unknown>) || null;
     processInstance.value =
       (pickField(entity, 'ProcessInstance', 'processInstance') as Record<string, unknown>) || null;
+    const backSrcId = String(
+      pickField(entity, 'BackSrcActivityInstanceId', 'backSrcActivityInstanceId') || ''
+    ).trim();
     hasBackSrc.value = !!(
       pickField(entity, 'HasBackSrc', 'hasBackSrc') === true ||
       pickField(entity, 'HasBackSrc', 'hasBackSrc') === 'true' ||
-      Number(pickField(entity, 'BackSrcActivityInstanceId', 'backSrcActivityInstanceId') || 0) > 0
+      backSrcId !== ''
     );
     const mode = String(
       pickField(entity, 'ResubmitMode', 'resubmitMode') || 'ReturnToSender'

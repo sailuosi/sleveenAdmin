@@ -23,7 +23,7 @@ public sealed class SailNodePolicyJobWorker(
     IServiceScopeFactory scopeFactory,
     ILogger<SailNodePolicyJobWorker> logger) : BackgroundService
 {
-    static readonly ConcurrentDictionary<int, int> RemindCounts = new();
+    static readonly ConcurrentDictionary<string, int> RemindCounts = new(StringComparer.Ordinal);
     static readonly TimeSpan Interval = TimeSpan.FromSeconds(5);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -116,7 +116,7 @@ public sealed class SailNodePolicyJobWorker(
         foreach (var task in tasks)
         {
             ct.ThrowIfCancellationRequested();
-            if (task.Id is not > 0) continue;
+            if (string.IsNullOrWhiteSpace(task.Id)) continue;
             try
             {
                 var uid = string.IsNullOrWhiteSpace(task.AssignedUserId)
@@ -161,7 +161,7 @@ public sealed class SailNodePolicyJobWorker(
         foreach (var task in tasks)
         {
             ct.ThrowIfCancellationRequested();
-            if (task.Id is not > 0) continue;
+            if (string.IsNullOrWhiteSpace(task.Id)) continue;
             try
             {
                 var runner = BuildRunnerFromTask(sail, task,
@@ -193,7 +193,7 @@ public sealed class SailNodePolicyJobWorker(
             var waiting = clip.select(t).queryList() ?? new List<TaskEntity>();
             // 主路径：已落库的 task.overdue_datetime；旧行无 Due 时回退 Created+策略（Handle 内）
             dueTasks = waiting
-                .Where(x => x.Id is > 0)
+                .Where(x => !string.IsNullOrWhiteSpace(x.Id))
                 .Where(x => x.OverdueDateTime.HasValue && ToUtc(x.OverdueDateTime.Value) <= now)
                 .Take(20)
                 .ToList();
@@ -202,7 +202,7 @@ public sealed class SailNodePolicyJobWorker(
             if (dueTasks.Count < 20)
             {
                 var legacy = waiting
-                    .Where(x => x.Id is > 0 && !x.OverdueDateTime.HasValue)
+                    .Where(x => !string.IsNullOrWhiteSpace(x.Id) && !x.OverdueDateTime.HasValue)
                     .Take(20 - dueTasks.Count)
                     .ToList();
                 dueTasks.AddRange(legacy);
@@ -230,15 +230,17 @@ public sealed class SailNodePolicyJobWorker(
 
     void HandleOverdueTask(SailClient sail, IWorkflowService wf, TaskEntity task)
     {
-        if (task.ActivityInstanceId is not > 0)
+        if (string.IsNullOrWhiteSpace(task.ActivityInstanceId))
             return;
 
-        var act = sail.UseRunSQL().useRepo<ActivityInstanceEntity, int>()
-            .GetById(task.ActivityInstanceId.Value);
+        var act = sail.UseRunSQL().useRepo<ActivityInstanceEntity, string>()
+            .GetById(task.ActivityInstanceId);
         if (act == null || act.ActivityState != (short)ActivityStateEnum.Ready)
             return;
 
-        var pi = wf.GetProcessInstance(act.ProcessInstanceId ?? 0);
+        var pi = string.IsNullOrWhiteSpace(act.ProcessInstanceId)
+            ? null
+            : wf.GetProcessInstance(act.ProcessInstanceId);
         var version = string.IsNullOrWhiteSpace(pi?.Version) ? "1" : pi!.Version;
         var file = wf.GetProcessFile(act.ProcessId, version);
         var policy = SailNodePolicyCatalog.ParseForActivity(file?.XmlContent, act.ActivityId);
@@ -317,8 +319,8 @@ public sealed class SailNodePolicyJobWorker(
         var kit = sail.UseRunSQL();
         foreach (var task in tasks)
         {
-            if (task.Id is not > 0) continue;
-            var count = RemindCounts.AddOrUpdate(task.Id.Value, 1, (_, c) => c + 1);
+            if (string.IsNullOrWhiteSpace(task.Id)) continue;
+            var count = RemindCounts.AddOrUpdate(task.Id, 1, (_, c) => c + 1);
             if (count > max)
                 continue;
 
@@ -342,9 +344,9 @@ public sealed class SailNodePolicyJobWorker(
         string version = "1";
         try
         {
-            if (task.ProcessInstanceId is > 0)
+            if (!string.IsNullOrWhiteSpace(task.ProcessInstanceId))
             {
-                var pi = new WorkflowService(sail).GetProcessInstance(task.ProcessInstanceId.Value);
+                var pi = new WorkflowService(sail).GetProcessInstance(task.ProcessInstanceId);
                 if (!string.IsNullOrWhiteSpace(pi?.Version))
                     version = pi!.Version;
             }

@@ -43,7 +43,7 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
 
     void StampOnActivity(FlowHookContext ctx)
     {
-        if (ctx.ActivityInstanceId <= 0 || string.IsNullOrWhiteSpace(ctx.ActivityId))
+        if (string.IsNullOrWhiteSpace(ctx.ActivityInstanceId) || string.IsNullOrWhiteSpace(ctx.ActivityId))
             return;
 
         var policy = LoadPolicy(ctx.ProcessId, ctx.ProcessInstanceId, ctx.ActivityId);
@@ -51,7 +51,7 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
             return;
 
         var kit = sail.UseRunSQL();
-        var inst = kit.useRepo<ActivityInstanceEntity, int>().GetById(ctx.ActivityInstanceId);
+        var inst = kit.useRepo<ActivityInstanceEntity, string>().GetById(ctx.ActivityInstanceId);
         if (inst == null) return;
 
         var isReady = inst.ActivityState == (short)ActivityStateEnum.Ready;
@@ -72,22 +72,22 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
 
     void StampOnTaskCreated(FlowHookContext ctx)
     {
-        if (ctx.TaskId is not > 0)
+        if (string.IsNullOrWhiteSpace(ctx.TaskId))
             return;
 
         var kit = sail.UseRunSQL();
-        var task = kit.useRepo<TaskEntity, int>().GetById(ctx.TaskId.Value);
-        if (task == null || task.ActivityInstanceId is not > 0)
+        var task = kit.useRepo<TaskEntity, string>().GetById(ctx.TaskId);
+        if (task == null || string.IsNullOrWhiteSpace(task.ActivityInstanceId))
             return;
 
-        var inst = kit.useRepo<ActivityInstanceEntity, int>().GetById(task.ActivityInstanceId.Value);
+        var inst = kit.useRepo<ActivityInstanceEntity, string>().GetById(task.ActivityInstanceId);
         if (inst == null) return;
         if (inst.ActivityState != (short)ActivityStateEnum.Ready)
             return; // 未可办：Activated/Due 保持 null
 
         var activityId = string.IsNullOrWhiteSpace(ctx.ActivityId) ? task.ActivityId : ctx.ActivityId;
         var processId = string.IsNullOrWhiteSpace(ctx.ProcessId) ? task.ProcessId : ctx.ProcessId;
-        var policy = LoadPolicy(processId!, task.ProcessInstanceId ?? 0, activityId!);
+        var policy = LoadPolicy(processId!, task.ProcessInstanceId, activityId!);
         if (policy == null || !policy.TimeoutHandlerEnable)
             return;
 
@@ -102,10 +102,12 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
         ApplyActivityOverdue(kit, inst, due.Value);
     }
 
-    SailNodePolicyDto? LoadPolicy(string processId, int processInstanceId, string activityId)
+    SailNodePolicyDto? LoadPolicy(string processId, string? processInstanceId, string activityId)
     {
         var wf = new WorkflowService(sail);
-        var pi = processInstanceId > 0 ? wf.GetProcessInstance(processInstanceId) : null;
+        var pi = !string.IsNullOrWhiteSpace(processInstanceId)
+            ? wf.GetProcessInstance(processInstanceId)
+            : null;
         var version = string.IsNullOrWhiteSpace(pi?.Version) ? "1" : pi!.Version;
         var file = wf.GetProcessFile(processId, version);
         return SailNodePolicyCatalog.ParseForActivity(file?.XmlContent, activityId);
@@ -124,7 +126,7 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
     static DateTime PickEarlier(DateTime? existing, DateTime candidate) =>
         existing.HasValue && existing.Value < candidate ? existing.Value : candidate;
 
-    void StampWaitingTasks(SQLBuilder kit, int activityInstanceId, DateTime activated, DateTime due)
+    void StampWaitingTasks(SQLBuilder kit, string activityInstanceId, DateTime activated, DateTime due)
     {
         var clip = kit.useClip();
         clip.from<TaskEntity>(out var t);

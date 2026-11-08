@@ -9,8 +9,8 @@ public class SailTodoPortalRecordEntity
     [SooColumn(Name = "id", IsPrimaryKey = true, Length = 64)]
     public string Id { get; set; } = "";
 
-    [SooColumn(Name = "task_id")]
-    public int? TaskId { get; set; }
+    [SooColumn(Name = "task_id", Length = 64)]
+    public string? TaskId { get; set; }
 
     [SooColumn(Name = "schedule_id", Length = 64)]
     public string ScheduleId { get; set; } = "";

@@ -21,14 +21,14 @@ export function countOutboxByStatus(status = 'Dead') {
   });
 }
 
-export function resetOutboxDead(id: number | string) {
+export function resetOutboxDead(id: string) {
   return request({
     url: `/api/WfOutbox/ResetDead/${id}`,
     method: 'post'
   });
 }
 
-export function resetOutboxDeadBatch(ids: number[]) {
+export function resetOutboxDeadBatch(ids: string[]) {
   return request({
     url: '/api/WfOutbox/ResetDeadBatch',
     method: 'post',

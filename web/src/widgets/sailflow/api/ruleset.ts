@@ -4,7 +4,7 @@
 import request from '@/utils/requestAPI6.js';
 
 export type RuleSetRow = {
-  Id?: number;
+  Id?: string;
   RuleSetCode?: string;
   RuleSetName?: string;
   Description?: string;

@@ -1,7 +1,7 @@
 import request from '@/utils/requestAPI6.js';
 
 export type VariableRow = {
-  Id?: number;
+  Id?: string;
   ProcessId?: string;
   Version?: string;
   ActivityId?: string;

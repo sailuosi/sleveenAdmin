@@ -28,7 +28,9 @@ public sealed class SailFormBizLifecycleHook : IFlowHook
             FormCode = handler.FormCode,
             AppName = ctx.AppName,
             AppInstanceId = ctx.AppInstanceId,
-            ProcessInstanceId = ctx.ProcessInstanceId > 0 ? ctx.ProcessInstanceId.ToString() : "",
+            ProcessInstanceId = string.IsNullOrWhiteSpace(ctx.ProcessInstanceId)
+                ? ""
+                : ctx.ProcessInstanceId.Trim(),
             FinishEvent = ctx.EventType
         });
     }

@@ -15,12 +15,12 @@ public static class SailProcessVariableHelper
     public static void PersistConditions(
         IWorkflowService wf,
         FlowCommandContext? runner,
-        int processInstanceId,
+        string? processInstanceId,
         ILogger? logger = null)
     {
         if (wf == null || runner?.Conditions == null || runner.Conditions.Count == 0)
             return;
-        if (processInstanceId <= 0)
+        if (string.IsNullOrWhiteSpace(processInstanceId))
             return;
 
         foreach (var kv in runner.Conditions)
@@ -40,7 +40,7 @@ public static class SailProcessVariableHelper
                     Name = kv.Key
                 });
 
-                if (exist != null && exist.Id is > 0)
+                if (exist != null && !string.IsNullOrWhiteSpace(exist.Id))
                 {
                     exist.Value = kv.Value;
                     exist.AppInstanceId = runner.AppInstanceId ?? exist.AppInstanceId;
@@ -50,10 +50,8 @@ public static class SailProcessVariableHelper
                 }
                 else
                 {
-                    // 自增主键 Id 保持 null（勿写 0），交给 SaveVariable / AUTOINCREMENT
                     wf.SaveProcessVariable(new ProcessVariableEntity
                     {
-                        Id = null,
                         VariableScope = ProcessVariableScopeEnum.Process.ToString(),
                         AppInstanceId = runner.AppInstanceId,
                         ProcessId = runner.ProcessId,
@@ -79,11 +77,11 @@ public static class SailProcessVariableHelper
     /// <summary>读取实例流程变量为表单值字典（供 Workbench 回填）。</summary>
     public static Dictionary<string, string> LoadFormValues(
         IWorkflowService wf,
-        int processInstanceId,
+        string? processInstanceId,
         ILogger? logger = null)
     {
         var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        if (wf == null || processInstanceId <= 0)
+        if (wf == null || string.IsNullOrWhiteSpace(processInstanceId))
             return map;
 
         try
@@ -121,20 +119,20 @@ public static class SailProcessVariableHelper
     }
 
     /// <summary>从执行结果或 runner 解析实例 Id。</summary>
-    public static int ResolveProcessInstanceId(
+    public static string? ResolveProcessInstanceId(
         IWorkflowService wf,
         FlowCommandContext? runner,
-        int processInstanceIdStarted)
+        string? processInstanceIdStarted)
     {
-        if (processInstanceIdStarted > 0)
-            return processInstanceIdStarted;
-        if (runner?.TaskId is > 0)
+        if (!string.IsNullOrWhiteSpace(processInstanceIdStarted))
+            return processInstanceIdStarted.Trim();
+        if (!string.IsNullOrWhiteSpace(runner?.TaskId))
         {
             try
             {
-                var task = wf.GetTaskView(runner.TaskId.Value);
-                if (task?.ProcessInstanceId is > 0)
-                    return task.ProcessInstanceId.Value;
+                var task = wf.GetTaskView(runner.TaskId);
+                if (!string.IsNullOrWhiteSpace(task?.ProcessInstanceId))
+                    return task!.ProcessInstanceId!.Trim();
             }
             catch
             {
@@ -142,6 +140,6 @@ public static class SailProcessVariableHelper
             }
         }
 
-        return 0;
+        return null;
     }
 }

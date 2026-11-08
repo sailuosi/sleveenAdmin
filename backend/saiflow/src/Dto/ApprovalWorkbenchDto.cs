@@ -32,7 +32,7 @@ public class ApprovalWorkbenchDto
     public bool HasBackSrc { get; set; }
 
     /// <summary>§G：退回源活动实例 Id（有则 HasBackSrc=true）。</summary>
-    public int? BackSrcActivityInstanceId { get; set; }
+    public string? BackSrcActivityInstanceId { get; set; }
 
     /// <summary>§J 维①：Prev | Starter | History（来自节点 NodePolicy）。</summary>
     public string SendBackTarget { get; set; } = "Starter";
@@ -47,8 +47,8 @@ public class ApprovalWorkbenchDto
 /// <summary>工作台查询入参。</summary>
 public class ApprovalWorkbenchQuery
 {
-    public int? TaskId { get; set; }
-    public int? ProcessInstanceId { get; set; }
+    public string? TaskId { get; set; }
+    public string? ProcessInstanceId { get; set; }
     /// <summary>显式表单 Id；缺省时尝试用实例 AppInstanceCode（发起时写入的 formId）。</summary>
     public string? FormId { get; set; }
     public IDictionary<string, string>? Conditions { get; set; }

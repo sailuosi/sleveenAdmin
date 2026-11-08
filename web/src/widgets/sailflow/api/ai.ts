@@ -5,7 +5,7 @@
 import request from '@/utils/requestAPI6.js';
 
 export type AiModelRow = {
-  Id?: number;
+  Id?: string;
   ModelProvider?: string;
   ModelName?: string;
   ModelType?: string;
@@ -19,7 +19,7 @@ export type AiModelRow = {
 };
 
 export type KbDocumentRow = {
-  Id?: number;
+  Id?: string;
   Content?: string;
   Metadata?: string;
   Embedding?: string;
@@ -31,7 +31,7 @@ export function getModelList() {
   return request({ url: '/api/Wf2Ai/GetModelList', method: 'get' });
 }
 
-export function getModel(id: number) {
+export function getModel(id: string) {
   return request({ url: `/api/Wf2Ai/GetModel/${id}`, method: 'get' });
 }
 
@@ -43,7 +43,7 @@ export function saveModel(entity: AiModelRow) {
   });
 }
 
-export function deleteModel(id: number) {
+export function deleteModel(id: string) {
   return request({
     url: `/api/Wf2Ai/DeleteModel/${id}`,
     method: 'get'
@@ -64,12 +64,12 @@ export function testModelConnection(payload: {
 }
 
 export type AxConfigRow = {
-  Id?: number;
+  Id?: string;
   ProcessId?: string;
   Version?: string;
   ActivityId?: string;
   ServiceType?: string;
-  ModelProviderId?: number | null;
+  ModelProviderId?: string | null;
   ModelName?: string;
   Description?: string;
   Temperature?: number;
@@ -88,17 +88,9 @@ export type AxConfigRow = {
   RagSimilarityThreshold?: number | null;
   RagSearchMode?: string;
   RagFunction?: string;
-  RagEmbeddingModelId?: number | null;
+  RagEmbeddingModelId?: string | null;
   RagEmbeddingDimensions?: number | null;
   MemoryTurns?: number;
-};
-
-export type KbDocumentRow = {
-  Id?: number;
-  Content?: string;
-  Metadata?: string;
-  IndustryId?: number | null;
-  Embedding?: string;
 };
 
 export function getAxConfig(processId: string, version: string, activityId: string) {
@@ -153,7 +145,7 @@ export function searchKnowledgeBase(payload: {
 }
 
 export function saveKnowledgeBaseDocument(payload: {
-  Id?: number;
+  Id?: string;
   Content: string;
   Metadata?: string;
   IndustryId?: number | null;

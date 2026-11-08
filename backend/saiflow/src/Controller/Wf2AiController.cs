@@ -60,7 +60,7 @@ public class Wf2AiController : ControllerBase
 
     /// <summary>GET api/Wf2Ai/GetModel/{id}</summary>
     [HttpGet]
-    public ResponseResult<AiModelProviderEntity> GetModel(int id)
+    public ResponseResult<AiModelProviderEntity> GetModel(string id)
     {
         try
         {
@@ -75,7 +75,7 @@ public class Wf2AiController : ControllerBase
         }
     }
 
-    /// <summary>POST api/Wf2Ai/SaveModel — Id&gt;0 更新，否则新增；返回 Entity。</summary>
+    /// <summary>POST api/Wf2Ai/SaveModel — Id 非空则更新，否则新增；返回 Entity。</summary>
     [HttpPost]
     public ResponseResult<AiModelProviderEntity> SaveModel([FromBody] JObject? body)
     {
@@ -87,8 +87,8 @@ public class Wf2AiController : ControllerBase
             if (string.IsNullOrWhiteSpace(entity.ModelProvider))
                 return ResponseResult<AiModelProviderEntity>.Error("ModelProvider required");
 
-            var modelId = entity.Id ?? 0;
-            if (modelId > 0)
+            var modelId = entity.Id?.Trim();
+            if (!string.IsNullOrWhiteSpace(modelId))
             {
                 var existing = _modelData.GetModelById(modelId);
                 if (existing == null)
@@ -121,7 +121,7 @@ public class Wf2AiController : ControllerBase
 
     /// <summary>GET api/Wf2Ai/DeleteModel/{id}</summary>
     [HttpGet]
-    public ResponseResult DeleteModel(int id)
+    public ResponseResult DeleteModel(string id)
     {
         try
         {
@@ -165,7 +165,7 @@ public class Wf2AiController : ControllerBase
     #region Agent（与 Model 同源别名）
 
     [HttpGet]
-    public ResponseResult<AiModelProviderEntity> GetAgent(int id) => GetModel(id);
+    public ResponseResult<AiModelProviderEntity> GetAgent(string id) => GetModel(id);
 
     [HttpGet]
     public ResponseResult<List<AiModelProviderEntity>> GetAgentListSimple() => GetModelList();
@@ -174,7 +174,7 @@ public class Wf2AiController : ControllerBase
     public ResponseResult<AiModelProviderEntity> SaveAgent([FromBody] JObject? body) => SaveModel(body);
 
     [HttpGet]
-    public ResponseResult DeleteAgent(int id) => DeleteModel(id);
+    public ResponseResult DeleteAgent(string id) => DeleteModel(id);
 
     /// <summary>流程 Upgrade 语义不适用于模型表；返回明确错误。</summary>
     [HttpPost]

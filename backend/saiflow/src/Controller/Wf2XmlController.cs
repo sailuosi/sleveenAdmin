@@ -63,7 +63,7 @@ public partial class Wf2XmlController : ControllerBase
 
     /// <summary>GET api/Wf2Xml/GetProcessFile/{id}</summary>
     [HttpGet]
-    public ResponseResult<ProcessFileEntity> GetProcessFile(int id)
+    public ResponseResult<ProcessFileEntity> GetProcessFile(string id)
     {
         try
         {
@@ -183,7 +183,7 @@ public partial class Wf2XmlController : ControllerBase
 
     /// <summary>GET api/Wf2Xml/DeleteProcessById/{id}</summary>
     [HttpGet]
-    public ResponseResult DeleteProcessById(int id)
+    public ResponseResult DeleteProcessById(string id)
     {
         try
         {

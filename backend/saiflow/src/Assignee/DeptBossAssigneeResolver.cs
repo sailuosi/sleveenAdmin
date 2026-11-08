@@ -61,11 +61,11 @@ public class DeptBossAssigneeResolver : IAssigneeResolver
 
     protected virtual string? ResolveStarterAccount(AssigneeResolveContext ctx)
     {
-        if (ctx.Request?.ProcessInstanceId is not > 0 || Sail == null)
+        if (string.IsNullOrWhiteSpace(ctx.Request?.ProcessInstanceId) || Sail == null)
             return null;
         try
         {
-            var starter = new WorkflowService(Sail).GetProcessInitiator(ctx.Request.ProcessInstanceId.Value);
+            var starter = new WorkflowService(Sail).GetProcessInitiator(ctx.Request.ProcessInstanceId);
             return string.IsNullOrWhiteSpace(starter?.UserId) ? null : starter!.UserId.Trim();
         }
         catch

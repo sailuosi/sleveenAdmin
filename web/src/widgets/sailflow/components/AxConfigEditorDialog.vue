@@ -190,7 +190,7 @@ function onClosed() {
   resetForm();
 }
 
-function onModelChange(id: number | null) {
+function onModelChange(id: string | null) {
   const m = models.value.find(x => x.Id === id);
   if (m?.ModelName) form.ModelName = m.ModelName;
 }

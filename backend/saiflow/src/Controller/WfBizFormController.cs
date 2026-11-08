@@ -70,7 +70,7 @@ public class WfBizFormController(SailFormBizHost bizHost) : ControllerBase
                 ctx.ProcessInstanceId,
                 ctx.FormCode
             }, "submitted");
-            if (exec.ProcessInstanceIdStarted > 0)
+            if (!string.IsNullOrWhiteSpace(exec.ProcessInstanceIdStarted))
                 ok.NewId = exec.ProcessInstanceIdStarted;
             return ok;
         }

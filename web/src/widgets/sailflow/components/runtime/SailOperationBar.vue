@@ -588,8 +588,9 @@ function buildRunner(extra?: Partial<FlowCommandContextPayload>): FlowCommandCon
     AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),
     ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
     Version: String(pickField(t, 'Version', 'version') || '1'),
-    TaskId: Number(pickField(t, 'Id', 'id') || 0) || null,
-    ActivityInstanceId: Number(pickField(t, 'ActivityInstanceId', 'activityInstanceId') || 0) || null,
+    TaskId: String(pickField(t, 'Id', 'id') || '').trim() || null,
+    ActivityInstanceId:
+      String(pickField(t, 'ActivityInstanceId', 'activityInstanceId') || '').trim() || null,
     Conditions: conditions,
     ...extra
   };

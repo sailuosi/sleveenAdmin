@@ -72,7 +72,7 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
         TaskEntity? task = null;
         try
         {
-            if (ctx.TaskId > 0)
+            if (!string.IsNullOrWhiteSpace(ctx.TaskId))
                 task = new TaskManager(_sail).GetTask(ctx.TaskId);
         }
         catch (Exception ex)
@@ -96,7 +96,7 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
         {
             AppId = _options.AppId,
             AppName = string.IsNullOrWhiteSpace(_options.AppName) ? appName : _options.AppName,
-            AppScheduleId = ctx.TaskId.ToString(),
+            AppScheduleId = ctx.TaskId ?? "",
             Name = title,
             ActivityName = activityName,
             CreateUserCode = createCode,
@@ -129,10 +129,12 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
         return dto;
     }
 
-    private string BuildPcUrl(int taskId, int processInstanceId)
+    private string BuildPcUrl(string? taskId, string? processInstanceId)
     {
         var baseUrl = (_options.PcUrlBase ?? "").Trim();
-        var path = $"sail/process-detail?taskId={taskId}&processInstanceId={processInstanceId}";
+        var tid = Uri.EscapeDataString(taskId ?? "");
+        var pid = Uri.EscapeDataString(processInstanceId ?? "");
+        var path = $"sail/process-detail?taskId={tid}&processInstanceId={pid}";
         if (string.IsNullOrEmpty(baseUrl))
             return "/" + path;
         if (baseUrl.EndsWith('/') || baseUrl.EndsWith('#'))
@@ -146,9 +148,9 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
     {
         try
         {
-            int? taskId = null;
-            if (int.TryParse(taskInfo.AppScheduleId, out var id))
-                taskId = id;
+            var taskId = string.IsNullOrWhiteSpace(taskInfo.AppScheduleId)
+                ? null
+                : taskInfo.AppScheduleId.Trim();
             _records.Insert(
                 taskId,
                 taskInfo.AppScheduleId,

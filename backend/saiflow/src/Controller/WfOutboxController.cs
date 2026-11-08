@@ -27,7 +27,7 @@ public class WfOutboxController : ControllerBase
 
     public class ResetIdsRequest
     {
-        public List<int>? Ids { get; set; }
+        public List<string>? Ids { get; set; }
     }
 
     /// <summary>POST api/WfOutbox/Query · 默认查 Dead</summary>
@@ -80,7 +80,7 @@ public class WfOutboxController : ControllerBase
 
     /// <summary>POST api/WfOutbox/ResetDead/{id}</summary>
     [HttpPost]
-    public ResponseResult ResetDead(int id)
+    public ResponseResult ResetDead(string id)
     {
         try
         {
@@ -101,7 +101,7 @@ public class WfOutboxController : ControllerBase
     {
         try
         {
-            var ids = body?.Ids ?? new List<int>();
+            var ids = body?.Ids ?? new List<string>();
             var mgr = new HookOutboxManager(_sail);
             var kit = _sail.UseRunSQL();
             var n = mgr.ResetDeadBatch(kit, ids);

@@ -71,7 +71,7 @@ public class WfVariableController : ControllerBase
 
     /// <summary>DELETE api/WfVariable/Delete?id=</summary>
     [HttpDelete]
-    public ResponseResult Delete([FromQuery] int id)
+    public ResponseResult Delete([FromQuery] string id)
     {
         try
         {

@@ -103,7 +103,7 @@ const err = ref('');
 const rows = ref<Record<string, unknown>[]>([]);
 const status = ref('Dead');
 const processCode = ref('');
-const selectedIds = ref<number[]>([]);
+const selectedIds = ref<string[]>([]);
 
 function field(row: Record<string, unknown>, ...keys: string[]) {
   return pickField(row, ...keys) ?? '';
@@ -111,8 +111,8 @@ function field(row: Record<string, unknown>, ...keys: string[]) {
 
 function onSel(list: Record<string, unknown>[]) {
   selectedIds.value = list
-    .map(r => Number(field(r, 'Id', 'id')))
-    .filter(n => Number.isFinite(n) && n > 0);
+    .map(r => String(field(r, 'Id', 'id') || '').trim())
+    .filter(id => id !== '');
 }
 
 async function load() {
@@ -140,7 +140,8 @@ async function load() {
 }
 
 async function onResetOne(row: Record<string, unknown>) {
-  const id = Number(field(row, 'Id', 'id'));
+  const id = String(field(row, 'Id', 'id') || '').trim();
+  if (!id) return;
   try {
     const data = await resetOutboxDead(id);
     if ((data?.Status ?? data?.status) === -1) {

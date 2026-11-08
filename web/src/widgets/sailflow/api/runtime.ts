@@ -12,8 +12,9 @@ export type FlowCommandContextPayload = {
   ProcessId?: string;
   ProcessCode?: string;
   Version?: string;
-  TaskId?: number | null;
-  ActivityInstanceId?: number | null;
+  TaskId?: string | null;
+  ActivityInstanceId?: string | null;
+  ProcessInstanceId?: string | null;
   Conditions?: Record<string, string>;
   NextActivityPerformers?: Record<
     string,
@@ -75,7 +76,7 @@ export function queryCompletedTasks(data: TaskQueryPayload) {
 }
 
 /** GET api/Wf2Xml/GetTaskView/{id} */
-export function getTaskView(id: number | string) {
+export function getTaskView(id: string) {
   return request({
     url: `/api/Wf2Xml/GetTaskView/${id}`,
     method: 'get'
@@ -84,8 +85,8 @@ export function getTaskView(id: number | string) {
 
 /** POST api/Wf2Xml/GetApprovalWorkbench */
 export function getApprovalWorkbench(data: {
-  TaskId?: number | null;
-  ProcessInstanceId?: number | null;
+  TaskId?: string | null;
+  ProcessInstanceId?: string | null;
   FormId?: string;
   Conditions?: Record<string, string>;
 }) {
@@ -124,7 +125,7 @@ export function queryProcessInstances(data: ProcessInstanceQueryPayload) {
 }
 
 /** GET api/Wf2Xml/GetProcessInstance/{id} */
-export function getProcessInstance(id: number | string) {
+export function getProcessInstance(id: string) {
   return request({
     url: `/api/Wf2Xml/GetProcessInstance/${id}`,
     method: 'get'

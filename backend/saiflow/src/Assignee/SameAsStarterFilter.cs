@@ -29,7 +29,7 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
             return;
         if (ctx.Performers == null || ctx.Performers.Count == 0)
             return;
-        if (ctx.Request?.ProcessInstanceId is not > 0)
+        if (string.IsNullOrWhiteSpace(ctx.Request?.ProcessInstanceId))
             return;
 
         if (ctx.Performers.Any(p =>
@@ -39,7 +39,7 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
 
         try
         {
-            var starter = new WorkflowService(_sail).GetProcessInitiator(ctx.Request.ProcessInstanceId.Value);
+            var starter = new WorkflowService(_sail).GetProcessInitiator(ctx.Request.ProcessInstanceId);
             if (starter == null || string.IsNullOrWhiteSpace(starter.UserId))
             {
                 // type 2/3 须能判定同人；读不到发起人 → fail-closed

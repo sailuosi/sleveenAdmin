@@ -46,9 +46,10 @@ public sealed class SailFormBizHost(
             return (ctx, null);
 
         var exec = await wf.StartProcessAsync(ctx.ToRunner(), ct).ConfigureAwait(false);
-        if (exec.Status == WfExecutedStatus.Success && exec.ProcessInstanceIdStarted > 0)
+        if (exec.Status == WfExecutedStatus.Success
+            && !string.IsNullOrWhiteSpace(exec.ProcessInstanceIdStarted))
         {
-            ctx.ProcessInstanceId = exec.ProcessInstanceIdStarted.ToString();
+            ctx.ProcessInstanceId = exec.ProcessInstanceIdStarted.Trim();
             handler.OnStarted(ctx);
         }
         return (ctx, exec);

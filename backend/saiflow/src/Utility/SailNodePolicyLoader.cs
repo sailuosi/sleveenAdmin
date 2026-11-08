@@ -18,9 +18,9 @@ public static class SailNodePolicyLoader
             string? processId = runner.ProcessId;
             string? version = runner.Version;
 
-            if (runner.TaskId is > 0)
+            if (!string.IsNullOrWhiteSpace(runner.TaskId))
             {
-                var view = new WorkflowService(sail).GetTaskView(runner.TaskId.Value);
+                var view = new WorkflowService(sail).GetTaskView(runner.TaskId);
                 if (view != null)
                 {
                     if (!string.IsNullOrWhiteSpace(view.ActivityId))
