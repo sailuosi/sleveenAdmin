@@ -4,7 +4,7 @@ using SleveenAdmin.Foundation.Biz;
 
 namespace SleveenAdmin.Officeman.Ebook.Service;
 
-public sealed class BizSaEbMatService : BizServiceBase
+public sealed class BizSaEbMatService : BizServiceBase<BizSaEbMatRow>
 {
     public override string BizName => "Biz_Sa_EbMat";
 
@@ -14,13 +14,8 @@ public sealed class BizSaEbMatService : BizServiceBase
 
     protected override string DefaultOrderBy => "mtb.SYS_Created desc";
 
-    protected override Dictionary<string, object> LoadInitDicts()
-    {
-        var dicts = LoadDictItems(
-            EbookSchema.DictPlatform,
-            EbookSchema.DictMaterialStatus);
-        return dicts.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
-    }
+    protected override Dictionary<string, List<BizDictItem>> LoadInitDicts() =>
+        LoadDictItems(EbookSchema.DictPlatform, EbookSchema.DictMaterialStatus);
 
     protected override void ApplyKeyword(SQLBuilder kit, BizQueryInput input)
     {

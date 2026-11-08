@@ -58,7 +58,7 @@ builder.Services.AddSleveenAdminHangfire(builder.Configuration);
 builder.Services.AddSignalR();
 
 builder.Services.AddSleveenAdminServiceDiscovery(
-    typeof(UserService),
+    typeof(BizSysUserService),
     typeof(SysPortalService),
     typeof(AiChatService),
     typeof(AuthService),
@@ -132,10 +132,10 @@ builder.Services.AddControllers(options =>
         options.Filters.Add<GlobalExceptionFilter>();
 
     })
-    .AddApplicationPart(typeof(UserController).Assembly)
+    .AddApplicationPart(typeof(BizSysUserListController).Assembly)
     .AddApplicationPart(typeof(AiChatController).Assembly)
     .AddApplicationPart(typeof(BizSysPortalListController).Assembly)
-    .AddApplicationPart(typeof(TenantController).Assembly)
+    .AddApplicationPart(typeof(BizSysTenantListController).Assembly)
     .AddApplicationPart(typeof(ProbeController).Assembly)
     .AddApplicationPart(typeof(BizSaEbMatListController).Assembly);
 

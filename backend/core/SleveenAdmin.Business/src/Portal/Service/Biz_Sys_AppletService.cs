@@ -3,7 +3,7 @@ using SleveenAdmin.Foundation.Biz;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class BizSysAppletService : BizServiceBase
+public sealed class BizSysAppletService : BizServiceBase<BizSysAppletRow>
 {
     public override string BizName => "Biz_Sys_Applet";
 
@@ -21,11 +21,8 @@ public sealed class BizSysAppletService : BizServiceBase
 
     protected override string DefaultOrderBy => "mtb.Sa_CreateTime desc";
 
-    protected override Dictionary<string, object> LoadInitDicts()
-    {
-        var dicts = LoadDictItems("SysAppletType", "SysPtCellTheme", "SysAppletTitle");
-        return dicts.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
-    }
+    protected override Dictionary<string, List<BizDictItem>> LoadInitDicts() =>
+        LoadDictItems("SysAppletType", "SysPtCellTheme", "SysAppletTitle");
 
     protected override void ApplyFilters(SQLBuilder kit, BizQueryInput input)
     {
@@ -47,24 +44,5 @@ public sealed class BizSysAppletService : BizServiceBase
     {
         if (string.IsNullOrWhiteSpace(input.Keyword)) return;
         kit.whereLikes(["mtb.A_Title", "mtb.A_Name", "mtb.A_Key"], input.Keyword.Trim());
-    }
-
-    protected override void ApplyOutputAliases(Dictionary<string, object?> map)
-    {
-        base.ApplyOutputAliases(map);
-        PortalRowAlias.ApplyToMap(map, PortalRowAlias.Applet);
-    }
-
-    protected override IEnumerable<string> AliasKeysToStrip()
-    {
-        foreach (var k in base.AliasKeysToStrip()) yield return k;
-        yield return "saAppletCataId";
-    }
-
-    protected override void OnBeforeSave(Dictionary<string, object?> map)
-    {
-        if (map.TryGetValue("saAppletCataId", out var v) && !map.ContainsKey("Sa_AppletCataId"))
-            map["Sa_AppletCataId"] = v;
-        base.OnBeforeSave(map);
     }
 }

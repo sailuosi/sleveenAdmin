@@ -5,13 +5,13 @@ using SleveenAdmin.Officeman.Ebook.Service;
 namespace SleveenAdmin.Officeman.Ebook.Controller;
 
 [Route("biz/saebhome")]
-public class BizSaEbHomeController : BizControllerBase
+public class BizSaEbHomeController : BizControllerBase<BizSaEbNoteRow>
 {
     private readonly BizSaEbHomeService _service;
 
     public BizSaEbHomeController(BizSaEbHomeService service) => _service = service;
 
-    protected override BizServiceBase Service => _service;
+    protected override BizServiceBase<BizSaEbNoteRow> Service => _service;
 
     public override string BizName => "Biz_Sa_EbHome";
 

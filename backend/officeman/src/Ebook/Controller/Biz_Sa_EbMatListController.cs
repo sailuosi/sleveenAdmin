@@ -6,13 +6,13 @@ using SleveenAdmin.Officeman.Ebook.Service;
 namespace SleveenAdmin.Officeman.Ebook.Controller;
 
 [Route("biz/saebmatlist")]
-public class BizSaEbMatListController : BizControllerBase
+public class BizSaEbMatListController : BizControllerBase<BizSaEbMatRow>
 {
     private readonly BizSaEbMatService _service;
 
     public BizSaEbMatListController(BizSaEbMatService service) => _service = service;
 
-    protected override BizServiceBase Service => _service;
+    protected override BizServiceBase<BizSaEbMatRow> Service => _service;
 
     public override string BizName => "Biz_Sa_EbMatList";
 
@@ -23,7 +23,7 @@ public class BizSaEbMatListController : BizControllerBase
     public IActionResult QOne(Guid id) => QOneCore(id);
 
     [HttpPost("ebook/ebmat/save")]
-    public IActionResult Save([FromBody] JsonElement rows) => SaveCore(rows);
+    public IActionResult Save([FromBody] List<BizSaEbMatRow> rows) => SaveCore(rows);
 
     [HttpPost("ebook/ebmat/rmbyids")]
     public IActionResult Remove([FromBody] JsonElement para) => RemoveCore(para);

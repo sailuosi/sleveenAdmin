@@ -90,54 +90,67 @@ SleveenAdmin.Web.Api   ──► System + Business + Foundation
 | BizService | `.../Service/Biz_Sa_XxxService.cs` |
 | Controller | `.../Controller/Biz_Sa_XxxListController.cs` |
 
-基类：`BizControllerBase` / `BizServiceBase`，置于 Foundation。
+基类：`BizControllerBase<TRow>` / `BizServiceBase<TRow>`，置于 Foundation。对外契约为强类型（禁止 `object` / `Dictionary<string, object?>` 作为 Service 返回值）。
 
 ### 2.2 各层要点
 
 #### Entity
 
 - `[SooTable(Name="{Table}", Type=DBTableType.Table)]`（或 `[SooTable("…")]` + `[SooColumn]`）
-- 主键：`{TableName}OID`（`Guid?` / Guid v7）
-- 系统字段：`SYS_Created`、`SYS_LAST_UPD`、`SYS_Deleted`、`SYS_CreatedBy`、`SYS_REPLACEMENT`、`SYS_POSTN`、`SYS_DIVISION`、`SYS_ORG`、`SYS_LAST_UPD_BY`
-- 业务字段：表相关短前缀 + `_`（如 `Xx_`）
-- 表前缀约定 **`Sa_`**
+- 主键：业务域 `{TableName}OID`；系统域常见 `S*_Id`（如 `Su_Id`）
+- 业务域系统字段：`SYS_Created`、`SYS_LAST_UPD`、`SYS_Deleted`、…
+- 系统域表通常无 `SYS_*` 软删列：Service 覆盖 `UseSoftDelete => false`，并设置 `CreatedAtColumn` / `UpdatedAtColumn`（无则置空串）
+- 表前缀：业务 **`Sa_`**；系统 **`Sys*`**
 
 #### BizRow
 
-- 类名去掉文件名中的下划线：`Biz_Sa_XxxRow` → `BizSaXxxRow`
+- 类名去掉文件名中的下划线：`Biz_Sa_XxxRow` → `BizSaXxxRow`；系统域如 `Biz_Sys_UserRow` → `BizSysUserRow`
 - `[SooTable(..., Alias="mtb", Type=DBTableType.Select)]`
-- 可含计算列 / 子查询字段；API 序列化以 Row 为准
+- 可含计算列 / 子查询字段；API 序列化以 Row 为准（`JsonPropertyName` / camelCase）
 
 #### BizService
 
-- 继承 `BizServiceBase`，生命周期与仓库一致（`IScoped` / 项目 DI 约定）
-- 逻辑名 `BizName = "Biz_Sa_Xxx"`（保留下划线）
-- 常用方法：`LoadPageList`、`LoadRowById`、`SaveList` / `Save`、`RemoveByOIDs`、`doExportExcel`
-- `whenQueryWhere` 中过滤软删：`(mtb.SYS_Deleted is null or mtb.SYS_Deleted = 0)`
-- 数据访问走 mooSQL / `MooRepository`（见 mooSQL 集成文档）
+- 继承 `BizServiceBase<TRow>`，生命周期 `IScoped`
+- 逻辑名 `BizName = "Biz_Sa_Xxx"` / `"Biz_Sys_User"`（保留下划线）
+- 强类型方法：`BizInitData GetInitData()`、`PagedResult<TRow> LoadPageList`、`TRow? LoadRowById`、`BizAffectedResult SaveList(IReadOnlyList<TRow>)`、`BizAffectedResult RemoveByOIDs`
+- 默认软删过滤；系统域 `UseSoftDelete=false` 时物理删除
+- 数据访问走 mooSQL（`Db.toEntity` / `Db.toList` 物化行）
 
 #### Biz Controller
 
-- 继承 `BizControllerBase`，暴露页面 API
-- `[Route("biz/{slug}/")]`，slug 一般为 Biz 名小写去下划线（如 `Biz_Sa_XxxList` → `biz/saxxxlist/`）
+- 继承 `BizControllerBase<TRow>`，暴露页面 API
+- `[Route("biz/{slug}/")]`，slug 一般为 Biz 名小写去下划线（如 `Biz_Sys_UserList` → `biz/sysuserlist/`）
 - 标准端点：
 
 | 方法 | 路由后缀 | 作用 |
 |------|----------|------|
 | POST | `init` | 码表、权限、用户、页面配置 |
-| POST | `{mod}/{entity}/qlist` | 分页列表 |
-| GET | `{mod}/{entity}/qone/{id}` | 单条 |
-| POST | `{mod}/{entity}/save` | 批量保存 |
-| POST | `{mod}/{entity}/rmbyids` | 按 OID 删除 |
-| POST | `{mod}/{entity}/exptexcel` | 导出（可选） |
+| POST | `qlist`（或 `{mod}/{entity}/qlist`） | 分页列表 |
+| GET | `qone/{id}` | 单条 |
+| POST | `save` | 批量保存（`List<TRow>`） |
+| POST | `rmbyids` | 按 OID 删除 |
+| POST | `exptexcel` | 导出（可选） |
 
-- 钩子：`OnBeforeSave`、`OnAfterLoadList`、`OnBeforeDelete` 等
-- 页面标识：`BizName = "Biz_Sa_XxxList"`
+- 钩子：`OnBeforeSave(TRow)`、`OnAfterSave(TRow)`、`OnBeforeDelete` / `OnAfterDelete`
+- 页面标识：`BizName = "Biz_Sa_XxxList"` / `"Biz_Sys_UserList"`
+
+#### 系统域运行时 API 例外（不走 Biz 管理 CRUD）
+
+| 路由 | 用途 |
+|------|------|
+| `api/auth/*` | 登录 / 刷新 / 用户信息 |
+| `api/sysMenu/constant-routes`、`login-menu-tree`、`isRouteExist` | 登录菜单引导 |
+| `api/sysDict/data/byCode` | 运行时字典 |
+| `api/sysConfig/code/{code}` | 运行时配置 |
+| `api/sysNotice/my/*`、`{id}/read` | 通知收件箱 |
+
+管理端 CRUD 已硬切到 `biz/sys*`（User / Org / Menu / DictType / DictData / Config / Notice / Tenant）。
 
 基类路径：
 
 - `src/SleveenAdmin.Foundation/.../BizServiceBase.cs`
 - `src/SleveenAdmin.Foundation/.../BizControllerBase.cs`
+- `src/SleveenAdmin.Foundation/.../BizInitData.cs`（含 `BizDictItem`、`BizAffectedResult`）
 
 ---
 

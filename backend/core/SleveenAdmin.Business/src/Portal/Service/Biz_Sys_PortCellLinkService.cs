@@ -3,7 +3,7 @@ using SleveenAdmin.Foundation.Biz;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class BizSysPortCellLinkService : BizServiceBase
+public sealed class BizSysPortCellLinkService : BizServiceBase<BizSysPortCellLinkRow>
 {
     private readonly SysPortalCommonService _portalCommon;
 
@@ -25,12 +25,9 @@ public sealed class BizSysPortCellLinkService : BizServiceBase
 
     protected override string DefaultOrderBy => "mtb.CL_Idx asc";
 
-    protected override Dictionary<string, object> LoadInitDicts()
-    {
-        var dicts = LoadDictItems(
+    protected override Dictionary<string, List<BizDictItem>> LoadInitDicts() =>
+        LoadDictItems(
             "SysAppletType", "SysPtCellTheme", "SysAppletTitle", "SysApplteTool", "SysCellDisabled");
-        return dicts.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
-    }
 
     protected override void ApplyFilters(SQLBuilder kit, BizQueryInput input)
     {
@@ -50,31 +47,9 @@ public sealed class BizSysPortCellLinkService : BizServiceBase
         }
     }
 
-    protected override void ApplyOutputAliases(Dictionary<string, object?> map)
+    protected override void OnAfterSave(BizSysPortCellLinkRow row)
     {
-        base.ApplyOutputAliases(map);
-        PortalRowAlias.ApplyToMap(map, PortalRowAlias.CellLink);
-    }
-
-    protected override IEnumerable<string> AliasKeysToStrip()
-    {
-        foreach (var k in base.AliasKeysToStrip()) yield return k;
-        yield return "spPortalId";
-        yield return "spPortCellId";
-        yield return "saAppletId";
-    }
-
-    protected override void OnBeforeSave(Dictionary<string, object?> map)
-    {
-        MapFk(map, "spPortalId", "Spcl_PortalId");
-        MapFk(map, "spPortCellId", "Spcl_PortCellId");
-        MapFk(map, "saAppletId", "Spcl_AppletId");
-        base.OnBeforeSave(map);
-    }
-
-    protected override void OnAfterSave(Dictionary<string, object?> map)
-    {
-        if (TryToGuid(map.GetValueOrDefault("Spcl_PortalId"), out var pid))
+        if (row.PortalId is Guid pid && pid != Guid.Empty)
             _portalCommon.InvalidatePortalConfig(pid);
     }
 
@@ -83,11 +58,5 @@ public sealed class BizSysPortCellLinkService : BizServiceBase
         var row = Db.useSQL().select("Spcl_PortalId").from(TableName).where("Spcl_Id", id).queryRow();
         if (row is not null && Guid.TryParse(row["Spcl_PortalId"]?.ToString(), out var pid))
             _portalCommon.InvalidatePortalConfig(pid);
-    }
-
-    static void MapFk(Dictionary<string, object?> map, string alias, string col)
-    {
-        if (map.TryGetValue(alias, out var v) && !map.ContainsKey(col))
-            map[col] = v;
     }
 }

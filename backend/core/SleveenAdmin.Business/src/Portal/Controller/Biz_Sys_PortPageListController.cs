@@ -6,13 +6,13 @@ using SleveenAdmin.Foundation.Biz;
 namespace SleveenAdmin.Business.Portal.Controller;
 
 [Route("biz/sysportpagelist")]
-public class BizSysPortPageListController : BizControllerBase
+public class BizSysPortPageListController : BizControllerBase<BizSysPortPageRow>
 {
     private readonly BizSysPortPageService _service;
 
     public BizSysPortPageListController(BizSysPortPageService service) => _service = service;
 
-    protected override BizServiceBase Service => _service;
+    protected override BizServiceBase<BizSysPortPageRow> Service => _service;
 
     public override string BizName => "Biz_Sys_PortPageList";
 
@@ -23,7 +23,7 @@ public class BizSysPortPageListController : BizControllerBase
     public IActionResult QOne(Guid id) => QOneCore(id);
 
     [HttpPost("save")]
-    public IActionResult Save([FromBody] JsonElement rows) => SaveCore(rows);
+    public IActionResult Save([FromBody] List<BizSysPortPageRow> rows) => SaveCore(rows);
 
     [HttpPost("rmbyids")]
     public IActionResult Remove([FromBody] JsonElement para) => RemoveCore(para);

@@ -1,4 +1,4 @@
-import { fetchGetUserPage } from '@/service/api/sys-manage';
+import { queryBizSysUserlist } from '@/widgets/sysext/views/sys/user/Page/Biz_Sys_UserListapi.js';
 
 /** R3：宿主 SysUser → 选人候选（UserId=Account）。 */
 export type HostCandidateUser = {
@@ -9,9 +9,8 @@ export type HostCandidateUser = {
 
 export async function loadHostCandidateUsers(keyword?: string, pageSize = 100): Promise<HostCandidateUser[]> {
   try {
-    const res = await fetchGetUserPage({ page: 1, pageSize, keyword: keyword || null });
-    const page = (res as { data?: { records?: unknown[] } })?.data;
-    const rows = (page?.records || []) as Array<Record<string, unknown>>;
+    const res = await queryBizSysUserlist({ page: 1, pageSize, keyword: keyword || null });
+    const rows = (res?.Items || res?.records || res?.Records || []) as Array<Record<string, unknown>>;
     if (!Array.isArray(rows)) return [];
     return rows
       .map(u => {

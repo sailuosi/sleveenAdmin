@@ -3,7 +3,7 @@ using SleveenAdmin.Foundation.Biz;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class BizSysAppletCataService : BizServiceBase
+public sealed class BizSysAppletCataService : BizServiceBase<BizSysAppletCataRow>
 {
     public override string BizName => "Biz_Sys_AppletCata";
 
@@ -25,24 +25,5 @@ public sealed class BizSysAppletCataService : BizServiceBase
     {
         if (string.IsNullOrWhiteSpace(input.Keyword)) return;
         kit.whereLikes(["mtb.AC_Name", "mtb.AC_Code"], input.Keyword.Trim());
-    }
-
-    protected override void ApplyOutputAliases(Dictionary<string, object?> map)
-    {
-        base.ApplyOutputAliases(map);
-        PortalRowAlias.ApplyToMap(map, PortalRowAlias.AppletCata);
-    }
-
-    protected override IEnumerable<string> AliasKeysToStrip()
-    {
-        foreach (var k in base.AliasKeysToStrip()) yield return k;
-        yield return "sacPid";
-    }
-
-    protected override void OnBeforeSave(Dictionary<string, object?> map)
-    {
-        if (map.TryGetValue("sacPid", out var v) && !map.ContainsKey("Sac_Pid"))
-            map["Sac_Pid"] = v;
-        base.OnBeforeSave(map);
     }
 }

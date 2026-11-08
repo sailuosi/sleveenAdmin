@@ -6,13 +6,13 @@ using SleveenAdmin.Foundation.Biz;
 namespace SleveenAdmin.Business.Portal.Controller;
 
 [Route("biz/sysappletcatalist")]
-public class BizSysAppletCataListController : BizControllerBase
+public class BizSysAppletCataListController : BizControllerBase<BizSysAppletCataRow>
 {
     private readonly BizSysAppletCataService _service;
 
     public BizSysAppletCataListController(BizSysAppletCataService service) => _service = service;
 
-    protected override BizServiceBase Service => _service;
+    protected override BizServiceBase<BizSysAppletCataRow> Service => _service;
 
     public override string BizName => "Biz_Sys_AppletCataList";
 
@@ -23,7 +23,7 @@ public class BizSysAppletCataListController : BizControllerBase
     public IActionResult QOne(Guid id) => QOneCore(id);
 
     [HttpPost("save")]
-    public IActionResult Save([FromBody] JsonElement rows) => SaveCore(rows);
+    public IActionResult Save([FromBody] List<BizSysAppletCataRow> rows) => SaveCore(rows);
 
     [HttpPost("rmbyids")]
     public IActionResult Remove([FromBody] JsonElement para) => RemoveCore(para);

@@ -3,7 +3,7 @@ using SleveenAdmin.Foundation.Biz;
 
 namespace SleveenAdmin.Officeman.Ebook.Service;
 
-public sealed class BizSaEbNoteService : BizServiceBase
+public sealed class BizSaEbNoteService : BizServiceBase<BizSaEbNoteRow>
 {
     public override string BizName => "Biz_Sa_EbNote";
 
@@ -13,11 +13,8 @@ public sealed class BizSaEbNoteService : BizServiceBase
 
     protected override string DefaultOrderBy => "mtb.SYS_Created desc";
 
-    protected override Dictionary<string, object> LoadInitDicts()
-    {
-        var dicts = LoadDictItems(EbookSchema.DictTopicStatus);
-        return dicts.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
-    }
+    protected override Dictionary<string, List<BizDictItem>> LoadInitDicts() =>
+        LoadDictItems(EbookSchema.DictTopicStatus);
 
     protected override void ApplyKeyword(SQLBuilder kit, BizQueryInput input)
     {
@@ -27,7 +24,7 @@ public sealed class BizSaEbNoteService : BizServiceBase
     }
 }
 
-public sealed class BizSaEbTpMatService : BizServiceBase
+public sealed class BizSaEbTpMatService : BizServiceBase<BizSaEbTpMatRow>
 {
     public override string BizName => "Biz_Sa_EbTpMat";
 

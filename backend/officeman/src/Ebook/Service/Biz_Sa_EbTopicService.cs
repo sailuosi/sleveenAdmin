@@ -2,10 +2,11 @@ using System.Data;
 using System.Text.Json;
 using mooSQL.data;
 using SleveenAdmin.Foundation.Biz;
+using SleveenAdmin.Foundation.Models;
 
 namespace SleveenAdmin.Officeman.Ebook.Service;
 
-public sealed class BizSaEbTopicService : BizServiceBase
+public sealed class BizSaEbTopicService : BizServiceBase<BizSaEbTopicRow>
 {
     private static readonly string[] GraphicStages = ["inspiration", "draft", "final", "graphic", "publish"];
     private static readonly string[] VideoStages = ["inspiration", "outline", "script", "filming", "editing", "publish"];
@@ -18,16 +19,13 @@ public sealed class BizSaEbTopicService : BizServiceBase
 
     protected override string DefaultOrderBy => "mtb.SYS_Created desc";
 
-    protected override Dictionary<string, object> LoadInitDicts()
-    {
-        var dicts = LoadDictItems(
+    protected override Dictionary<string, List<BizDictItem>> LoadInitDicts() =>
+        LoadDictItems(
             EbookSchema.DictPlatform,
             EbookSchema.DictStageGraphic,
             EbookSchema.DictStageVideo,
             EbookSchema.DictPublishFormat,
             EbookSchema.DictTopicStatus);
-        return dicts.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
-    }
 
     protected override void ApplyKeyword(SQLBuilder kit, BizQueryInput input)
     {
@@ -36,12 +34,11 @@ public sealed class BizSaEbTopicService : BizServiceBase
         kit.whereLikes(["mtb.Et_Title", "mtb.Et_Desc", "mtb.Et_Audience"], kw);
     }
 
-    public override object LoadPageList(BizQueryInput input)
+    public override PagedResult<BizSaEbTopicRow> LoadPageList(BizQueryInput input)
     {
         var page = input.ResolvePage();
         var size = input.ResolvePageSize();
         var kit = Db.useSQL();
-        // TableName / OidColumn / EbookSchema 均为编译期常量标识符，非外部输入
         kit.select($@"mtb.*, (
             select count(1) from {EbookSchema.TableTpMat} tm
             where tm.Tm_TopicOID = mtb.{OidColumn}
@@ -51,8 +48,8 @@ public sealed class BizSaEbTopicService : BizServiceBase
         var total = kit.count();
         var order = string.IsNullOrWhiteSpace(input.OrderBy) ? DefaultOrderBy : input.OrderBy!;
         var dt = kit.setPage(size, page).orderBy(order).query();
-        var records = dt.Rows.Cast<DataRow>().Select(RowToDictionary).ToList();
-        return SleveenAdmin.Foundation.Models.PagedResult<Dictionary<string, object?>>.Create(records, page, size, total);
+        var records = MaterializeList(dt);
+        return PagedResult<BizSaEbTopicRow>.Create(records, page, size, total);
     }
 
     public object GetStats()
@@ -121,8 +118,8 @@ public sealed class BizSaEbTopicService : BizServiceBase
     {
         var row = LoadRowById(topicId)
                   ?? throw new InvalidOperationException("选题不存在");
-        var pipeline = row.GetValueOrDefault("Et_Pipeline")?.ToString() ?? "graphic";
-        var stage = row.GetValueOrDefault("Et_Stage")?.ToString() ?? "inspiration";
+        var pipeline = row.Et_Pipeline ?? "graphic";
+        var stage = row.Et_Stage ?? "inspiration";
         var stages = string.Equals(pipeline, "video", StringComparison.OrdinalIgnoreCase)
             ? VideoStages
             : GraphicStages;
@@ -142,7 +139,7 @@ public sealed class BizSaEbTopicService : BizServiceBase
         return new { stage = next, status, done = next == "publish" };
     }
 
-    public object ListMaterials(Guid topicId)
+    public List<Dictionary<string, object?>> ListMaterials(Guid topicId)
     {
         var kit = Db.useSQL();
         kit.select("m.*, tm.Sa_EbTpMatOID, tm.Tm_Idx")
@@ -153,7 +150,20 @@ public sealed class BizSaEbTopicService : BizServiceBase
             .whereIsOrNull("m.SYS_Deleted", 0)
             .orderBy("tm.Tm_Idx asc, tm.SYS_Created desc");
         var dt = kit.query();
-        return dt.Rows.Cast<DataRow>().Select(RowToDictionary).ToList();
+        var list = new List<Dictionary<string, object?>>();
+        foreach (DataRow r in dt.Rows)
+        {
+            var map = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
+            foreach (DataColumn col in r.Table.Columns)
+            {
+                var v = r[col];
+                map[col.ColumnName] = v == DBNull.Value ? null : v;
+            }
+
+            list.Add(map);
+        }
+
+        return list;
     }
 
     public object BindMaterial(JsonElement para)

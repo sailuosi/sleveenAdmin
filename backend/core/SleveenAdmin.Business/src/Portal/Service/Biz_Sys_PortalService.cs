@@ -5,7 +5,7 @@ using SleveenAdmin.Foundation.Models;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class BizSysPortalService : BizServiceBase
+public sealed class BizSysPortalService : BizServiceBase<BizSysPortalRow>
 {
     private readonly SysPortalCommonService _portalCommon;
 
@@ -27,13 +27,10 @@ public sealed class BizSysPortalService : BizServiceBase
 
     protected override string DefaultOrderBy => "mtb.Sp_CreateTime desc";
 
-    protected override Dictionary<string, object> LoadInitDicts()
-    {
-        var dicts = LoadDictItems(
+    protected override Dictionary<string, List<BizDictItem>> LoadInitDicts() =>
+        LoadDictItems(
             "SysPtTask", "SysShareStatus", "SysPtCellTheme", "SysPtDisplay", "SysAppletTitle",
             "SysAppletMany", "SysAppletType", "SysApplteTool", "SysCellDisabled");
-        return dicts.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
-    }
 
     protected override void ApplyKeyword(SQLBuilder kit, BizQueryInput input)
     {
@@ -66,7 +63,7 @@ public sealed class BizSysPortalService : BizServiceBase
         }
     }
 
-    public override object LoadPageList(BizQueryInput input)
+    public override PagedResult<BizSysPortalRow> LoadPageList(BizQueryInput input)
     {
         var page = input.ResolvePage();
         var size = input.ResolvePageSize();
@@ -79,48 +76,13 @@ public sealed class BizSysPortalService : BizServiceBase
         var total = kit.count();
         var order = string.IsNullOrWhiteSpace(input.OrderBy) ? DefaultOrderBy : input.OrderBy!;
         var dt = kit.setPage(size, page).orderBy(order).query();
-        var records = dt.Rows.Cast<DataRow>().Select(RowToDictionary).ToList();
-        return PagedResult<Dictionary<string, object?>>.Create(records, page, size, total);
+        var records = MaterializeList(dt);
+        return PagedResult<BizSysPortalRow>.Create(records, page, size, total);
     }
 
-    protected override void ApplyOutputAliases(Dictionary<string, object?> map)
-    {
-        base.ApplyOutputAliases(map);
-        PortalRowAlias.ApplyToMap(map, PortalRowAlias.Portal);
-    }
-
-    protected override IEnumerable<string> AliasKeysToStrip()
-    {
-        foreach (var k in base.AliasKeysToStrip()) yield return k;
-        yield return "spOrgId";
-        yield return "spUserId";
-        yield return "spPortPageId";
-        yield return "spSubjectId";
-        yield return "OrgName";
-        yield return "PP_Title";
-    }
-
-    protected override void OnBeforeSave(Dictionary<string, object?> map)
-    {
-        MapFk(map, "spOrgId", "Sp_OrgId");
-        MapFk(map, "spUserId", "Sp_UserId");
-        MapFk(map, "spPortPageId", "Sp_PortPageId");
-        MapFk(map, "spSubjectId", "Sp_SubjectId");
-        base.OnBeforeSave(map);
-    }
-
-    protected override void OnAfterSave(Dictionary<string, object?> map)
-    {
-        if (TryToGuid(map.GetValueOrDefault(OidColumn), out var id))
-            _portalCommon.InvalidatePortalConfig(id, map.GetValueOrDefault("P_Key")?.ToString());
-    }
+    protected override void OnAfterSave(BizSysPortalRow row) =>
+        _portalCommon.InvalidatePortalConfig(row.Id, row.Key);
 
     protected override void OnAfterDelete(Guid id) =>
         _portalCommon.InvalidatePortalConfig(id);
-
-    static void MapFk(Dictionary<string, object?> map, string alias, string col)
-    {
-        if (map.TryGetValue(alias, out var v) && !map.ContainsKey(col))
-            map[col] = v;
-    }
 }

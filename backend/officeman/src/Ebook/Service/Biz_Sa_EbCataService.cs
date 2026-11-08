@@ -3,7 +3,7 @@ using SleveenAdmin.Foundation.Biz;
 
 namespace SleveenAdmin.Officeman.Ebook.Service;
 
-public sealed class BizSaEbCataService : BizServiceBase
+public sealed class BizSaEbCataService : BizServiceBase<BizSaEbCataRow>
 {
     public override string BizName => "Biz_Sa_EbCata";
 

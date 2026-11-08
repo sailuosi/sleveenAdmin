@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using SleveenAdmin.Foundation.Biz;
 using SleveenAdmin.Officeman.Ebook.Service;
@@ -6,13 +5,13 @@ using SleveenAdmin.Officeman.Ebook.Service;
 namespace SleveenAdmin.Officeman.Ebook.Controller;
 
 [Route("biz/saebcatalist")]
-public class BizSaEbCataListController : BizControllerBase
+public class BizSaEbCataListController : BizControllerBase<BizSaEbCataRow>
 {
     private readonly BizSaEbCataService _service;
 
     public BizSaEbCataListController(BizSaEbCataService service) => _service = service;
 
-    protected override BizServiceBase Service => _service;
+    protected override BizServiceBase<BizSaEbCataRow> Service => _service;
 
     public override string BizName => "Biz_Sa_EbCataList";
 
@@ -23,8 +22,8 @@ public class BizSaEbCataListController : BizControllerBase
     public IActionResult QOne(Guid id) => QOneCore(id);
 
     [HttpPost("ebook/ebcata/save")]
-    public IActionResult Save([FromBody] JsonElement rows) => SaveCore(rows);
+    public IActionResult Save([FromBody] List<BizSaEbCataRow> rows) => SaveCore(rows);
 
     [HttpPost("ebook/ebcata/rmbyids")]
-    public IActionResult Remove([FromBody] JsonElement para) => RemoveCore(para);
+    public IActionResult Remove([FromBody] System.Text.Json.JsonElement para) => RemoveCore(para);
 }

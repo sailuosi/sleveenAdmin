@@ -11,25 +11,28 @@ namespace SleveenAdmin.Foundation.Biz;
 [Authorize]
 [ApiController]
 [ApiResult]
-public abstract class BizControllerBase : ControllerBase
+public abstract class BizControllerBase<TRow> : ControllerBase
+    where TRow : class, new()
 {
-    protected abstract BizServiceBase Service { get; }
+    protected abstract BizServiceBase<TRow> Service { get; }
 
     public abstract string BizName { get; }
 
     [HttpPost("init")]
     public virtual IActionResult Init([FromBody] JsonElement? _) => Ok(Service.GetInitData());
 
-    protected IActionResult QListCore([FromBody] BizQueryInput input) => Ok(Service.LoadPageList(input ?? new BizQueryInput()));
+    protected IActionResult QListCore([FromBody] BizQueryInput input) =>
+        Ok(Service.LoadPageList(input ?? new BizQueryInput()));
 
     protected IActionResult QOneCore(Guid id) => Ok(Service.LoadRowById(id));
 
-    protected IActionResult SaveCore([FromBody] JsonElement rows) => Ok(new { affected = Service.SaveList(rows) });
+    protected IActionResult SaveCore([FromBody] List<TRow> rows) =>
+        Ok(Service.SaveList(rows ?? []));
 
     protected IActionResult RemoveCore([FromBody] JsonElement para)
     {
         var ids = ExtractIds(para);
-        return Ok(new { affected = Service.RemoveByOIDs(ids) });
+        return Ok(Service.RemoveByOIDs(ids));
     }
 
     protected List<Guid> ExtractIds(JsonElement para)

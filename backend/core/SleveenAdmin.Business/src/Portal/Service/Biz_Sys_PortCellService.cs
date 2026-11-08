@@ -1,9 +1,10 @@
+using System.Text.Json.Serialization;
 using mooSQL.data;
 using SleveenAdmin.Foundation.Biz;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class BizSysPortCellService : BizServiceBase
+public sealed class BizSysPortCellService : BizServiceBase<BizSysPortCellRow>
 {
     private readonly SysPortalCommonService _portalCommon;
 
@@ -25,11 +26,8 @@ public sealed class BizSysPortCellService : BizServiceBase
 
     protected override string DefaultOrderBy => "mtb.PC_Idx asc";
 
-    protected override Dictionary<string, object> LoadInitDicts()
-    {
-        var dicts = LoadDictItems("SysAppletMany", "SysPtCellTheme", "SysAppletTitle");
-        return dicts.ToDictionary(kv => kv.Key, kv => (object)kv.Value);
-    }
+    protected override Dictionary<string, List<BizDictItem>> LoadInitDicts() =>
+        LoadDictItems("SysAppletMany", "SysPtCellTheme", "SysAppletTitle");
 
     protected override void ApplyFilters(SQLBuilder kit, BizQueryInput input)
     {
@@ -53,28 +51,9 @@ public sealed class BizSysPortCellService : BizServiceBase
         kit.whereLikes(["mtb.PC_Name", "mtb.PC_Key"], input.Keyword.Trim());
     }
 
-    protected override void ApplyOutputAliases(Dictionary<string, object?> map)
+    protected override void OnAfterSave(BizSysPortCellRow row)
     {
-        base.ApplyOutputAliases(map);
-        PortalRowAlias.ApplyToMap(map, PortalRowAlias.Cell);
-    }
-
-    protected override IEnumerable<string> AliasKeysToStrip()
-    {
-        foreach (var k in base.AliasKeysToStrip()) yield return k;
-        yield return "spPortalId";
-    }
-
-    protected override void OnBeforeSave(Dictionary<string, object?> map)
-    {
-        if (map.TryGetValue("spPortalId", out var v) && !map.ContainsKey("Spc_PortalId"))
-            map["Spc_PortalId"] = v;
-        base.OnBeforeSave(map);
-    }
-
-    protected override void OnAfterSave(Dictionary<string, object?> map)
-    {
-        if (TryToGuid(map.GetValueOrDefault("Spc_PortalId"), out var pid))
+        if (row.PortalId is Guid pid && pid != Guid.Empty)
             _portalCommon.InvalidatePortalConfig(pid);
     }
 

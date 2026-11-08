@@ -5,7 +5,7 @@ using SleveenAdmin.Foundation.Biz;
 namespace SleveenAdmin.Officeman.Ebook.Service;
 
 /// <summary>创作工作台首页门户聚合（选题 / 素材 / 笔记）。</summary>
-public sealed class BizSaEbHomeService : BizServiceBase
+public sealed class BizSaEbHomeService : BizServiceBase<BizSaEbNoteRow>
 {
     public override string BizName => "Biz_Sa_EbHome";
 
@@ -223,7 +223,6 @@ public sealed class BizSaEbHomeService : BizServiceBase
         if (v is null or DBNull) return 0;
         var s = v.ToString()?.Trim();
         if (string.IsNullOrEmpty(s)) return 0;
-        // 兼容 "1.2万" 等：仅取前导数字
         var digits = new string(s.TakeWhile(c => char.IsDigit(c) || c == '.' || c == ',').ToArray())
             .Replace(",", "");
         if (double.TryParse(digits, out var n))

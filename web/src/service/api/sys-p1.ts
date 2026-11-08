@@ -1,52 +1,14 @@
 import { request } from '../request';
-import type { PageParams } from './sys-manage';
 
-/** tenant */
-export function fetchGetTenantPage(params: PageParams) {
-  return request<Api.Common.PaginatingQueryRecord<Api.SystemP1.Tenant>>({
-    url: '/api/sysTenant/page',
-    params
-  });
-}
-
+/** tenant — 管理 CRUD 走 Biz Page；下拉仍用 list */
 export function fetchGetTenantList() {
-  return request<Api.SystemP1.Tenant[]>({ url: '/api/sysTenant/list' });
+  return request<Api.SystemP1.Tenant[]>({ url: '/biz/systenantlist/list', method: 'get' });
 }
 
-export function fetchCreateTenant(data: Api.SystemP1.TenantInput) {
-  return request<{ id: string }>({ url: '/api/sysTenant', method: 'post', data });
-}
-
-export function fetchUpdateTenant(data: Api.SystemP1.TenantInput) {
-  return request({ url: '/api/sysTenant', method: 'put', data });
-}
-
-export function fetchDeleteTenant(id: string) {
-  return request({ url: `/api/sysTenant/${id}`, method: 'delete' });
-}
-
-/** notice admin */
-export function fetchGetNoticePage(params: PageParams) {
-  return request<Api.Common.PaginatingQueryRecord<Api.SystemP1.Notice>>({
-    url: '/api/sysNotice/page',
-    params
-  });
-}
-
-export function fetchCreateNotice(data: Api.SystemP1.NoticeInput) {
-  return request<{ id: string }>({ url: '/api/sysNotice', method: 'post', data });
-}
-
-export function fetchPublishNotice(id: string) {
-  return request({ url: `/api/sysNotice/${id}/publish`, method: 'post' });
-}
-
-export function fetchDeleteNotice(id: string) {
-  return request({ url: `/api/sysNotice/${id}`, method: 'delete' });
-}
+/** notice admin — 已迁 Biz_Sys_NoticeList；本文件仅保留收件箱 */
 
 /** my notice inbox */
-export function fetchGetMyNoticePage(params: PageParams) {
+export function fetchGetMyNoticePage(params: { page?: number; pageSize?: number; keyword?: string | null }) {
   return request<Api.Common.PaginatingQueryRecord<Api.SystemP1.MyNotice>>({
     url: '/api/sysNotice/my/page',
     params
