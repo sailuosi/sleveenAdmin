@@ -58,8 +58,8 @@
                 <div ref="authToolbarMount"></div>
             </div>
         </template>
-        <BPO_HumanAuthEdit name="BPO_HumanAuthEdit" :oid="tarauthRowRow.HH_User_FK" :toolbarTo="authToolbarMount" @close="closeauthRow" @refresh="getlist" :api="api" :bus="bus" :page="page">
-        </BPO_HumanAuthEdit>
+        <Biz_HumanAuthEdit name="Biz_HumanAuthEdit" :oid="tarauthRowRow.HH_User_FK" :toolbarTo="authToolbarMount" @close="closeauthRow" @refresh="getlist" :api="api" :bus="bus" :page="page">
+        </Biz_HumanAuthEdit>
     </el-drawer>
     </section>            
 
@@ -89,7 +89,7 @@ import livevc from "@/uiext/gene/live/livevc.vue";
 //编辑控制
 import useListEditor from "@/uiext/gene/hook/listeditor.js"
 import {fileSaveLocal,checkExportListPara} from "@/uiext/gene/utils/filedown.js"
-import BPO_HumanAuthEdit from "../../Page/BPO_HumanAuthEdit.vue"
+import Biz_HumanAuthEdit from "../../Page/Biz_HumanAuthEdit.vue"
 //自定义引用
 
 //其它引用

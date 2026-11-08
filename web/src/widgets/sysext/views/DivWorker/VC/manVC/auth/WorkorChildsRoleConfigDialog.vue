@@ -66,7 +66,7 @@
 		<div class="workor-pick-dialog-body">
 			<livebpo
 				v-if="drawEditOpened"
-				name="BPO_HH_DutyItemCheck"
+				name="Biz_HH_DutyItemCheck"
 				@close="closeRowEdit"
 				@check="checkingRole"
 			/>
@@ -451,7 +451,7 @@ watch(
 	display: flex;
 	flex-direction: column;
 }
-.workor-pick-dialog-body .BPO_HH_DutyItemCheck,
+.workor-pick-dialog-body .Biz_HH_DutyItemCheck,
 .workor-pick-dialog-body .cellpan,
 .workor-pick-dialog-body .formcard-shell,
 .workor-pick-dialog-body .formcard,
@@ -466,7 +466,7 @@ watch(
 	min-height: 0 !important;
 	box-sizing: border-box;
 }
-.workor-pick-dialog-body .BPO_HH_DutyItemCheck,
+.workor-pick-dialog-body .Biz_HH_DutyItemCheck,
 .workor-pick-dialog-body .cellpan,
 .workor-pick-dialog-body .formcard-shell,
 .workor-pick-dialog-body .formcard,

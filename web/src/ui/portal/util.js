@@ -1,6 +1,6 @@
-import { loadUcmlBPO,loadUcmlVC} from "@/uiext/gene/live/dynamicImport.js"
+import { loadBiz, loadVC } from "@/uiext/gene/live/dynamicImport.js"
 
-const paotalvclist= import.meta.glob(["@/widgets/**/vc*.vue"]);
+const portalVcList = import.meta.glob(["@/widgets/**/vc*.vue"]);
 
 
 
@@ -11,10 +11,10 @@ export function dynamicImportVC(dynamicViewsModules, component) {
     // 配置若带 .vue 后缀则去掉，再与 glob 路径做 startsWith 匹配
     var path = String(component).replace(/\.vue$/i, '');
     if(path.startsWith("VC_")){
-        return loadUcmlVC(path);
+        return loadVC(path);
     }
-    if(path.startsWith("BPO_")){
-        return loadUcmlBPO(path);
+    if(path.startsWith("Biz_") || path.startsWith("BPO_")){
+        return loadBiz(path);
     }
 	const keys = Object.keys(dynamicViewsModules);
 	const matchKeys = keys.filter((key) => {
@@ -36,7 +36,7 @@ export function dynamicImportVC(dynamicViewsModules, component) {
 
 
 export function ImportPaotalVC(path){
-    return dynamicImportVC(paotalvclist,path);
+    return dynamicImportVC(portalVcList, path);
 }
 
 

@@ -26,7 +26,7 @@
 
 import { reactive, computed, nextTick, ref, defineComponent,onMounted,defineAsyncComponent ,getCurrentInstance,useAttrs,useSlots} from 'vue';
 
-import { loadUcmlVC} from "./dynamicImport.js"
+import { loadVC } from "./dynamicImport.js"
 import vcloading from "./vcloading.vue"
 
 const props = defineProps({
@@ -55,7 +55,7 @@ const vcBody= computed(()=>{
     var bodyName=props.name;
     //var vcComp = vccomponentMap.get(bodyName);
 
-    var t= loadUcmlVC(bodyName);
+    var t= loadVC(bodyName);
     //console.log(t)
     if(typeof t=="function"){
 

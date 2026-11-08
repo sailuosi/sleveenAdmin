@@ -277,7 +277,7 @@
 
 <script setup>
 ///////////////////////////////////////////////////////////
-//  BPO_AuthAdminDirectory.vue
+//  Biz_AuthAdminDirectory.vue
 //  权限管理员查询：按所属单位找可二次分配权限的人
 ///////////////////////////////////////////////////////////
 import { ref, reactive, computed, onMounted } from 'vue';
@@ -286,7 +286,7 @@ import { Search, InfoFilled, Loading, User, OfficeBuilding, Location } from '@el
 import leftright from '@/ui/panels/leftright.vue';
 import hrtree from '../uiext/org/hrtree.vue';
 import { loadFastMdTreeChildren, loadFastMdTreeSearchHits } from '../api/fastmdtreeapi.js';
-import { fetchMyBelongOrg, fetchAuthAdminByOrg } from './BPO_AuthAdminDirectoryapi.js';
+import { fetchMyBelongOrg, fetchAuthAdminByOrg } from './Biz_AuthAdminDirectoryapi.js';
 
 const loading = ref(false);
 const keyword = ref('');

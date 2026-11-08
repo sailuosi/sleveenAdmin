@@ -1,6 +1,6 @@
 <template>
 <!-- #region autoGenerate type="cover" name="cellpan" -->
-<cellpan type="lr" left="1fr" right="4fr"  flex bodyFlex  class="BPO_HumanList">
+<cellpan type="lr" left="1fr" right="4fr"  flex bodyFlex  class="Biz_HumanList">
     <template #left="panp">
             <formcard title="人力组织" width=""  flex stretch>
                 <template #toolbar>
@@ -53,8 +53,8 @@
 </template>
 <script setup>
 ///////////////////////////////////////////////////////////
-//  BPO_HumanList.vue
-//  BPO_HumanList基础页面
+//  Biz_HumanList.vue
+//  Biz_HumanList基础页面
 //  功能框架由平台生成，请勿修改标记为[cover]区域的代码，否则将有被生成器覆盖的风险，生成器的覆盖范围随配置逐渐提升，各级别按[cover][lv2][lv3]标记。
 //  新增逻辑时，在标记[autoGenerate]区域外部添加,比如[lv3]扩展业务逻辑的下方。
 //  [autoGenerate]区域含义：[cover]--被覆盖，请勿修改；[lv2]--在方法模式被生成器覆盖，基础模式可修改；[lv3]--在全量模式下会被生成器覆盖。
@@ -70,7 +70,7 @@ import cellpan from "@/uiext/gene/panel/cellpan.vue"
 import formcard from "@/ui/panels/formcard.vue"
 
 //引入VC
-import * as pageAPI from "./BPO_HumanListapi.js"
+import * as pageAPI from "./Biz_HumanListapi.js"
 
 import VC_HR_Organize from "../VC/ListVC/org/VC_HR_Organize.vue"
 import VC_HR_HumanList from "../VC/ListVC/org/VC_HR_HumanList.vue"  
@@ -96,7 +96,7 @@ const props = defineProps({
 const emit = defineEmits([]);
 
 // #region [autoGenerate] [cover] [勿改] 基础声明
-const BPOName = "BPO_HumanList";
+const BPOName = "Biz_HumanList";
 const VC_HR_OrganizeHead =ref(null);
 const VC_HR_OrganizeBody =ref(null);  
 const VC_HR_OrganizeFocusRow = ref({});
@@ -142,7 +142,7 @@ function loadPageInit() {
 const focusOrg= ref(null);
 const conditions= computed(()=>{
     var res=[{
-        // 本页不展示 H_Type=3（在册减员），全量见 BPO_HumanListAll
+        // 本页不展示 H_Type=3（在册减员），全量见 Biz_HumanListAll
         field:"H_Type",
         op:"<>",
         value:"3",

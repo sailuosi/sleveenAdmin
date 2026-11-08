@@ -1,88 +1,53 @@
-const ucmlvclist= import.meta.glob(["@/widgets/**/VC/**/VC_*.vue"]);
+const vcModules = import.meta.glob(['@/widgets/**/VC/**/VC_*.vue']);
+const bizModules = import.meta.glob(['@/widgets/**/Biz_*.vue']);
 
-const ucmlbpolist= import.meta.glob(["@/widgets/**/BPO_*.vue"]);
-
-function buildMap(src){
-    console.log(src);
-    const keys = Object.keys(src);
-    var vcbody={};
-    var vctool={};
-    keys.forEach((li)=>{
-        var idx=li.lastIndexOf("/");
-        var path= li.substring(0,idx)+"/toolbar.vue";
-        var name=li.substring(idx+1);
-        if(name.endsWith(".vue")){
-            name=name.substring(0,name.length-4);
-        }
-        vcbody[name]= src[li];
-        // if(!!ucmlvctoolist[path]){
-        //     vctool[name] = ucmlvctoolist[path];
-        // }
-        // else{
-        //     vctool[name] = path;
-        // }
-        
-    })
-    return {
-        body:vcbody,
-        tool:vctool
-    };
+function buildVcMap(src) {
+  const keys = Object.keys(src);
+  const body = {};
+  const tool = {};
+  keys.forEach(li => {
+    const idx = li.lastIndexOf('/');
+    const nameRaw = li.substring(idx + 1);
+    const name = nameRaw.endsWith('.vue') ? nameRaw.substring(0, nameRaw.length - 4) : nameRaw;
+    body[name] = src[li];
+  });
+  return { body, tool };
 }
 
-const ucmlVCMap=buildMap(ucmlvclist);
-
-const ucmlVCBody=ucmlVCMap.body;
-const ucmlVCTool=ucmlVCMap.tool;
-
-
-
-export function loadUcmlVC(component) {
-    
-    if(!!ucmlVCBody[component]){
-        return ucmlVCBody[component]
-    }
-
-    return component;
+function buildBizMap(src) {
+  const keys = Object.keys(src);
+  const body = {};
+  keys.forEach(li => {
+    const idx = li.lastIndexOf('/');
+    const nameRaw = li.substring(idx + 1);
+    const name = nameRaw.endsWith('.vue') ? nameRaw.substring(0, nameRaw.length - 4) : nameRaw;
+    body[name] = src[li];
+  });
+  return body;
 }
 
-export function loadUcmlVCTool(component) {
-    if(!!ucmlVCTool[component]){
-        return ucmlVCTool[component]
-    }
+const vcMap = buildVcMap(vcModules);
+const vcBodyMap = vcMap.body;
+const vcToolMap = vcMap.tool;
+const bizMap = buildBizMap(bizModules);
 
-    return component;
-}
- 
-
-
-function buildBPOMap(src){
-    //console.log(ucmlvctoolist);
-    const keys = Object.keys(src);
-    var vcbody={};
-
-    keys.forEach((li)=>{
-        var idx=li.lastIndexOf("/");
-
-        var name=li.substring(idx+1);
-        if(name.endsWith(".vue")){
-            name=name.substring(0,name.length-4);
-        }
-        vcbody[name]= src[li];
-
-        
-    })
-
-    return vcbody;
-
+export function loadVC(component) {
+  if (vcBodyMap[component]) {
+    return vcBodyMap[component];
+  }
+  return component;
 }
 
-const ucmlBPOMap=buildBPOMap(ucmlbpolist);
+export function loadVCTool(component) {
+  if (vcToolMap[component]) {
+    return vcToolMap[component];
+  }
+  return component;
+}
 
-
-export function loadUcmlBPO(component) {
-    if(!!ucmlBPOMap[component]){
-        return ucmlBPOMap[component]
-    }
-
-    return component;
+export function loadBiz(component) {
+  if (bizMap[component]) {
+    return bizMap[component];
+  }
+  return component;
 }

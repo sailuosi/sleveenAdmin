@@ -9,6 +9,12 @@ function pageBody(params: PageParams) {
   };
 }
 
+function asBizSaveRow<T extends { id?: string | null }>(data: T) {
+  const row = { ...data } as T & Record<string, unknown>;
+  if (row.id == null || row.id === '') delete row.id;
+  return row;
+}
+
 /** tenant */
 export function fetchGetTenantPage(params: PageParams) {
   return request<Api.Common.PaginatingQueryRecord<Api.SystemP1.Tenant>>({
@@ -23,11 +29,11 @@ export function fetchGetTenantList() {
 }
 
 export function fetchCreateTenant(data: Api.SystemP1.TenantInput) {
-  return request({ url: '/biz/systenantlist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/systenantlist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchUpdateTenant(data: Api.SystemP1.TenantInput) {
-  return request({ url: '/biz/systenantlist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/systenantlist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchDeleteTenant(id: string) {
@@ -44,7 +50,7 @@ export function fetchGetNoticePage(params: PageParams) {
 }
 
 export function fetchCreateNotice(data: Api.SystemP1.NoticeInput) {
-  return request({ url: '/biz/sysnoticelist/save', method: 'post', data: [data] });
+  return request({ url: '/biz/sysnoticelist/save', method: 'post', data: [asBizSaveRow(data)] });
 }
 
 export function fetchPublishNotice(id: string) {

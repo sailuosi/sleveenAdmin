@@ -1,4 +1,4 @@
-﻿<template>
+<template>
     <flexpan :flex="flex" :height="height">
         <template #header="p">
             <teleport  :to="position" :disabled="!position" v-if="!hideToolbar">        
@@ -95,8 +95,8 @@
     </section>
     <section name="openEditRow" class="sp-ht">
 	<el-dialog :title="editingRow.editingRow!='9'?'查看人员信息':'编辑人员信息'" class="normal" v-model="diaEditOpened" width="70vw" append-to-body @close="closeRowEdit">
-		<BPO_HumanAuthEdit name="VC_HR_HumanEdit" :row="editingRow" :disabled="editingRow.editingRow!='9'" @close="closeRowEdit" @refresh="getlist" :api="api" :bus="bus" :page="page">
-		</BPO_HumanAuthEdit>
+		<Biz_HumanAuthEdit name="VC_HR_HumanEdit" :row="editingRow" :disabled="editingRow.editingRow!='9'" @close="closeRowEdit" @refresh="getlist" :api="api" :bus="bus" :page="page">
+		</Biz_HumanAuthEdit>
 	</el-dialog>
     </section>
     <section name="openRow" class="sp-ht">
@@ -113,7 +113,7 @@
                 <div ref="authToolbarMount"></div>
             </div>
         </template>
-        <livebpo name="BPO_HumanAuthEdit" :oid="tarauthRowRow.HR_HumanOID" :toolbarTo="authToolbarMount" @close="closeauthRow" @refresh="getlist" :api="api" :bus="bus" :page="page">
+        <livebpo name="Biz_HumanAuthEdit" :oid="tarauthRowRow.HR_HumanOID" :toolbarTo="authToolbarMount" @close="closeauthRow" @refresh="getlist" :api="api" :bus="bus" :page="page">
         </livebpo>
     </el-drawer>
     </section>
@@ -150,7 +150,7 @@ import {fileSaveLocal,checkExportListPara} from "@/uiext/gene/utils/filedown.js"
 //自定义引用
 import fminput from "@/ui/common/input/fminput.vue"
 import livebpo from "@/uiext/gene/live/livebpo.vue"
-import BPO_HumanAuthEdit from "../../../Page/BPO_HumanAuthEdit.vue"
+import Biz_HumanAuthEdit from "../../../Page/Biz_HumanAuthEdit.vue"
 //其它引用
 // #region [autoGenerate] [init] 自动初始化
 const props = defineProps({

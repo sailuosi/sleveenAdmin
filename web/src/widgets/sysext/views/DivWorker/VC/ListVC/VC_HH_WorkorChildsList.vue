@@ -57,7 +57,7 @@
 		@close="closeaddHC"
 	>
 		<div class="workor-pick-dialog-body">
-			<BPO_WorkTypersCheck
+			<Biz_WorkTypersCheck
 				v-if="addHCOpened"
 				@close="closeaddHC"
 				@refresh="getlist"
@@ -108,7 +108,7 @@ import mdialog from "../../ui/modal/mdialog.vue";
 import useListEditor from "@/uiext/gene/hook/listeditor.js"
 import {fileSaveLocal,checkExportListPara} from "@/uiext/gene/utils/filedown.js"
 //自定义引用
-import BPO_WorkTypersCheck from "../../Page/BPO_WorkTypersCheck.vue"
+import Biz_WorkTypersCheck from "../../Page/Biz_WorkTypersCheck.vue"
 import WorkorChildsRoleConfigDialog from "../manVC/auth/WorkorChildsRoleConfigDialog.vue"
 import WorkorRoleMenuViewDialog from "../manVC/auth/WorkorRoleMenuViewDialog.vue"
 
@@ -504,7 +504,7 @@ function closeMenuView(){
     display: flex;
     flex-direction: column;
 }
-.workor-pick-dialog-body .BPO_WorkTypersCheck,
+.workor-pick-dialog-body .Biz_WorkTypersCheck,
 .workor-pick-dialog-body .cellpan,
 .workor-pick-dialog-body .formcard-shell,
 .workor-pick-dialog-body .formcard,
@@ -519,7 +519,7 @@ function closeMenuView(){
     min-height: 0 !important;
     box-sizing: border-box;
 }
-.workor-pick-dialog-body .BPO_WorkTypersCheck,
+.workor-pick-dialog-body .Biz_WorkTypersCheck,
 .workor-pick-dialog-body .cellpan,
 .workor-pick-dialog-body .formcard-shell,
 .workor-pick-dialog-body .formcard,

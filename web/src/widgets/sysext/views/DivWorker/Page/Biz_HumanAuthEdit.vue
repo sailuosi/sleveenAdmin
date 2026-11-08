@@ -29,8 +29,8 @@
 
 <script setup>
 ///////////////////////////////////////////////////////////
-//  BPO_HumanAuthEdit.vue
-//  BPO_HumanAuthEdit基础页面
+//  Biz_HumanAuthEdit.vue
+//  Biz_HumanAuthEdit基础页面
 //  功能框架由平台生成，请勿修改标记为[cover]区域的代码，否则将有被生成器覆盖的风险，生成器的覆盖范围随配置逐渐提升，各级别按[cover][lv2][lv3]标记。
 //  新增逻辑时，在标记[autoGenerate]区域外部添加,比如[lv3]扩展业务逻辑的下方。
 //  [autoGenerate]区域含义：[cover]--被覆盖，请勿修改；[lv2]--在方法模式被生成器覆盖，基础模式可修改；[lv3]--在全量模式下会被生成器覆盖。
@@ -45,7 +45,7 @@ import useDataBus from "@/uiext/gene/hook/pageDataBus.js"
 import pagepan from "@/uiext/gene/pagepan.vue"
 
 //引入VC
-import * as pageAPI from "./BPO_HumanAuthEditapi.js"
+import * as pageAPI from "./Biz_HumanAuthEditapi.js"
 
 import VC_HR_HumanEdit from "../VC/EditVC/org/VC_HR_HumanEdit.vue"  
 // #endregion [autoGenerate] [cover] [勿改] VC引入
@@ -71,7 +71,7 @@ const props = defineProps({
 const emit = defineEmits(['refresh']);
 
 // #region [autoGenerate] [cover] [勿改] 基础声明
-const BPOName = "BPO_HumanAuthEdit";
+const BPOName = "Biz_HumanAuthEdit";
 const VC_HR_HumanEditBody =ref(null);  
 const VC_HR_HumanEditFocusRow = ref({});
 const Panel =ref(null);

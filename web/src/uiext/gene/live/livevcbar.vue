@@ -14,7 +14,7 @@
 import { bpocomponentMap, vccomponentMap, vcAndBpoComponentPathMap } from '/@/views/componentMap';
 import { reactive, computed, nextTick, ref,useAttrs, onMounted,defineAsyncComponent,watch } from 'vue';
 
-import { loadUcmlVCTool} from "./dynamicImport.js"
+import { loadVCTool } from "./dynamicImport.js"
 
 const props = defineProps({
     name: null, //上级BPO
@@ -33,7 +33,7 @@ const vcBody= computed(()=>{
     var bodyName=props.name;
     //var vcComp = vccomponentMap.get(bodyName);
 
-    var t= loadUcmlVCTool(bodyName);
+    var t= loadVCTool(bodyName);
 
     if(typeof t=="function"){
         return defineAsyncComponent( t);

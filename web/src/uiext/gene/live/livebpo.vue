@@ -12,7 +12,7 @@
 ;
 import { reactive, computed, nextTick, ref, onMounted,defineAsyncComponent ,getCurrentInstance,useAttrs} from 'vue';
 
-import { loadUcmlBPO} from "./dynamicImport.js"
+import { loadBiz } from "./dynamicImport.js"
 
 const props = defineProps({
     name: null, //上级BPO
@@ -39,7 +39,7 @@ const vcBody= computed(()=>{
     var bodyName=props.name;
     //var vcComp = vccomponentMap.get(bodyName);
 
-    var t= loadUcmlBPO(bodyName);
+    var t= loadBiz(bodyName);
     //console.log(t)
     if(typeof t=="function"){
         return defineAsyncComponent( t);

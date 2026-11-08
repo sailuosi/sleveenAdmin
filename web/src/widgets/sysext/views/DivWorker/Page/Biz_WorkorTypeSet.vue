@@ -1,6 +1,6 @@
 <template>
 <!-- #region autoGenerate type="cover" name="cellpan" -->
-<cellpan type="lr" left="1fr" right="1fr"  flex bodyFlex  class="BPO_WorkorTypeSet">   
+<cellpan type="lr" left="1fr" right="1fr"  flex bodyFlex  class="Biz_WorkorTypeSet">   
     <template #left="panp">
             <formcard title="管理员类别" width=""  flex stretch>
                 <template #toolbar>
@@ -102,8 +102,8 @@
 </template>
 <script setup>
 ///////////////////////////////////////////////////////////
-//  BPO_WorkorTypeSet.vue
-//  BPO_WorkorTypeSet基础页面
+//  Biz_WorkorTypeSet.vue
+//  Biz_WorkorTypeSet基础页面
 //  功能框架由平台生成，请勿修改标记为[cover]区域的代码，否则将有被生成器覆盖的风险，生成器的覆盖范围随配置逐渐提升，各级别按[cover][lv2][lv3]标记。
 //  新增逻辑时，在标记[autoGenerate]区域外部添加,比如[lv3]扩展业务逻辑的下方。
 //  [autoGenerate]区域含义：[cover]--被覆盖，请勿修改；[lv2]--在方法模式被生成器覆盖，基础模式可修改；[lv3]--在全量模式下会被生成器覆盖。
@@ -119,7 +119,7 @@ import cellpan from "@/uiext/gene/panel/cellpan.vue"
 import formcard from "@/ui/panels/formcard.vue"
 
 //引入VC
-import * as pageAPI from "./BPO_WorkorTypeSetapi.js"
+import * as pageAPI from "./Biz_WorkorTypeSetapi.js"
 
 import VC_HH_WorkorTypeList from "../VC/ListVC/VC_HH_WorkorTypeList.vue"
 import VC_HH_WorkorRoleList from "../VC/ListVC/VC_HH_WorkorRoleList.vue"
@@ -147,7 +147,7 @@ const props = defineProps({
 const emit = defineEmits([]);
 
 // #region [autoGenerate] [cover] [勿改] 基础声明
-const BPOName = "BPO_WorkorTypeSet";
+const BPOName = "Biz_WorkorTypeSet";
 const VC_HH_WorkorTypeListHead =ref(null);
 const VC_HH_WorkorTypeListBody =ref(null);  
 const VC_HH_WorkorTypeListFocusRow = ref({});
@@ -326,25 +326,25 @@ onUnmounted(() => {
 </style>
 
 <style lang="css">
-.BPO_WorkorTypeSet > .lr-left .formcard-shell--vc {
+.Biz_WorkorTypeSet > .lr-left .formcard-shell--vc {
     padding-right: 6px;
 }
-.BPO_WorkorTypeSet > .lr-right .formcard-shell--vc {
+.Biz_WorkorTypeSet > .lr-right .formcard-shell--vc {
     padding-left: 6px;
 }
-.BPO_WorkorTypeSet .workor-type-right-tabs {
+.Biz_WorkorTypeSet .workor-type-right-tabs {
     height: 100%;
     display: flex;
     flex-direction: column;
 }
-.BPO_WorkorTypeSet .workor-type-right-tabs > .el-tabs__header {
+.Biz_WorkorTypeSet .workor-type-right-tabs > .el-tabs__header {
     flex-shrink: 0;
 }
-.BPO_WorkorTypeSet .workor-type-right-tabs > .el-tabs__content {
+.Biz_WorkorTypeSet .workor-type-right-tabs > .el-tabs__content {
     flex: 1;
     min-height: 0;
 }
-.BPO_WorkorTypeSet .workor-type-right-tabs .el-tab-pane {
+.Biz_WorkorTypeSet .workor-type-right-tabs .el-tab-pane {
     height: 100%;
 }
 </style>

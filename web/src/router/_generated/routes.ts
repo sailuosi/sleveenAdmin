@@ -55,5 +55,11 @@ export const routes: AutoRouterRoute[] = [
     path: '/home/homePage',
     layout: 'base',
     component: 'HomeHomePage',
+  },
+  {
+    name: 'SystemRoleSelectorRolesearch',
+    path: '/system/role/selector/rolesearch',
+    layout: 'base',
+    component: 'SystemRoleSelectorRolesearch',
   }
 ];
