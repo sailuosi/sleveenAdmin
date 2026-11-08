@@ -28,6 +28,17 @@ declare namespace App {
         mode: UnionKey.ThemeLayoutMode;
         /** Scroll mode */
         scrollMode: UnionKey.ThemeScrollMode;
+        /** Bottom dock state for bottom-card layout */
+        bottomDock: {
+          /** Snapped to bottom edge (island like horizontal-card) */
+          snapped: boolean;
+          /** Floating: offset from horizontal center (px) */
+          offsetX: number;
+          /** Floating: distance from viewport bottom (px) */
+          offsetY: number;
+          /** Collapse menu icons, keep handle only */
+          collapsed: boolean;
+        };
       };
       /** Page */
       page: {

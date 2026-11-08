@@ -120,6 +120,7 @@ const local: App.I18n.Schema = {
         'vertical-card': '左栏无界',
         horizontal: '顶部菜单模式',
         'horizontal-card': '顶栏无界',
+        'bottom-card': '底部-无界',
         'top-hybrid-sidebar-first': '顶部混合-侧边优先',
         'top-hybrid-header-first': '顶部混合-顶部优先',
         vertical_detail: '左侧菜单布局，菜单在左，内容在右。',
@@ -131,6 +132,8 @@ const local: App.I18n.Schema = {
         horizontal_detail: '顶部菜单布局，菜单在顶部，内容在下方。',
         'horizontal-card_detail':
           '顶栏无界布局，顶部为简约毛玻璃浮岛菜单；普通页强制避让顶栏，无界页（menuType=4）可穿透铺满；子菜单 hover 下拉。',
+        'bottom-card_detail':
+          '底部无界布局：主菜单为底部毛玻璃图标停靠栏；可拖动，靠近底边吸附后效果同顶栏无界，未吸附仅悬浮；手柄可收起菜单。',
         'top-hybrid-sidebar-first_detail': '顶部混合布局，一级菜单在左侧，二级菜单在顶部。',
         'top-hybrid-header-first_detail': '顶部混合布局，一级菜单在顶部，二级菜单在左侧。'
       },

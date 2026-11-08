@@ -14,6 +14,7 @@ import CardTabHost from '../modules/global-tab/card-tab-host.vue';
 import GlobalContent from '../modules/global-content/index.vue';
 import GlobalFooter from '../modules/global-footer/index.vue';
 import ThemeDrawer from '../modules/theme-drawer/index.vue';
+import BottomDockTools from '../modules/global-menu/modules/bottom-dock-tools.vue';
 import { provideMixMenuContext } from '../modules/global-menu/context';
 
 defineOptions({
@@ -45,8 +46,11 @@ watch(
 
 const isVerticalCard = computed(() => themeStore.layout.mode === 'vertical-card');
 const isHorizontalCard = computed(() => themeStore.layout.mode === 'horizontal-card');
-/** 左栏无界 / 顶栏无界：共享页签浮层与氛围底 */
-const isCardLayout = computed(() => isVerticalCard.value || isHorizontalCard.value);
+const isBottomCard = computed(() => themeStore.layout.mode === 'bottom-card');
+/** 左栏无界 / 顶栏无界 / 底部无界：共享页签浮层与氛围底 */
+const isCardLayout = computed(() => isVerticalCard.value || isHorizontalCard.value || isBottomCard.value);
+/** 顶栏 / 底部无界：页签与内容避让规则接近 */
+const isEdgeCard = computed(() => isHorizontalCard.value || isBottomCard.value);
 
 /** 无界 Vue 组件：menuType=4，内容全屏穿透；与布局 mode 正交 */
 const isBorderlessPage = computed(() => {
@@ -94,6 +98,11 @@ const headerProps = computed(() => {
       showMenu: true,
       showMenuToggler: false
     },
+    'bottom-card': {
+      showLogo: false,
+      showMenu: false,
+      showMenuToggler: false
+    },
     'top-hybrid-sidebar-first': {
       showLogo: true,
       showMenu: true,
@@ -109,9 +118,10 @@ const headerProps = computed(() => {
   return headerPropsConfig[mode];
 });
 
-const siderVisible = computed(
-  () => themeStore.layout.mode !== 'horizontal' && themeStore.layout.mode !== 'horizontal-card'
-);
+const siderVisible = computed(() => {
+  const mode = themeStore.layout.mode;
+  return mode !== 'horizontal' && mode !== 'horizontal-card' && mode !== 'bottom-card';
+});
 
 const isVerticalMix = computed(() => themeStore.layout.mode === 'vertical-mix');
 
@@ -132,9 +142,11 @@ const headerInset = computed(() => (isHorizontalCard.value ? 16 : 0));
 const headerRadius = computed(() => (isHorizontalCard.value ? 16 : 0));
 const floatHeader = computed(() => isHorizontalCard.value);
 
-/** 顶栏无界始终显示浮岛；左栏无界 / 无界页隐藏通栏顶栏 */
+/** 顶栏无界始终显示浮岛；左栏无界 / 底部无界 / 无界页隐藏通栏顶栏 */
 const headerVisible = computed(
-  () => isHorizontalCard.value || (!isVerticalCard.value && !isBorderlessPage.value)
+  () =>
+    isHorizontalCard.value ||
+    (!isVerticalCard.value && !isBottomCard.value && !isBorderlessPage.value)
 );
 
 const cardAnchor = computed(() => themeStore.tab.cardAnchor);
@@ -155,21 +167,22 @@ const showBottomEmbedTab = computed(
   () =>
     !isBorderlessPage.value &&
     isCardLayout.value &&
+    !isEdgeCard.value &&
     themeStore.tab.visible &&
     cardAnchor.value === 'bottom'
 );
 
-/** float dock：无界页任意锚定；顶栏无界任意非 hidden；左栏无界仅 right */
+/** float dock：无界页任意锚定；顶栏/底部无界任意非 hidden；左栏无界仅 right */
 const showFloatTabDock = computed(() => {
   if (!themeStore.tab.visible) return false;
   if (isBorderlessPage.value) return cardAnchor.value !== 'hidden';
-  if (isHorizontalCard.value) return cardAnchor.value !== 'hidden';
+  if (isEdgeCard.value) return cardAnchor.value !== 'hidden';
   return isVerticalCard.value && cardAnchor.value === 'right';
 });
 
 const tabVisible = computed(() => {
   if (isBorderlessPage.value) return false;
-  if (isHorizontalCard.value) return false;
+  if (isEdgeCard.value) return false;
   if (isVerticalCard.value) {
     return themeStore.tab.visible && cardAnchor.value === 'top';
   }
@@ -188,7 +201,13 @@ const footerHeight = computed(() =>
   showBottomEmbedTab.value ? themeStore.tab.height : themeStore.footer.height
 );
 
-const floatSider = computed(() => isBorderlessPage.value && !isHorizontalCard.value);
+const floatSider = computed(
+  () => isBorderlessPage.value && !isHorizontalCard.value && !isBottomCard.value
+);
+
+const bottomDockSnapped = computed(
+  () => isBottomCard.value && Boolean(themeStore.layout.bottomDock?.snapped)
+);
 
 const cardContentClass = computed(() => {
   const classes: string[] = [];
@@ -199,6 +218,9 @@ const cardContentClass = computed(() => {
     if (isHorizontalCard.value) {
       // 普通页强制避让浮岛顶栏（对齐 left-gap-card：inset*2 + 尺寸）
       classes.push('horizontal-card-content-pad-top');
+    }
+    if (bottomDockSnapped.value) {
+      classes.push('bottom-card-content-pad-bottom');
     }
     if (isCardLayout.value && themeStore.tab.visible && cardAnchor.value === 'right') {
       classes.push('card-content-pad-right');
@@ -286,6 +308,7 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
       <GlobalSider />
     </template>
     <GlobalMenu />
+    <BottomDockTools v-if="isBottomCard" />
     <GlobalContent :show-padding="!isBorderlessPage" :borderless="isBorderlessPage" />
     <CardTabHost v-if="isCardLayout || isBorderlessPage" variant="overlay" />
     <CardTabHost v-if="showFloatTabDock" variant="dock" force-float />
@@ -315,7 +338,12 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
   padding-top: calc(var(--soy-header-inset) * 2 + var(--soy-header-height));
 }
 
-/* vertical-card / horizontal-card / 无界：纯 CSS 氛围底（无背景图） */
+/* 底部无界 + 吸附态：为底栏浮岛预留底部边距（高度对齐 header.height） */
+.bottom-card-content-pad-bottom {
+  padding-bottom: calc(16px * 2 + var(--soy-header-height, 48px));
+}
+
+/* vertical-card / horizontal-card / bottom-card / 无界：纯 CSS 氛围底（无背景图） */
 .glass-atmosphere {
   background:
     radial-gradient(ellipse 80% 60% at 15% 20%, rgba(200, 210, 255, 0.55), transparent 55%),

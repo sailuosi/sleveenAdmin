@@ -16,7 +16,13 @@ export const themeSettings: App.Theme.ThemeSetting = {
   layout: {
     // mode: 'top-hybrid-header-first',
     mode: 'vertical-card',
-    scrollMode: 'content'
+    scrollMode: 'content',
+    bottomDock: {
+      snapped: true,
+      offsetX: 0,
+      offsetY: 96,
+      collapsed: false
+    }
   },
   page: {
     animate: true,

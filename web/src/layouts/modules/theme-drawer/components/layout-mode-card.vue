@@ -63,6 +63,11 @@ const layoutConfig: LayoutConfig = {
     menuClass: 'w-3/4 h-1/5',
     mainClass: 'w-full h-full'
   },
+  'bottom-card': {
+    placement: 'top',
+    menuClass: 'w-full h-1/5',
+    mainClass: 'w-full h-full'
+  },
   'top-hybrid-sidebar-first': {
     placement: 'bottom',
     menuClass: 'w-full h-1/4',

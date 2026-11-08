@@ -19,8 +19,14 @@ const themeStore = useThemeStore();
     <LayoutMode />
     <TabSettings />
     <HeaderSettings />
-    <!-- The top menu mode does not have a sidebar -->
-    <SiderSettings v-if="themeStore.layout.mode !== 'horizontal'" />
+    <!-- 无侧栏模式：水平菜单 / 顶栏无界 / 底部无界 -->
+    <SiderSettings
+      v-if="
+        themeStore.layout.mode !== 'horizontal' &&
+        themeStore.layout.mode !== 'horizontal-card' &&
+        themeStore.layout.mode !== 'bottom-card'
+      "
+    />
     <FooterSettings />
     <ContentSettings />
   </div>

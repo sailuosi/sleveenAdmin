@@ -7,6 +7,7 @@ import VerticalMenu from './modules/vertical-menu.vue';
 import VerticalMixMenu from './modules/vertical-mix-menu.vue';
 import VerticalHybridHeaderFirst from './modules/vertical-hybrid-header-first.vue';
 import HorizontalMenu from './modules/horizontal-menu.vue';
+import BottomDockMenu from './modules/bottom-dock-menu.vue';
 import TopHybridSidebarFirst from './modules/top-hybrid-sidebar-first.vue';
 import TopHybridHeaderFirst from './modules/top-hybrid-header-first.vue';
 
@@ -25,6 +26,7 @@ const activeMenu = computed(() => {
     'vertical-card': VerticalMenu,
     horizontal: HorizontalMenu,
     'horizontal-card': HorizontalMenu,
+    'bottom-card': BottomDockMenu,
     'top-hybrid-sidebar-first': TopHybridSidebarFirst,
     'top-hybrid-header-first': TopHybridHeaderFirst
   };

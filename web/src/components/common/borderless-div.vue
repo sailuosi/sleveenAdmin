@@ -49,7 +49,7 @@ function toCss(value: Edge | undefined, fallbackPx: number): string {
 
 const isTopOnlyLayout = computed(() => {
   const mode = themeStore.layout.mode;
-  return mode === 'horizontal' || mode === 'horizontal-card';
+  return mode === 'horizontal' || mode === 'horizontal-card' || mode === 'bottom-card';
 });
 
 /** 按壳层浮层推算建议四边 */
@@ -69,6 +69,11 @@ const autoEdges = computed(() => {
     top = Math.max(top, CHROME_INSET + themeStore.header.height + CHROME_GAP);
   }
 
+  // 底部无界吸附态：内容避开底栏浮岛
+  if (themeStore.layout.mode === 'bottom-card' && themeStore.layout.bottomDock?.snapped) {
+    bottom = Math.max(bottom, CHROME_INSET + themeStore.header.height + CHROME_GAP);
+  }
+
   if (themeStore.tab.visible) {
     const anchor = themeStore.tab.cardAnchor;
     const tabH = themeStore.tab.height;
@@ -79,6 +84,9 @@ const autoEdges = computed(() => {
       }
     } else if (anchor === 'bottom') {
       bottom = CHROME_INSET + tabH + CHROME_GAP;
+      if (themeStore.layout.mode === 'bottom-card' && themeStore.layout.bottomDock?.snapped) {
+        bottom = CHROME_INSET + themeStore.header.height + CHROME_GAP + tabH + CHROME_GAP;
+      }
     } else if (anchor === 'right') {
       right = CHROME_INSET + RIGHT_TAB_WIDTH + CHROME_GAP;
     }
