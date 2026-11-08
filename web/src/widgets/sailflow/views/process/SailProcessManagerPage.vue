@@ -1,161 +1,127 @@
 <template>
-  <div class="sf-list-page">
-    <header class="sf-list-page__bar">
-      <div class="sf-list-page__title">流程实例管理</div>
-      <div class="sf-list-page__actions">
-        <el-select v-model="processState" clearable placeholder="状态" style="width: 120px" @change="reload">
-          <el-option label="运行中" :value="2" />
-          <el-option label="完成" :value="4" />
-          <el-option label="取消/关闭" :value="5" />
-        </el-select>
-        <el-input
-          v-model="keyword"
-          clearable
-          placeholder="应用名称"
-          style="width: 180px"
-          @keyup.enter="reload"
-        />
-        <el-button :loading="loading" @click="reload">刷新</el-button>
+  <flexpan :flex="true" height="100%">
+    <template #header>
+      <div class="sf-vc-toolbar">
+        <div class="sf-vc-toolbar__title">流程实例管理</div>
+        <div class="sf-vc-toolbar__actions">
+          <el-select v-model="processState" clearable placeholder="状态" style="width: 120px" @change="reload">
+            <el-option label="运行中" :value="2" />
+            <el-option label="完成" :value="4" />
+            <el-option label="取消/关闭" :value="5" />
+          </el-select>
+          <el-input
+            v-model="keyword"
+            clearable
+            placeholder="应用名称"
+            style="width: 180px"
+            @keyup.enter="reload"
+          />
+          <el-button :loading="loading" @click="reload">刷新</el-button>
+        </div>
       </div>
-    </header>
-    <main class="sf-list-page__body">
-      <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-list-page__alert" />
-      <el-table v-loading="loading" :data="rows" stripe border empty-text="暂无实例">
-        <el-table-column label="流程" min-width="140">
-          <template #default="{ row }">{{ field(row, 'ProcessName', 'processName') }}</template>
-        </el-table-column>
-        <el-table-column label="应用" min-width="120">
-          <template #default="{ row }">{{ field(row, 'AppName', 'appName') }}</template>
-        </el-table-column>
-        <el-table-column label="业务单号" min-width="140" show-overflow-tooltip>
-          <template #default="{ row }">{{ field(row, 'AppInstanceId', 'appInstanceId') }}</template>
-        </el-table-column>
-        <el-table-column label="发起人" width="110">
-          <template #default="{ row }">{{ field(row, 'CreatedUserName', 'createdUserName') }}</template>
-        </el-table-column>
-        <el-table-column label="状态" width="80">
-          <template #default="{ row }">{{ field(row, 'ProcessState', 'processState') }}</template>
-        </el-table-column>
-        <el-table-column label="发起时间" width="170">
-          <template #default="{ row }">{{ field(row, 'CreatedDateTime', 'createdDateTime') }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+    </template>
+    <template #default="p">
+      <vclist
+        :list="mlist"
+        :total="total"
+        :para="queryParams"
+        :height="p.height"
+        :flex="true"
+        query
+        :orderCol="true"
+        :stripe="true"
+        empty-text="暂无实例"
+        v-loading="loading"
+        @query="getlist"
+      >
+        <vccol field="op" caption="操作" width="80px" type="text" disabled align="center" headerAlign="center">
           <template #default="{ row }">
-            <el-button link type="primary" @click="goDetail(row)">详情</el-button>
+            <el-link type="primary" @click="goDetail(row)">详情</el-link>
           </template>
-        </el-table-column>
-      </el-table>
-      <div class="sf-list-page__pager">
-        <el-pagination
-          v-model:current-page="pageIndex"
-          v-model:page-size="pageSize"
-          layout="total, prev, pager, next"
-          :total="total"
-          @current-change="load"
-          @size-change="reload"
-        />
-      </div>
-    </main>
-  </div>
+        </vccol>
+        <vccol field="processName" caption="流程" min-width="140px" type="text" />
+        <vccol field="appName" caption="应用" min-width="120px" type="text" />
+        <vccol field="appInstanceId" caption="业务单号" min-width="140px" type="text" />
+        <vccol field="createdUserName" caption="发起人" width="110px" type="text" />
+        <vccol field="processState" caption="状态" width="80px" type="text" />
+        <vccol field="createdDateTime" caption="发起时间" width="168px" type="datetime" />
+      </vclist>
+    </template>
+  </flexpan>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { queryProcessInstances } from '@sail/api/runtime';
-import { unpackSailResult, pickField } from '@sail/utils/sailResult';
+import flexpan from '@/ui/common/flexpan.vue';
+import vclist from '@/ui/common/vclist/vclist.vue';
+import vccol from '@/ui/common/vclist/vccol.vue';
+import { querySailProcessList } from '@sail/api/workbench';
 
 defineOptions({ name: 'SailProcessManagerPage' });
 
 const router = useRouter();
 const loading = ref(false);
-const err = ref('');
-const rows = ref<Record<string, unknown>[]>([]);
-const keyword = ref('');
-const processState = ref<number | undefined>(undefined);
-const pageIndex = ref(1);
-const pageSize = ref(20);
+const mlist = ref([]);
 const total = ref(0);
+const keyword = ref('');
+const processState = ref(undefined);
+const queryParams = ref({ pageSize: 20, pageNum: 1 });
 
-function field(row: Record<string, unknown>, ...keys: string[]) {
-  return pickField(row, ...keys) ?? '';
-}
-
-async function load() {
+const getlist = () => {
   loading.value = true;
-  err.value = '';
-  try {
-    const data = await queryProcessInstances({
-      AppName: keyword.value || undefined,
-      ProcessState: processState.value ?? null,
-      PageIndex: pageIndex.value,
-      PageSize: pageSize.value
+  querySailProcessList({
+    pageNum: queryParams.value.pageNum,
+    pageSize: queryParams.value.pageSize,
+    keyword: keyword.value || undefined,
+    processState: processState.value ?? null,
+    mine: false
+  })
+    .then(res => {
+      mlist.value = res?.records || res?.Records || res?.Items || [];
+      total.value = res?.total ?? res?.Total ?? 0;
+    })
+    .catch(err => {
+      mlist.value = [];
+      total.value = 0;
+      window.$message?.error?.(err?.message || String(err));
+    })
+    .finally(() => {
+      loading.value = false;
     });
-    const r = unpackSailResult<Record<string, unknown>[]>(data);
-    if ((data?.Status ?? data?.status) === -1) {
-      err.value = r.message || '查询失败';
-      rows.value = [];
-      return;
-    }
-    rows.value = Array.isArray(r.entity) ? r.entity : [];
-    total.value = r.total || rows.value.length;
-  } catch (e: unknown) {
-    err.value = e instanceof Error ? e.message : String(e);
-    rows.value = [];
-  } finally {
-    loading.value = false;
-  }
-}
+};
 
 function reload() {
-  pageIndex.value = 1;
-  load();
+  queryParams.value.pageNum = 1;
+  getlist();
 }
 
-function goDetail(row: Record<string, unknown>) {
+function goDetail(row) {
   router.push({
     path: '/sail/process-detail',
-    query: { processInstanceId: String(field(row, 'Id', 'id')) }
+    query: { processInstanceId: String(row?.id ?? row?.Id ?? '') }
   });
 }
 
-onMounted(load);
+onMounted(getlist);
 </script>
 
 <style scoped>
-.sf-list-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-list-page__bar {
+.sf-vc-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  gap: 12px;
+  padding: 8px 0 12px;
 }
-.sf-list-page__title {
+.sf-vc-toolbar__title {
   font-size: 16px;
   font-weight: 600;
 }
-.sf-list-page__actions {
+.sf-vc-toolbar__actions {
   display: flex;
   gap: 8px;
   align-items: center;
-}
-.sf-list-page__body {
-  padding: 16px;
-  flex: 1;
-}
-.sf-list-page__alert {
-  margin-bottom: 12px;
-}
-.sf-list-page__pager {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 </style>

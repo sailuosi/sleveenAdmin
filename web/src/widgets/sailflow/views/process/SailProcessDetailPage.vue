@@ -173,6 +173,7 @@ import { getApprovalWorkbench } from '@sail/api/runtime';
 import { queryProcessFile } from '@sail/api/process';
 import { useSailCurrentUser } from '@sail/adapters/currentUser';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
+import { formatTime } from '@sail/utils/formatTime';
 import { parseProcessAssets } from '@sail/utils/parseProcessAssets';
 import { parseButtonsSettingForActivity } from '@sail/utils/parseButtonsSetting';
 import {
@@ -285,12 +286,6 @@ const starterInitial = computed(() => {
 
 function field(row: Record<string, unknown> | null | undefined, ...keys: string[]) {
   return pickField(row || undefined, ...keys) ?? '';
-}
-
-function formatTime(raw: unknown) {
-  const s = String(raw || '').trim();
-  if (!s) return '-';
-  return s.replace('T', ' ').replace(/\.\d+/, '').slice(0, 19);
 }
 
 function activityStateLabel(a: Record<string, unknown>) {

@@ -1,156 +1,121 @@
 <template>
-  <div class="sf-list-page">
-    <header class="sf-list-page__bar">
-      <div class="sf-list-page__title">我的已办</div>
-      <div class="sf-list-page__actions">
-        <el-input
-          v-model="keyword"
-          clearable
-          placeholder="应用名称"
-          style="width: 200px"
-          @keyup.enter="reload"
-        />
-        <el-button :loading="loading" @click="reload">刷新</el-button>
+  <flexpan :flex="true" height="100%">
+    <template #header>
+      <div class="sf-vc-toolbar">
+        <div class="sf-vc-toolbar__title">我的已办</div>
+        <div class="sf-vc-toolbar__actions">
+          <el-input
+            v-model="keyword"
+            clearable
+            placeholder="应用名称"
+            style="width: 200px"
+            @keyup.enter="reload"
+          />
+          <el-button :loading="loading" @click="reload">刷新</el-button>
+        </div>
       </div>
-    </header>
-    <main class="sf-list-page__body">
-      <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-list-page__alert" />
-      <el-table v-loading="loading" :data="rows" stripe border empty-text="暂无已办">
-        <el-table-column label="应用" min-width="140">
-          <template #default="{ row }">{{ field(row, 'AppName', 'appName') }}</template>
-        </el-table-column>
-        <el-table-column label="节点" min-width="120">
-          <template #default="{ row }">{{ field(row, 'ActivityName', 'activityName') }}</template>
-        </el-table-column>
-        <el-table-column label="业务单号" min-width="140" show-overflow-tooltip>
-          <template #default="{ row }">{{ field(row, 'AppInstanceId', 'appInstanceId') }}</template>
-        </el-table-column>
-        <el-table-column label="完成时间" width="170">
-          <template #default="{ row }">{{ field(row, 'EndedDateTime', 'endedDateTime') }}</template>
-        </el-table-column>
-        <el-table-column label="操作" width="100" fixed="right">
+    </template>
+    <template #default="p">
+      <vclist
+        :list="mlist"
+        :total="total"
+        :para="queryParams"
+        :height="p.height"
+        :flex="true"
+        query
+        :orderCol="true"
+        :stripe="true"
+        empty-text="暂无已办"
+        v-loading="loading"
+        @query="getlist"
+      >
+        <vccol field="op" caption="操作" width="80px" type="text" disabled align="center" headerAlign="center">
           <template #default="{ row }">
-            <el-button link type="primary" @click="goDetail(row)">查看</el-button>
+            <el-link type="primary" @click="goDetail(row)">查看</el-link>
           </template>
-        </el-table-column>
-      </el-table>
-      <div class="sf-list-page__pager">
-        <el-pagination
-          v-model:current-page="pageIndex"
-          v-model:page-size="pageSize"
-          layout="total, prev, pager, next"
-          :total="total"
-          @current-change="load"
-          @size-change="reload"
-        />
-      </div>
-    </main>
-  </div>
+        </vccol>
+        <vccol field="appName" caption="应用" min-width="140px" type="text" />
+        <vccol field="activityName" caption="节点" min-width="120px" type="text" />
+        <vccol field="appInstanceId" caption="业务单号" min-width="140px" type="text" />
+        <vccol field="endedDateTime" caption="完成时间" width="168px" type="datetime" />
+      </vclist>
+    </template>
+  </flexpan>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { queryCompletedTasks } from '@sail/api/runtime';
-import { useSailCurrentUser } from '@sail/adapters/currentUser';
-import { unpackSailResult, pickField } from '@sail/utils/sailResult';
+import flexpan from '@/ui/common/flexpan.vue';
+import vclist from '@/ui/common/vclist/vclist.vue';
+import vccol from '@/ui/common/vclist/vccol.vue';
+import { querySailDoneList } from '@sail/api/workbench';
 
 defineOptions({ name: 'SailTaskDonePage' });
 
 const router = useRouter();
-const { userId } = useSailCurrentUser();
 const loading = ref(false);
-const err = ref('');
-const rows = ref<Record<string, unknown>[]>([]);
-const keyword = ref('');
-const pageIndex = ref(1);
-const pageSize = ref(20);
+const mlist = ref([]);
 const total = ref(0);
+const keyword = ref('');
+const queryParams = ref({ pageSize: 20, pageNum: 1 });
 
-function field(row: Record<string, unknown>, ...keys: string[]) {
-  return pickField(row, ...keys) ?? '';
-}
-
-async function load() {
+const getlist = () => {
   loading.value = true;
-  err.value = '';
-  try {
-    const data = await queryCompletedTasks({
-      EndedUserId: userId.value,
-      AppName: keyword.value || undefined,
-      PageIndex: pageIndex.value,
-      PageSize: pageSize.value
+  querySailDoneList({
+    pageNum: queryParams.value.pageNum,
+    pageSize: queryParams.value.pageSize,
+    keyword: keyword.value || undefined,
+    mine: true
+  })
+    .then(res => {
+      mlist.value = res?.records || res?.Records || res?.Items || [];
+      total.value = res?.total ?? res?.Total ?? 0;
+    })
+    .catch(err => {
+      mlist.value = [];
+      total.value = 0;
+      window.$message?.error?.(err?.message || String(err));
+    })
+    .finally(() => {
+      loading.value = false;
     });
-    const r = unpackSailResult<Record<string, unknown>[]>(data);
-    if ((data?.Status ?? data?.status) === -1) {
-      err.value = r.message || '查询失败';
-      rows.value = [];
-      return;
-    }
-    const list = r.entity ?? [];
-    rows.value = Array.isArray(list) ? list : [];
-    total.value = r.total || rows.value.length;
-  } catch (e: unknown) {
-    err.value = e instanceof Error ? e.message : String(e);
-    rows.value = [];
-  } finally {
-    loading.value = false;
-  }
-}
+};
 
 function reload() {
-  pageIndex.value = 1;
-  load();
+  queryParams.value.pageNum = 1;
+  getlist();
 }
 
-function goDetail(row: Record<string, unknown>) {
+function goDetail(row) {
   router.push({
     path: '/sail/process-detail',
     query: {
-      taskId: String(field(row, 'Id', 'id')),
-      processInstanceId: String(field(row, 'ProcessInstanceId', 'processInstanceId') || '')
+      taskId: String(row?.id ?? row?.Id ?? ''),
+      processInstanceId: String(row?.processInstanceId || row?.ProcessInstanceId || '')
     }
   });
 }
 
-onMounted(load);
+onMounted(getlist);
 </script>
 
 <style scoped>
-.sf-list-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-list-page__bar {
+.sf-vc-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-lighter);
+  padding: 8px 0 12px;
 }
-.sf-list-page__title {
+.sf-vc-toolbar__title {
   font-size: 16px;
   font-weight: 600;
 }
-.sf-list-page__actions {
+.sf-vc-toolbar__actions {
   display: flex;
   gap: 8px;
   align-items: center;
-}
-.sf-list-page__body {
-  padding: 16px;
-  flex: 1;
-}
-.sf-list-page__alert {
-  margin-bottom: 12px;
-}
-.sf-list-page__pager {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
+  flex-wrap: wrap;
 }
 </style>

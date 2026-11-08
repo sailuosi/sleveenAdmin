@@ -20,8 +20,8 @@ const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
 const visible = ref(false);
 
-const displayName = computed(() => authStore.userInfo.userName || authStore.userInfo.userId || '-');
-const displayCode = computed(() => `${authStore.userInfo.userId || ''}`.trim());
+const displayName = computed(() => authStore.userInfo.userName || authStore.userInfo.account || '-');
+const displayCode = computed(() => `${authStore.userInfo.account || ''}`.trim());
 
 function loginOrRegister() {
   visible.value = false;
