@@ -4,6 +4,7 @@ import { useRouteStore } from '@/store/modules/route';
 import { useThemeStore } from '@/store/modules/theme';
 import type { MenuWithMeta } from '../utils/megaMenuSections';
 import BottomDockItem from './bottom-dock-item.vue';
+import BottomDockRadial from './bottom-dock-radial.vue';
 
 defineOptions({
   name: 'BottomDockMenu'
@@ -38,6 +39,13 @@ const showSnapHint = ref(false);
 const hoverIndex = ref(-1);
 const scales = ref<number[]>([]);
 
+/** 收起态径向环 */
+const radialOpen = ref(false);
+/** 子菜单面板悬停中，禁止收起环 */
+const radialPanelHolding = ref(false);
+let radialCloseTimer: ReturnType<typeof setTimeout> | null = null;
+const RADIAL_LEAVE_DELAY = 200;
+
 /** Live geometry while dragging (before commit) */
 const live = reactive({
   active: false,
@@ -50,6 +58,63 @@ const visuallySnapped = computed(() => {
   if (live.active) return live.snappedPreview;
   return dock.value.snapped;
 });
+
+function clearRadialCloseTimer() {
+  if (radialCloseTimer) {
+    clearTimeout(radialCloseTimer);
+    radialCloseTimer = null;
+  }
+}
+
+function openRadial() {
+  if (!dock.value.collapsed || dragging.value) return;
+  clearRadialCloseTimer();
+  radialOpen.value = true;
+}
+
+function scheduleCloseRadial() {
+  if (radialPanelHolding.value) return;
+  clearRadialCloseTimer();
+  radialCloseTimer = setTimeout(() => {
+    if (radialPanelHolding.value) return;
+    radialOpen.value = false;
+    radialCloseTimer = null;
+  }, RADIAL_LEAVE_DELAY);
+}
+
+function closeRadialNow() {
+  clearRadialCloseTimer();
+  radialPanelHolding.value = false;
+  radialOpen.value = false;
+}
+
+function onRadialHostEnter() {
+  openRadial();
+}
+
+function onRadialHostLeave() {
+  scheduleCloseRadial();
+}
+
+function onRadialPanelHold(holding: boolean) {
+  radialPanelHolding.value = holding;
+  if (holding) {
+    clearRadialCloseTimer();
+    radialOpen.value = true;
+  } else {
+    scheduleCloseRadial();
+  }
+}
+
+function expandDockFromRadial() {
+  const state = ensureBottomDock();
+  state.collapsed = false;
+  closeRadialNow();
+}
+
+function onRadialSelect() {
+  closeRadialNow();
+}
 
 const dockStyle = computed(() => {
   if (visuallySnapped.value) {
@@ -180,6 +245,7 @@ function onHandlePointerDown(event: PointerEvent) {
   moved = false;
   startedFromSnapped = state.snapped;
   dragging.value = true;
+  closeRadialNow();
   resetScales();
 
   const el = dockRef.value;
@@ -241,6 +307,7 @@ function onHandlePointerUp(event: PointerEvent) {
     live.active = false;
     live.snappedPreview = false;
     state.collapsed = !state.collapsed;
+    closeRadialNow();
     return;
   }
 
@@ -260,10 +327,18 @@ function onHandlePointerUp(event: PointerEvent) {
 }
 
 onUnmounted(() => {
+  clearRadialCloseTimer();
   window.removeEventListener('pointermove', onHandlePointerMove);
   window.removeEventListener('pointerup', onHandlePointerUp);
   window.removeEventListener('pointercancel', onHandlePointerUp);
 });
+
+watch(
+  () => dock.value.collapsed,
+  collapsed => {
+    if (!collapsed) closeRadialNow();
+  }
+);
 
 watch(
   menus,
@@ -301,15 +376,30 @@ watch(
       @pointermove="onDockPointerMove"
       @pointerleave="onDockPointerLeave"
     >
-      <div class="bottom-dock-glass">
-        <button
-          type="button"
-          class="dock-handle"
-          title="拖动停靠栏 / 点击收起"
-          @pointerdown="onHandlePointerDown"
-        >
-          <SvgIcon icon="ph:squares-four" class="dock-handle-icon" />
-        </button>
+      <div
+        class="bottom-dock-glass"
+        :class="{ 'bottom-dock-glass--radial-host': dock.collapsed }"
+        @mouseenter="dock.collapsed && onRadialHostEnter()"
+        @mouseleave="dock.collapsed && onRadialHostLeave()"
+      >
+        <div class="dock-handle-wrap">
+          <BottomDockRadial
+            v-if="dock.collapsed"
+            :menus="menus"
+            :open="radialOpen && !dragging"
+            @select="onRadialSelect"
+            @expand-dock="expandDockFromRadial"
+            @panel-hold="onRadialPanelHold"
+          />
+          <button
+            type="button"
+            class="dock-handle"
+            title="拖动停靠栏 / 点击收起；悬停展开环形菜单"
+            @pointerdown="onHandlePointerDown"
+          >
+            <SvgIcon icon="ph:squares-four" class="dock-handle-icon" />
+          </button>
+        </div>
 
         <Transition name="dock-collapse">
           <div v-show="!dock.collapsed" class="dock-items">
@@ -412,7 +502,23 @@ html.dark .bottom-dock-glass {
   padding-inline: 10px;
 }
 
+.bottom-dock-glass--radial-host {
+  position: relative;
+  overflow: visible;
+}
+
+.dock-handle-wrap {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .dock-handle {
+  position: relative;
+  z-index: 7;
   display: flex;
   align-items: center;
   justify-content: center;
