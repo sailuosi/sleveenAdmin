@@ -384,7 +384,6 @@ div.lazycard-header{
     background-color: var(--fccard-bg-color,#ffffff);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.04);
     overflow: hidden;
-    padding-top: 16px;
     box-sizing: border-box;
 }
 .formcard.card > .fc-head {
