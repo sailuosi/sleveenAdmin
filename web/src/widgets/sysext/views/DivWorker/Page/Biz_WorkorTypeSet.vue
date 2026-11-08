@@ -226,12 +226,6 @@ onUnmounted(() => {
 </style>
 
 <style lang="css">
-.Biz_WorkorTypeSet > .lr-left .formcard-shell--vc {
-    padding-right: 6px;
-}
-.Biz_WorkorTypeSet > .lr-right .formcard-shell--vc {
-    padding-left: 6px;
-}
 .Biz_WorkorTypeSet .workor-type-right-tabs {
     height: 100%;
     display: flex;

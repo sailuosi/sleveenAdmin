@@ -252,13 +252,12 @@ export default {
 </script>
 
 <style scoped>
-/* 与 VC sum-page-shell 一致：灰底 + 外边距 padding，白卡片在内部 .formcard.card */
+/* 与 VC sum-page-shell 一致：灰底，白卡片在内部 .formcard.card */
 .formcard-shell {
     box-sizing: border-box;
     width: 100%;
 }
 .formcard-shell--vc {
-    padding: 12px 16px 16px;
     background: linear-gradient(180deg, #eef1f6 0%, #f5f7fa 48%, #f0f2f5 100%);
 }
 .formcard-shell--flex {
@@ -307,8 +306,8 @@ div.lazycard-header{
 .formcard.card.sim > .fc-head {
     margin: 0 18px 12px;
     padding: 10px 12px;
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    border: 1px solid var(--el-border-color-lighter);
+    /*background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid var(--el-border-color-lighter);*/
     border-radius: 12px;
 }
 

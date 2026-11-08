@@ -544,7 +544,4 @@ function closeMenuView(){
 .workor-pick-dialog-body .vclist-inner-flex > .el-pagination.vcpager {
     flex: 0 0 auto !important;
 }
-.workor-pick-dialog-body .formcard-shell--vc {
-    padding: 8px 10px 10px !important;
-}
 </style>
