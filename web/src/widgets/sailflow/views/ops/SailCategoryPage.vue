@@ -1,14 +1,13 @@
 <template>
-  <div class="sf-cat-page">
-    <header class="sf-cat-page__bar">
-      <div class="sf-cat-page__title">流程分类</div>
-      <div class="sf-cat-page__actions">
+  <formcard title="流程分类" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
         <el-button :loading="loading" @click="refresh">刷新</el-button>
         <el-button type="primary" @click="openCreate">新建分类</el-button>
         <el-button @click="router.push('/sail/processes')">流程定义</el-button>
         <el-button @click="router.push('/sail/report')">报表</el-button>
       </div>
-    </header>
+    </template>
     <main class="sf-cat-page__main">
       <el-alert
         title="分类目录存 sf_process_category；绑定写入流程定义 AppType（不改引擎表结构）。"
@@ -83,13 +82,14 @@
         <el-button type="primary" :loading="saving" @click="onSave">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+  </formcard>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import formcard from '@/ui/panels/formcard.vue';
 import {
   bindProcessCategory,
   countByCategory,
@@ -242,33 +242,17 @@ onMounted(refresh);
 </script>
 
 <style scoped>
-.sf-cat-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-cat-page__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
-  background: var(--el-bg-color, #fff);
-}
-.sf-cat-page__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-cat-page__actions {
+.sf-formcard-toolbar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 .sf-cat-page__main {
-  flex: 1;
+  height: 100%;
   padding: 16px;
+  overflow: auto;
+  box-sizing: border-box;
 }
 .sf-cat-page__alert {
   margin-bottom: 12px;

@@ -1,58 +1,58 @@
 <template>
-  <flexpan :flex="true" height="100%">
-    <template #header>
-      <div class="sf-vc-toolbar">
-        <div class="sf-vc-toolbar__title">流程实例管理</div>
-        <div class="sf-vc-toolbar__actions">
-          <el-select v-model="processState" clearable placeholder="状态" style="width: 120px" @change="reload">
-            <el-option label="运行中" :value="2" />
-            <el-option label="完成" :value="4" />
-            <el-option label="取消/关闭" :value="5" />
-          </el-select>
-          <el-input
-            v-model="keyword"
-            clearable
-            placeholder="应用名称"
-            style="width: 180px"
-            @keyup.enter="reload"
-          />
-          <el-button :loading="loading" @click="reload">刷新</el-button>
-        </div>
+  <formcard title="流程实例管理" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
+        <el-select v-model="processState" clearable placeholder="状态" style="width: 120px" @change="reload">
+          <el-option label="运行中" :value="2" />
+          <el-option label="完成" :value="4" />
+          <el-option label="取消/关闭" :value="5" />
+        </el-select>
+        <el-input
+          v-model="keyword"
+          clearable
+          placeholder="应用名称"
+          style="width: 180px"
+          @keyup.enter="reload"
+        />
+        <el-button :loading="loading" @click="reload">刷新</el-button>
       </div>
     </template>
-    <template #default="p">
-      <vclist
-        :list="mlist"
-        :total="total"
-        :para="queryParams"
-        :height="p.height"
-        :flex="true"
-        query
-        :orderCol="true"
-        :stripe="true"
-        empty-text="暂无实例"
-        v-loading="loading"
-        @query="getlist"
-      >
-        <vccol field="op" caption="操作" width="80px" type="text" disabled align="center" headerAlign="center">
-          <template #default="{ row }">
-            <el-link type="primary" @click="goDetail(row)">详情</el-link>
-          </template>
-        </vccol>
-        <vccol field="processName" caption="流程" min-width="140px" type="text" />
-        <vccol field="appName" caption="应用" min-width="120px" type="text" />
-        <vccol field="appInstanceId" caption="业务单号" min-width="140px" type="text" />
-        <vccol field="createdUserName" caption="发起人" width="110px" type="text" />
-        <vccol field="processState" caption="状态" width="80px" type="text" />
-        <vccol field="createdDateTime" caption="发起时间" width="168px" type="datetime" />
-      </vclist>
-    </template>
-  </flexpan>
+    <flexpan :flex="true" height="100%">
+      <template #default="p">
+        <vclist
+          :list="mlist"
+          :total="total"
+          :para="queryParams"
+          :height="p.height"
+          :flex="true"
+          query
+          :orderCol="true"
+          :stripe="true"
+          empty-text="暂无实例"
+          v-loading="loading"
+          @query="getlist"
+        >
+          <vccol field="op" caption="操作" width="80px" type="text" disabled align="center" headerAlign="center">
+            <template #default="{ row }">
+              <el-link type="primary" @click="goDetail(row)">详情</el-link>
+            </template>
+          </vccol>
+          <vccol field="processName" caption="流程" min-width="140px" type="text" />
+          <vccol field="appName" caption="应用" min-width="120px" type="text" />
+          <vccol field="appInstanceId" caption="业务单号" min-width="140px" type="text" />
+          <vccol field="createdUserName" caption="发起人" width="110px" type="text" />
+          <vccol field="processState" caption="状态" width="80px" type="text" />
+          <vccol field="createdDateTime" caption="发起时间" width="168px" type="datetime" />
+        </vclist>
+      </template>
+    </flexpan>
+  </formcard>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import formcard from '@/ui/panels/formcard.vue';
 import flexpan from '@/ui/common/flexpan.vue';
 import vclist from '@/ui/common/vclist/vclist.vue';
 import vccol from '@/ui/common/vclist/vccol.vue';
@@ -107,18 +107,7 @@ onMounted(getlist);
 </script>
 
 <style scoped>
-.sf-vc-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0 12px;
-}
-.sf-vc-toolbar__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-vc-toolbar__actions {
+.sf-formcard-toolbar {
   display: flex;
   gap: 8px;
   align-items: center;

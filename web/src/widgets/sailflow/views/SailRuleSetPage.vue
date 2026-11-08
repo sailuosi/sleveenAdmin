@@ -1,15 +1,14 @@
 <template>
-  <div class="sf-ruleset-page">
-    <header class="sf-ruleset-page__bar">
-      <div class="sf-ruleset-page__title">规则集</div>
-      <div class="sf-ruleset-page__actions">
+  <formcard title="规则集" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
         <el-button text @click="goProcesses">流程列表</el-button>
         <el-button :loading="loading" @click="refresh">刷新</el-button>
         <el-button @click="createNew">新建</el-button>
         <el-button type="danger" plain :disabled="!form.RuleSetCode" @click="onDelete">删除</el-button>
         <el-button type="primary" :loading="saving" @click="onSave">保存</el-button>
       </div>
-    </header>
+    </template>
     <main class="sf-ruleset-page__main">
       <aside class="sf-ruleset-page__list">
         <el-alert v-if="listErr" :title="listErr" type="error" show-icon :closable="false" />
@@ -77,13 +76,14 @@
         </el-form>
       </section>
     </main>
-  </div>
+  </formcard>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import formcard from '@/ui/panels/formcard.vue';
 import {
   RULE_CONTENT_SAMPLES,
   RULE_MODE_BINDINGS_JSON,
@@ -284,33 +284,14 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.sf-ruleset-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-ruleset-page__bar {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
-  background: var(--el-bg-color, #fff);
-}
-.sf-ruleset-page__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-ruleset-page__actions {
+.sf-formcard-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 .sf-ruleset-page__main {
-  flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
   display: flex;
 }

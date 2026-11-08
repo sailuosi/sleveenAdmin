@@ -1,15 +1,14 @@
 <template>
-  <div class="sf-list-page">
-    <header class="sf-list-page__bar">
-      <div class="sf-list-page__title">发起流程</div>
-      <div class="sf-list-page__actions">
+  <formcard title="发起流程" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
         <el-button @click="router.push('/sail/forms')">表单设计</el-button>
         <el-button @click="router.push('/sail/task-todo')">返回待办</el-button>
         <el-button :loading="loadingList" @click="refreshAll">刷新</el-button>
       </div>
-    </header>
-    <main class="sf-list-page__body">
-      <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-list-page__alert" />
+    </template>
+    <div class="sf-create-body">
+      <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-create-alert" />
       <div class="sf-create-form">
         <!-- 元数据表单：与 SailFormRender 拆开，禁止套进 form-create 的 ElForm -->
         <el-form label-width="100px" @submit.prevent>
@@ -131,14 +130,15 @@
           </el-form-item>
         </el-form>
       </div>
-    </main>
-  </div>
+    </div>
+  </formcard>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import formcard from '@/ui/panels/formcard.vue';
 import { getProcessListSimple } from '@sail/api/process';
 import { getProcessEdit } from '@sail/api/processEdit';
 import { getForm, getFormList } from '@sail/api/form';
@@ -479,32 +479,19 @@ onMounted(refreshAll);
   font-size: 12px;
   color: var(--el-color-warning);
 }
-.sf-list-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-list-page__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-lighter);
-}
-.sf-list-page__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-list-page__actions {
+.sf-formcard-toolbar {
   display: flex;
   gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
-.sf-list-page__body {
+.sf-create-body {
   padding: 16px;
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
 }
-.sf-list-page__alert {
+.sf-create-alert {
   margin-bottom: 12px;
 }
 .sf-create-form {

@@ -1,13 +1,12 @@
 <template>
-  <div class="sf-tpl-page">
-    <header class="sf-tpl-page__bar">
-      <div class="sf-tpl-page__title">流程模板库</div>
-      <div class="sf-tpl-page__actions">
+  <formcard title="流程模板库" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
         <el-button @click="router.push('/sail/processes')">流程定义</el-button>
         <el-button @click="router.push('/sail/leave')">请假样例</el-button>
         <el-button type="primary" @click="router.push('/sail/designer')">打开设计器</el-button>
       </div>
-    </header>
+    </template>
     <main class="sf-tpl-page__main">
       <el-tabs v-model="tab">
         <el-tab-pane label="标准模板" name="std">
@@ -43,13 +42,14 @@
       </el-tabs>
       <p class="sf-tpl-page__hint">从模板创建后进入设计器；请假样例走「请假」页发起并回写单据状态。</p>
     </main>
-  </div>
+  </formcard>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import formcard from '@/ui/panels/formcard.vue';
 import { createProcessByTemplate } from '@sail/api/process';
 
 defineOptions({ name: 'SailTemplateGalleryPage' });
@@ -104,33 +104,17 @@ async function pick(templateName: string) {
 </script>
 
 <style scoped>
-.sf-tpl-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-tpl-page__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
-  background: var(--el-bg-color, #fff);
-}
-.sf-tpl-page__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-tpl-page__actions {
+.sf-formcard-toolbar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 .sf-tpl-page__main {
-  flex: 1;
+  height: 100%;
   padding: 16px;
+  overflow: auto;
+  box-sizing: border-box;
 }
 .sf-tpl-page__hint {
   margin-top: 16px;

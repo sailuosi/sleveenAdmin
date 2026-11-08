@@ -1,8 +1,7 @@
 <template>
-  <div class="sf-list-page">
-    <header class="sf-list-page__bar">
-      <div class="sf-list-page__title">回调死信 Outbox</div>
-      <div class="sf-list-page__actions">
+  <formcard title="回调死信" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
         <el-select v-model="status" style="width: 130px" @change="load">
           <el-option label="Dead" value="Dead" />
           <el-option label="Pending" value="Pending" />
@@ -22,16 +21,16 @@
         <el-button type="danger" plain :loading="batching" @click="onResetAll">全部重试死信</el-button>
         <el-button @click="router.push('/sail/processes')">流程定义</el-button>
       </div>
-    </header>
-    <main class="sf-list-page__body">
+    </template>
+    <div class="sf-outbox-body">
       <el-alert
         :title="`当前状态「${status}」共 ${rows.length} 条（上限 Limit）`"
         type="info"
         show-icon
         :closable="false"
-        class="sf-list-page__alert"
+        class="sf-outbox-alert"
       />
-      <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-list-page__alert" />
+      <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-outbox-alert" />
       <el-table
         v-loading="loading"
         :data="rows"
@@ -78,14 +77,15 @@
           </template>
         </el-table-column>
       </el-table>
-    </main>
-  </div>
+    </div>
+  </formcard>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import formcard from '@/ui/panels/formcard.vue';
 import {
   queryOutbox,
   resetAllOutboxDead,
@@ -200,37 +200,19 @@ onMounted(load);
 </script>
 
 <style scoped>
-.sf-list-page {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-list-page__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color-lighter);
-  flex-wrap: wrap;
-}
-.sf-list-page__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-list-page__actions {
+.sf-formcard-toolbar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
 }
-.sf-list-page__body {
+.sf-outbox-body {
   padding: 16px;
-  flex: 1;
+  height: 100%;
+  overflow: auto;
+  box-sizing: border-box;
 }
-.sf-list-page__alert {
+.sf-outbox-alert {
   margin-bottom: 12px;
 }
 </style>
