@@ -266,7 +266,8 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
     :fixed-footer="showBottomEmbedTab ? false : themeStore.footer.fixed"
     :right-footer="themeStore.footer.right"
   >
-    <template v-if="headerVisible" #header>
+    <!-- 始终提供 #header，避免 slots.header 与 headerVisible 异步更新导致浮岛顶栏不渲染 -->
+    <template #header>
       <GlobalHeader v-bind="headerProps" />
     </template>
     <template #tab>

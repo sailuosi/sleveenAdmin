@@ -55,10 +55,6 @@ declare module "@elegant-router/types" {
     "_views_portal_design": "/views/portal/design";
     "_views_portal_page": "/views/portal/page";
     "_widgets_portaldesign_views_designPage": "/widgets/portaldesign/views/designPage";
-    "_widgets_officeman_views_ebook_category_Page_Biz_Sa_EbCataList": "/widgets/officeman/views/ebook/category/Page/Biz_Sa_EbCataList";
-    "_widgets_officeman_views_ebook_material_Page_Biz_Sa_EbMatList": "/widgets/officeman/views/ebook/material/Page/Biz_Sa_EbMatList";
-    "_widgets_officeman_views_ebook_note_Page_Biz_Sa_EbNoteList": "/widgets/officeman/views/ebook/note/Page/Biz_Sa_EbNoteList";
-    "_widgets_officeman_views_ebook_topic_Page_Biz_Sa_EbTopicList": "/widgets/officeman/views/ebook/topic/Page/Biz_Sa_EbTopicList";
     "_widgets_sailflow_views_demo_SailLeavePage": "/widgets/sailflow/views/demo/SailLeavePage";
     "_widgets_sailflow_views_form_SailFormEditorPage": "/widgets/sailflow/views/form/SailFormEditorPage";
     "_widgets_sailflow_views_form_SailFormListPage": "/widgets/sailflow/views/form/SailFormListPage";
@@ -98,12 +94,6 @@ declare module "@elegant-router/types" {
     "_widgets_sysext_views_paotalconfig_ptappletPage": "/widgets/sysext/views/paotalconfig/ptappletPage";
     "_widgets_sysext_views_paotalconfig_ptpagelistPage": "/widgets/sysext/views/paotalconfig/ptpagelistPage";
     "_widgets_sysext_views_paotalconfig_ptpageviewPage": "/widgets/sysext/views/paotalconfig/ptpageviewPage";
-    "_widgets_sysext_views_portal_portal_Page_Biz_Sys_PortalList": "/widgets/sysext/views/portal/portal/Page/Biz_Sys_PortalList";
-    "_widgets_sysext_views_portal_portpage_Page_Biz_Sys_PortPageList": "/widgets/sysext/views/portal/portpage/Page/Biz_Sys_PortPageList";
-    "_widgets_sysext_views_portal_portcell_Page_Biz_Sys_PortCellList": "/widgets/sysext/views/portal/portcell/Page/Biz_Sys_PortCellList";
-    "_widgets_sysext_views_portal_portcelllink_Page_Biz_Sys_PortCellLinkList": "/widgets/sysext/views/portal/portcelllink/Page/Biz_Sys_PortCellLinkList";
-    "_widgets_sysext_views_portal_applet_Page_Biz_Sys_AppletList": "/widgets/sysext/views/portal/applet/Page/Biz_Sys_AppletList";
-    "_widgets_sysext_views_portal_appletcata_Page_Biz_Sys_AppletCataList": "/widgets/sysext/views/portal/appletcata/Page/Biz_Sys_AppletCataList";
     "_widgets_sysext_views_sys_cache_cachePage": "/widgets/sysext/views/sys/cache/cachePage";
     "_widgets_sysext_views_sys_config_configPage": "/widgets/sysext/views/sys/config/configPage";
     "_widgets_sysext_views_sys_dict_dictPage": "/widgets/sysext/views/sys/dict/dictPage";
