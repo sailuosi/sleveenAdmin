@@ -169,7 +169,7 @@ function openOrgSelect(e){
 function addOrg(e){
     //console.log(e);
     focusRow.value.orgs.push({
-        oid:e.UCML_OrganizeOID,
+        oid:e.HR_OrganizeOID,
         code:e.Varchar1,
         name:e.OrgName
     })

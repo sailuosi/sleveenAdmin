@@ -166,7 +166,7 @@ export default {
                     this.queryParams.spOrgId=this.focusHR.Varchar1;
                 }
                 else{
-                    this.queryParams.spOrgId=this.focusHR.UCML_OrganizeOID;
+                    this.queryParams.spOrgId=this.focusHR.HR_OrganizeOID;
                 }
                 this.getlist();
             }

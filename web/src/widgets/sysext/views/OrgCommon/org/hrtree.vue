@@ -1,5 +1,5 @@
 <template>
-<el-tree ref="eltree" :data="rows" :empty-text="emptymsg" :props="treeKey" node-key="UCML_OrganizeOID" 
+<el-tree ref="eltree" :data="rows" :empty-text="emptymsg" :props="treeKey" node-key="HR_OrganizeOID" 
 	:default-expanded-keys="expandedKeys" :default-checked-keys="checked" @node-click="onNodeClick" @check="orgcheck" 
 	:show-checkbox="showCheck" :expand-on-click-node="false" :check-strictly="strict">
     <template #default="p">
@@ -13,6 +13,18 @@
 
 <script>
 import { loadOrgTree, loadHROrgTree } from "@/api/system/mancommonapi.js"
+
+function normalizeOrgRow(data) {
+    const oid = data.HR_OrganizeOID || data.UCML_OrganizeOID;
+    if (oid) {
+        data.HR_OrganizeOID = String(oid).toUpperCase();
+    }
+    if (data.ParentOID) {
+        data.ParentOID = String(data.ParentOID).toUpperCase();
+    }
+    data.children = [];
+    return data;
+}
 
 export default {
     name: 'Hrtree',
@@ -77,24 +89,17 @@ export default {
             }).then(res => {
             	if (Array.isArray(res.data)) {
             		res.data.forEach(data => {
-            			// 统一主键与父键为大写，保证与 expandedKeys / orgData 的 key 一致
-            			if (data.UCML_OrganizeOID) {
-            				data.UCML_OrganizeOID = String(data.UCML_OrganizeOID).toUpperCase();
+            			normalizeOrgRow(data);
+            			if (data.HR_OrganizeOID) {
+            				this.orgData[data.HR_OrganizeOID] = data;
             			}
-            			if (data.ParentOID) {
-            				data.ParentOID = String(data.ParentOID).toUpperCase();
-            			}
-            			data.children = [];
-            			this.orgData[data.UCML_OrganizeOID] = data;
             		});
             		
             		this.rows = [];
             		res.data.forEach(data => {
             			if (data.ParentOID && this.orgData[data.ParentOID]) {
-            				//子节点
             				this.orgData[data.ParentOID].children.push(data);
             			} else {
-            				//没有父节点，则作为根节点
             				this.rows.push(data);
             			}
             		});
@@ -123,7 +128,7 @@ export default {
         collectExpandKeys(nodes, level, maxLevel) {
             if (level >= maxLevel || !nodes || !nodes.length) return;
             nodes.forEach(data => {
-                const key = data.UCML_OrganizeOID ? data.UCML_OrganizeOID.toUpperCase() : null;
+                const key = data.HR_OrganizeOID ? data.HR_OrganizeOID.toUpperCase() : null;
                 if (key) this.expandedKeys.push(key);
                 if (data.children && data.children.length) {
                     this.collectExpandKeys(data.children, level + 1, maxLevel);
@@ -132,16 +137,11 @@ export default {
         },
         scrollToNode() {
             this.$nextTick(() => {
-                // 使用 ElementUI Tree 组件提供的 getNode 方法来获取节点对象
                 if (this.$refs.eltree) {
                 	const node = this.$refs.eltree.getNode(this.deptOID);
 	                if (node) {
-	                   var id = node.id;
-	                    // 获取节点的 DOM 元素
 	                    var nodeEl = this.$refs.eltree.$el.querySelector(`.el-tree-node[data-key="${this.deptOID}"]`);
-	                  // var nodeEl = document.getElementById(id);
 	                    if (nodeEl) {
-	                        // 滚动到节点
 	                        nodeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
 	                    }
 	                }
@@ -153,7 +153,7 @@ export default {
             	return;
             }
             
-            if (!this.focusRow || this.focusRow.UCML_OrganizeOID != tar.UCML_OrganizeOID) {
+            if (!this.focusRow || this.focusRow.HR_OrganizeOID != tar.HR_OrganizeOID) {
             	this.focusRow = tar;
             	this.$emit("focuschange", tar);
             }

@@ -426,7 +426,7 @@ export default {
             this.$emit('orgcheck', e, n);
         },
         hitRowKey(row) {
-            return String(row.HR_OrganizeOID ?? row.UCML_OrganizeOID ?? row.O_OrgName ?? row.OrgName ?? '');
+            return String(row.HR_OrganizeOID ?? row.O_OrgName ?? row.OrgName ?? '');
         },
         clearSearch() {
             if (this.searchTimer) {

@@ -18,8 +18,7 @@
                     :flex="true"
                     height="100%"
                     :position="VC_HH_WorkorTypeListHead"
-                >
-                <!-- 原：@add="addType" 列表内插行添加；现改为列表弹窗表单添加 -->
+                    >
                 </VC_HH_WorkorTypeList>
             </formcard>
 
@@ -195,105 +194,6 @@ function loadPageInit() {
 
 
 /***操作--开始***/
-
-// 原：列表内直接插行添加（已改为弹窗表单，保留备查）
-// function addType(){
-//     var row={
-//         WT_IsOn:true,
-//         WT_Order:1,
-//         WT_Title:"***管理员",
-//         WT_Created:new Date(),
-//         WT_CreateMan:pageData.value.user.name,
-//         WT_CreateUserId:pageData.value.user.oid,
-//     }
-//     bus.dataMap.VC_HH_WorkorTypeList.mlist.push(row )
-// }
-
-//弹窗触发
-function addRR(){
-    var url = "sln_tools/BusinessUnit/BPO_RoleSelect.html?callback=addrrback";
-
-    var w = new UCML.OpenShowWindow({ 
-        //                                可最大化        //最大化        //可收起          //可关闭         //可拖动       //可改变大小
-        frameMode: "frame",modal:true, maximizable: true,maximized:false,collapsible: true,closable:true,draggable: true,resizable: true,
-        URL: url, scroll: "yes",  width: 700, ratioHeight: 90, title: "选择角色"});
-    w.on("close",function(){
-        //BC_PX_ClassBase.Refresh();
-    })
-    w.open();
-}
-//弹窗回调
-function addrrback(vc){
-   var bc=vc.dataTable;
-   var ck= vc.getCheckOID();
-   ck.forEach(function(li,i){
-        rowIndex = bc.dataStore.findLocateOID("", li); 
-        if(rowIndex != -1){
-            bc.setIndexNoEvent(rowIndex );
-            BC_HH_WorkorRoleBase.Insert();
-            BC_HH_WorkorRoleBase.setFieldValue("UCML_RESPONSIBILITY_FK",bc.getOID());
-            BC_HH_WorkorRoleBase.setFieldValue("RESP_NAME",bc.getFieldValue("RESP_NAME"));    
-            BC_HH_WorkorRoleBase.setFieldValue("RESP_DESC_TEXT",bc.getFieldValue("RESP_DESC_TEXT"));    
-        }
- 
-   });
-   BusinessSubmit();
-}
-
-//弹窗触发
-function addHC(){
-    var url = "sln_tools/BusinessUnit/BPO_WorkTypersCheck.HTML?callback=addhcback";
-
-    var w = new UCML.OpenShowWindow({ 
-        //                                可最大化        //最大化        //可收起          //可关闭         //可拖动       //可改变大小
-        frameMode: "frame",modal:true, maximizable: true,maximized:false,collapsible: true,closable:true,draggable: true,resizable: true,
-        URL: url, scroll: "yes",  ratioWidth: 70, ratioHeight: 90, title: "选择管理员"});
-    w.on("close",function(){
-        //BC_PX_ClassBase.Refresh();
-    })
-    w.open();
-}
-//弹窗回调
-function addhcback(vc){
-   var bc=vc.dataTable;
-   var ck= vc.getCheckOID();
-   ck.forEach(function(li,i){
-        rowIndex = bc.dataStore.findLocateOID("", li); 
-        if(rowIndex != -1){
-            bc.setIndexNoEvent(rowIndex );
-			BC_HH_WorkorChildsBase.Insert();
-			BC_HH_WorkorChildsBase.setFieldValue("HH_Boss_FK",BC_HH_WorkorTypeBase.getOID());
-			BC_HH_WorkorChildsBase.setFieldValue("HH_WorkorType_FK",li);   
-            BC_HH_WorkorChildsBase.setFieldValue("WT_IsOn",bc.getFieldValue("WT_IsOn")); 
-			BC_HH_WorkorChildsBase.setFieldValue("WT_Title",bc.getFieldValue("WT_Title"));    
-			BC_HH_WorkorChildsBase.setFieldValue("WT_Note",bc.getFieldValue("WT_Note"));    			
-        }
-
- 
-   });
-	promptSubmit=true;
-	BusinessSubmit();  
-}
-
-function removeeHC(){
-	BC_HH_WorkorChildsBase.Delete();
-}
-
-function genDivOrg(){
-
-    var config ={ BPOName:"BPO_DivWorkorSet", methodName:"genOrgName", params:{}, onSuccess:function(e,t){
-	    var res=JSON.parse(t);
-	    if(res.status=="success"){
-	         
-	        swal({ text: res.data, icon: "info", button: "确认", timer: 2000, });
-	        //BC_HH_DivWorkerBase.Refresh();            
-	    }else{
-	        swal({ text: res.data, icon: "error", button: "关闭", });
-	    }
-    }, onFailure:function(){}};
-    return invokeBPO(config);
-}
-
 /***操作--结束***/
 
 // #endregion [autoGenerate] [lv2] 业务方法

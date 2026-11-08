@@ -41,7 +41,7 @@ export async function resolveOrgIsLeaf(row, node, probePara) {
             return false;
         }
     }
-    const oid = row?.HR_OrganizeOID ?? row?.UCML_OrganizeOID;
+    const oid = row?.HR_OrganizeOID;
     if (!oid) {
         return false;
     }

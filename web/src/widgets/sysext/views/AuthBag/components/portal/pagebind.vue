@@ -167,7 +167,7 @@ export default {
                     this.queryParams.PP_OrgOID=this.focusHR.Varchar1;
                 }
                 else{
-                    this.queryParams.PP_OrgOID=this.focusHR.UCML_OrganizeOID;
+                    this.queryParams.PP_OrgOID=this.focusHR.HR_OrganizeOID;
                 }
                 this.getlist();
             }

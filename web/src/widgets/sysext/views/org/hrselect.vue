@@ -74,7 +74,7 @@ export default {
     methods: {
         onnodeclick(tar,node,vm){
             //console.log(tar)
-            this.$emit("update:modelValue", tar.UCML_OrganizeOID || tar.HR_OrganizeOID, tar);
+            this.$emit("update:modelValue", tar.HR_OrganizeOID, tar);
             this.$emit("select",tar,node,vm);
         },
         hrtreeScroll() {

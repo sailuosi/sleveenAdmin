@@ -362,14 +362,6 @@ export default {
             }
             
             this.seebpoman=true;
-            // var w = new UCML.OpenShowWindow({ frameMode: "frame",modal:true, maximizable: true,maximized:true,
-            // collapsible: true,closable:true,collapsible:false, URL: "sln_commonWork/BusinessUnit/BPO_CON_Select_CheckX.html?callback=setseleeeman", scroll: "yes", draggable: true,
-            // resizable: true, width: 800, height: 600, title: "计划编辑"});
-            // w.on("close",function(){
-            //     //BC_P_PlanBase.Refresh();
-            //     window.setseleeeman=null;
-            // })
-            // w.open();
         },
         addUser(ids,mans){
             if(this.checkedUser.length==0){

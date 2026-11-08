@@ -561,7 +561,7 @@ export default {
                     const merged = [];
                     results.forEach((rows) => {
                         rows.forEach((row) => {
-                            const key = String(row.HR_OrganizeOID ?? row.UCML_OrganizeOID ?? row.OrgName ?? '');
+                            const key = String(row.HR_OrganizeOID ?? row.OrgName ?? '');
                             if (!key || seen.has(key)) {
                                 return;
                             }

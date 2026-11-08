@@ -179,7 +179,7 @@ export default {
                     this.queryParams.ZH_Organize_FK = this.focusHR.Varchar1;
                 }
                 else {
-                    this.queryParams.ZH_Organize_FK = this.focusHR.UCML_OrganizeOID;
+                    this.queryParams.ZH_Organize_FK = this.focusHR.HR_OrganizeOID;
                 }
                 this.getpaotallist();
             }

@@ -141,9 +141,9 @@ export default {
         	}
         	
         	this.checkedNodes.forEach((node) => {
-        		if (this.selectedOrgs.indexOf(node.UCML_OrganizeOID) < 0) {
+        		if (this.selectedOrgs.indexOf(node.HR_OrganizeOID) < 0) {
         			this.focusRow.orgs.push({
-        				HROID: node.UCML_OrganizeOID,
+        				HROID: node.HR_OrganizeOID,
         				HRCode: node.Varchar1,
         				OrgNo: node.OrgNO,
         				Name: node.OrgName

@@ -392,7 +392,7 @@ function onOrgClick(data) {
 
 function applyOrgAndLoad(data) {
   selectedOrg.placeOid = '';
-  selectedOrg.orgOid = data?.HR_OrganizeOID || data?.UCML_OrganizeOID || '';
+  selectedOrg.orgOid = data?.HR_OrganizeOID || '';
   selectedOrg.orgName = data?.O_OrgName || data?.OrgName || '';
   selectedOrg.pathName = data?.O_Path || data?.PathName || data?.Text1 || '';
   if (selectedOrg.orgOid) onSearch();
