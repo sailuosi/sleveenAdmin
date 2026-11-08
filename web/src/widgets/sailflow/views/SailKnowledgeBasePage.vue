@@ -1,15 +1,14 @@
 <template>
-  <div class="sf-kb-page">
-    <header class="sf-kb-page__bar">
-      <div class="sf-kb-page__title">知识库</div>
-      <div class="sf-kb-page__actions">
+  <formcard title="知识库" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
         <el-button text @click="router.push('/sail/processes')">流程列表</el-button>
         <el-button text @click="router.push('/sail/ai-models')">AI 模型</el-button>
         <el-button :loading="loading" @click="loadAll">刷新</el-button>
         <el-button @click="openCreate">新增文档</el-button>
         <el-button type="primary" :loading="searching" @click="onSearch">向量检索</el-button>
       </div>
-    </header>
+    </template>
     <main class="sf-kb-page__main">
       <el-form inline class="sf-kb-page__search">
         <el-form-item label="关键词">
@@ -23,17 +22,19 @@
         </el-form-item>
       </el-form>
       <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-kb-page__alert" />
-      <el-table v-loading="loading || searching" :data="rows" stripe border height="calc(100vh - 160px)" empty-text="暂无文档">
-        <el-table-column prop="Id" label="编号" width="80" />
-        <el-table-column prop="Content" label="内容" min-width="280" show-overflow-tooltip />
-        <el-table-column prop="Metadata" label="元数据" min-width="160" show-overflow-tooltip />
-        <el-table-column prop="IndustryId" label="行业 ID" width="100" />
-        <el-table-column label="操作" width="100" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="danger" @click="onDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="sf-kb-page__table">
+        <el-table v-loading="loading || searching" :data="rows" stripe border height="100%" empty-text="暂无文档">
+          <el-table-column prop="Id" label="编号" width="80" />
+          <el-table-column prop="Content" label="内容" min-width="280" show-overflow-tooltip />
+          <el-table-column prop="Metadata" label="元数据" min-width="160" show-overflow-tooltip />
+          <el-table-column prop="IndustryId" label="行业 ID" width="100" />
+          <el-table-column label="操作" width="100" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="danger" @click="onDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </main>
 
     <el-dialog v-model="createVisible" title="新增知识文档" width="560px" destroy-on-close>
@@ -53,13 +54,14 @@
         <el-button type="primary" :loading="saving" @click="onSave">保存</el-button>
       </template>
     </el-dialog>
-  </div>
+  </formcard>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import formcard from '@/ui/panels/formcard.vue';
 import {
   deleteKnowledgeBaseDocument,
   getKnowledgeBaseDocuments,
@@ -190,39 +192,30 @@ onMounted(loadAll);
 </script>
 
 <style scoped>
-.sf-kb-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-kb-page__bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
-  background: var(--el-bg-color, #fff);
-}
-.sf-kb-page__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-kb-page__actions {
+.sf-formcard-toolbar {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: center;
 }
 .sf-kb-page__main {
-  flex: 1;
-  padding: 12px 16px;
+  height: 100%;
   min-height: 0;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 .sf-kb-page__search {
   margin-bottom: 8px;
+  flex: 0 0 auto;
 }
 .sf-kb-page__alert {
   margin-bottom: 12px;
+  flex: 0 0 auto;
+}
+.sf-kb-page__table {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 </style>

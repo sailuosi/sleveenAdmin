@@ -1,8 +1,7 @@
 <template>
-  <div class="sf-ai-page">
-    <header class="sf-ai-page__bar">
-      <div class="sf-ai-page__title">AI 模型配置</div>
-      <div class="sf-ai-page__actions">
+  <formcard title="AI 模型配置" width="" flex stretch>
+    <template #toolbar>
+      <div class="sf-formcard-toolbar">
         <el-button text @click="router.push('/sail/processes')">流程列表</el-button>
         <el-button text @click="router.push('/sail/knowledge')">知识库</el-button>
         <el-button :loading="loading" @click="refresh">刷新</el-button>
@@ -11,7 +10,7 @@
         <el-button :loading="testing" @click="onTest">测试连接</el-button>
         <el-button type="primary" :loading="saving" @click="onSave">保存</el-button>
       </div>
-    </header>
+    </template>
     <main class="sf-ai-page__main">
       <aside class="sf-ai-page__list">
         <el-alert v-if="listErr" :title="listErr" type="error" show-icon :closable="false" />
@@ -77,13 +76,14 @@
         </el-form>
       </section>
     </main>
-  </div>
+  </formcard>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
+import formcard from '@/ui/panels/formcard.vue';
 import {
   deleteModel,
   getModel,
@@ -278,33 +278,14 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.sf-ai-page {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background: var(--el-bg-color-page, #f5f7fa);
-}
-.sf-ai-page__bar {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--el-border-color-lighter, #ebeef5);
-  background: var(--el-bg-color, #fff);
-}
-.sf-ai-page__title {
-  font-size: 16px;
-  font-weight: 600;
-}
-.sf-ai-page__actions {
+.sf-formcard-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  align-items: center;
 }
 .sf-ai-page__main {
-  flex: 1 1 auto;
+  height: 100%;
   min-height: 0;
   display: flex;
 }
