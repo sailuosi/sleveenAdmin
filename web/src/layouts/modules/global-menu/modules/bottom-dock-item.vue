@@ -123,17 +123,20 @@ function adjustMegaMenuPosition(event: MouseEvent) {
     @mouseenter="hasChildren(menu) && adjustMegaMenuPosition($event)"
     @click="handleClick(menu)"
   >
-    <div class="dock-item-label" aria-hidden="true">{{ menu.label }}</div>
-    <div class="dock-item-icon-wrap">
-      <component :is="menu.icon" v-if="menu.icon" class="dock-item-icon" />
-      <SvgIcon v-else icon="mdi:menu" class="dock-item-icon" />
+    <div class="dock-item-visual">
+      <div class="dock-item-label" aria-hidden="true">{{ menu.label }}</div>
+      <div class="dock-item-icon-wrap">
+        <component :is="menu.icon" v-if="menu.icon" class="dock-item-icon" />
+        <SvgIcon v-else icon="mdi:menu" class="dock-item-icon" />
+      </div>
+      <span v-if="isMenuActive(menu)" class="dock-item-dot" />
     </div>
-    <span v-if="isMenuActive(menu)" class="dock-item-dot" />
 
     <div
       v-if="hasChildren(menu)"
       class="dock-mega"
       :class="getMegaMenuClass(menu)"
+      @click.stop
     >
       <div class="dock-mega-body" :class="getMegaMenuBodyClass(menu)">
         <div
@@ -170,15 +173,27 @@ function adjustMegaMenuPosition(event: MouseEvent) {
   height: 48px;
   flex-shrink: 0;
   cursor: pointer;
-  transform-origin: bottom center;
-  transform: scale(var(--dock-scale, 1));
-  transition: transform 0.12s ease-out;
   z-index: calc(1 + var(--dock-scale, 1) * 10);
 }
 
 .dock-item--disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* 仅图标区放大，子菜单面板不受 scale 影响 */
+.dock-item-visual {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  transform-origin: bottom center;
+  transform: scale(var(--dock-scale, 1));
+  transition: transform 0.12s ease-out;
+  z-index: 1;
 }
 
 .dock-item-label {
@@ -205,6 +220,12 @@ function adjustMegaMenuPosition(event: MouseEvent) {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+}
+
+/* 有子菜单时名签让位，避免挡住移入面板 */
+.dock-item--has-children:hover .dock-item-label {
+  opacity: 0;
+  visibility: hidden;
 }
 
 .dock-item-icon-wrap {
@@ -244,23 +265,24 @@ function adjustMegaMenuPosition(event: MouseEvent) {
 .dock-mega {
   --dock-mega-shift: 0px;
   position: absolute;
-  bottom: calc(100% + 14px);
+  /* 贴住图标顶部，用 padding 做悬停桥，避免移入时中断 hover */
+  bottom: 100%;
   left: 50%;
   width: min(400px, calc(100vw - 24px));
-  padding-bottom: 8px;
+  padding-bottom: 18px;
   background: transparent;
   opacity: 0;
   visibility: hidden;
-  transform: translateX(calc(-50% + var(--dock-mega-shift))) translateY(8px) scale(0.96);
+  transform: translateX(calc(-50% + var(--dock-mega-shift))) translateY(8px);
   transform-origin: bottom center;
   transition:
-    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-    visibility 0.25s ease,
-    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    visibility 0.2s ease,
+    transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1001;
   cursor: default;
   max-height: 70vh;
-  overflow-y: auto;
+  overflow: visible;
   pointer-events: none;
 }
 
@@ -277,7 +299,7 @@ function adjustMegaMenuPosition(event: MouseEvent) {
 .dock-item--has-children:hover .dock-mega {
   opacity: 1;
   visibility: visible;
-  transform: translateX(calc(-50% + var(--dock-mega-shift))) translateY(0) scale(1);
+  transform: translateX(calc(-50% + var(--dock-mega-shift))) translateY(0);
   pointer-events: auto;
 }
 
@@ -293,6 +315,8 @@ function adjustMegaMenuPosition(event: MouseEvent) {
   box-shadow:
     0 -16px 48px rgba(31, 111, 209, 0.14),
     0 8px 20px rgba(0, 0, 0, 0.04);
+  max-height: calc(70vh - 18px);
+  overflow-y: auto;
 }
 
 html.dark .dock-mega-body {
