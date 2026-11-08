@@ -17,7 +17,6 @@ defineOptions({
 
 const HORIZONTAL_INSET = 8;
 const VERTICAL_INSET = 3;
-const STRETCH_FACTOR = 0.34;
 const ANIM_DURATION_MS = 420;
 const SNAP_DISTANCE_PX = 420;
 
@@ -155,20 +154,15 @@ function animateTo(target: CapsuleGeom) {
   }
 
   const start = performance.now();
-  const fromCenter = from.top + from.height / 2;
-  const toCenter = target.top + target.height / 2;
+  // height stays fixed at target; only slide + elastic settle on position
+  const height = target.height;
 
   const tick = (now: number) => {
     const raw = Math.min(1, (now - start) / ANIM_DURATION_MS);
     const p = elasticOut(raw);
-    // mid-flight elongation along travel axis; fades as we settle
-    const stretch = distance * STRETCH_FACTOR * Math.sin(Math.PI * raw);
-    const center = lerp(fromCenter, toCenter, p);
-    const height = lerp(from.height, target.height, p) + stretch;
-    const top = center - height / 2;
 
     applyGeom({
-      top,
+      top: lerp(from.top, target.top, p),
       left: lerp(from.left, target.left, p),
       width: lerp(from.width, target.width, p),
       height
@@ -290,7 +284,8 @@ onUnmounted(() => {
 
 .vc-menu-root.is-card :deep(.vc-el-menu) {
   --el-menu-bg-color: transparent;
-  --el-menu-hover-bg-color: transparent;
+  /* 叶子项默认 hover；父级 title 再用更高不透明度覆盖 */
+  --el-menu-hover-bg-color: rgb(255 255 255 / 0.4);
   position: relative;
   z-index: 1;
 }
@@ -303,17 +298,14 @@ onUnmounted(() => {
   margin: 2px 0;
 }
 
-.vc-menu-root.is-card :deep(.el-menu-item.is-active) {
+.vc-menu-root.is-card :deep(.el-menu-item.is-active),
+.vc-menu-root.is-card :deep(.el-menu-item.is-active:hover) {
   background-color: transparent !important;
 }
 
-.vc-menu-root.is-card :deep(.el-menu-item:hover),
+/* 仅 hover 加深；不要绑 is-opened，否则父级展开会像「激活变深」 */
 .vc-menu-root.is-card :deep(.el-sub-menu__title:hover) {
-  background-color: rgb(255 255 255 / 0.22) !important;
-}
-
-.vc-menu-root.is-card :deep(.el-menu-item:not(.is-active):hover) {
-  background-color: rgb(255 255 255 / 0.22) !important;
+  background-color: rgb(255 255 255 / 0.72) !important;
 }
 
 .vc-active-capsule {
@@ -344,8 +336,11 @@ onUnmounted(() => {
     0 4px 16px rgb(0 0 0 / 0.28);
 }
 
-:global(html.dark) .vc-menu-root.is-card :deep(.el-menu-item:hover),
+:global(html.dark) .vc-menu-root.is-card :deep(.vc-el-menu) {
+  --el-menu-hover-bg-color: rgb(255 255 255 / 0.14);
+}
+
 :global(html.dark) .vc-menu-root.is-card :deep(.el-sub-menu__title:hover) {
-  background-color: rgb(255 255 255 / 0.08) !important;
+  background-color: rgb(255 255 255 / 0.28) !important;
 }
 </style>
