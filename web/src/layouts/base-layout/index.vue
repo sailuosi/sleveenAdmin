@@ -44,12 +44,18 @@ watch(
 );
 
 const isVerticalCard = computed(() => themeStore.layout.mode === 'vertical-card');
+const isHorizontalCard = computed(() => themeStore.layout.mode === 'horizontal-card');
+/** 左栏无界 / 顶栏无界：共享页签浮层与氛围底 */
+const isCardLayout = computed(() => isVerticalCard.value || isHorizontalCard.value);
 
 /** 无界 Vue 组件：menuType=4，内容全屏，侧栏/页签悬浮 */
 const isBorderlessPage = computed(() => {
   const t = route.meta?.menuType as string | number | undefined;
   return t === '4' || t === 4;
 });
+
+/** 顶栏无界默认即沉浸无界；路由 menuType=4 仍可叠加 */
+const isImmersiveContent = computed(() => isBorderlessPage.value || isHorizontalCard.value);
 
 const layoutMode = computed(() => {
   const vertical: LayoutMode = 'vertical';
@@ -86,6 +92,11 @@ const headerProps = computed(() => {
       showMenu: true,
       showMenuToggler: false
     },
+    'horizontal-card': {
+      showLogo: true,
+      showMenu: true,
+      showMenuToggler: false
+    },
     'top-hybrid-sidebar-first': {
       showLogo: true,
       showMenu: true,
@@ -101,7 +112,9 @@ const headerProps = computed(() => {
   return headerPropsConfig[mode];
 });
 
-const siderVisible = computed(() => themeStore.layout.mode !== 'horizontal');
+const siderVisible = computed(
+  () => themeStore.layout.mode !== 'horizontal' && themeStore.layout.mode !== 'horizontal-card'
+);
 
 const isVerticalMix = computed(() => themeStore.layout.mode === 'vertical-mix');
 
@@ -118,65 +131,72 @@ const siderCollapsedWidth = computed(() => getSiderAndCollapsedWidth(true));
 const siderInset = computed(() => (isVerticalCard.value || isBorderlessPage.value ? 16 : 0));
 const siderRadius = computed(() => (isVerticalCard.value || isBorderlessPage.value ? 16 : 0));
 
-const headerVisible = computed(() => !isVerticalCard.value && !isBorderlessPage.value);
+const headerInset = computed(() => (isHorizontalCard.value ? 16 : 0));
+const headerRadius = computed(() => (isHorizontalCard.value ? 16 : 0));
+const floatHeader = computed(() => isHorizontalCard.value);
+
+/** 顶栏无界始终显示浮岛；左栏无界 / 无界页隐藏通栏顶栏 */
+const headerVisible = computed(
+  () => isHorizontalCard.value || (!isVerticalCard.value && !isBorderlessPage.value)
+);
 
 const cardAnchor = computed(() => themeStore.tab.cardAnchor);
 
-/** borderless: never embed tabs in flow */
+/** borderless / 顶栏无界：never embed tabs in flow as forced; card layouts use anchors */
 const showTopEmbedTab = computed(
   () =>
-    !isBorderlessPage.value &&
-    isVerticalCard.value &&
+    !isImmersiveContent.value &&
+    isCardLayout.value &&
     themeStore.tab.visible &&
     cardAnchor.value === 'top'
 );
 
 const showBottomEmbedTab = computed(
   () =>
-    !isBorderlessPage.value &&
-    isVerticalCard.value &&
+    !isImmersiveContent.value &&
+    isCardLayout.value &&
     themeStore.tab.visible &&
     cardAnchor.value === 'bottom'
 );
 
-/** float dock for right always, or any anchor when borderless */
+/** float dock for right always, or any anchor when immersive */
 const showFloatTabDock = computed(() => {
   if (!themeStore.tab.visible) return false;
-  if (isBorderlessPage.value) return cardAnchor.value !== 'hidden';
-  return isVerticalCard.value && cardAnchor.value === 'right';
+  if (isImmersiveContent.value) return cardAnchor.value !== 'hidden';
+  return isCardLayout.value && cardAnchor.value === 'right';
 });
 
 const tabVisible = computed(() => {
-  if (isBorderlessPage.value) return false;
-  if (isVerticalCard.value) {
+  if (isImmersiveContent.value) return false;
+  if (isCardLayout.value) {
     return themeStore.tab.visible && cardAnchor.value === 'top';
   }
   return themeStore.tab.visible;
 });
 
 const fixedTop = computed(() =>
-  isVerticalCard.value || isBorderlessPage.value ? false : themeStore.fixedHeaderAndTab
+  isCardLayout.value || isBorderlessPage.value ? false : themeStore.fixedHeaderAndTab
 );
 
 const footerVisible = computed(
-  () => !isBorderlessPage.value && (showBottomEmbedTab.value || themeStore.footer.visible)
+  () => !isImmersiveContent.value && (showBottomEmbedTab.value || themeStore.footer.visible)
 );
 
 const footerHeight = computed(() =>
   showBottomEmbedTab.value ? themeStore.tab.height : themeStore.footer.height
 );
 
-const floatSider = computed(() => isBorderlessPage.value);
+const floatSider = computed(() => isBorderlessPage.value && !isHorizontalCard.value);
 
 const cardContentClass = computed(() => {
   const classes: string[] = [];
   if (appStore.contentXScrollable) classes.push('overflow-x-hidden');
-  if (isBorderlessPage.value) {
+  if (isImmersiveContent.value) {
     classes.push('borderless-content');
-  } else if (isVerticalCard.value && themeStore.tab.visible && cardAnchor.value === 'right') {
+  } else if (isCardLayout.value && themeStore.tab.visible && cardAnchor.value === 'right') {
     classes.push('card-content-pad-right');
   }
-  if (isVerticalCard.value || isBorderlessPage.value) {
+  if (isCardLayout.value || isBorderlessPage.value) {
     classes.push('card-main-flow');
     classes.push('glass-atmosphere');
   }
@@ -229,6 +249,9 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
     :fixed-top="fixedTop"
     :header-visible="headerVisible"
     :header-height="themeStore.header.height"
+    :header-inset="headerInset"
+    :header-radius="headerRadius"
+    :float-header="floatHeader"
     :tab-visible="tabVisible"
     :tab-height="themeStore.tab.height"
     :content-class="cardContentClass"
@@ -248,14 +271,14 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
     </template>
     <template #tab>
       <CardTabHost v-if="showTopEmbedTab" variant="dock" />
-      <GlobalTab v-else-if="!isVerticalCard && !isBorderlessPage" />
+      <GlobalTab v-else-if="!isCardLayout && !isBorderlessPage" />
     </template>
     <template #sider>
       <GlobalSider />
     </template>
     <GlobalMenu />
-    <GlobalContent :show-padding="!isBorderlessPage" :borderless="isBorderlessPage" />
-    <CardTabHost v-if="isVerticalCard || isBorderlessPage" variant="overlay" />
+    <GlobalContent :show-padding="!isImmersiveContent" :borderless="isImmersiveContent" />
+    <CardTabHost v-if="isCardLayout || isBorderlessPage" variant="overlay" />
     <CardTabHost v-if="showFloatTabDock" variant="dock" force-float />
     <ThemeDrawer />
     <template #footer>
@@ -278,7 +301,7 @@ function getSiderAndCollapsedWidth(isCollapsed: boolean) {
   padding-right: 236px;
 }
 
-/* vertical-card / 无界：纯 CSS 氛围底（无背景图） */
+/* vertical-card / horizontal-card / 无界：纯 CSS 氛围底（无背景图） */
 .glass-atmosphere {
   background:
     radial-gradient(ellipse 80% 60% at 15% 20%, rgba(200, 210, 255, 0.55), transparent 55%),

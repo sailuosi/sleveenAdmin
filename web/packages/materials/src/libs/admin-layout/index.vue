@@ -17,6 +17,9 @@ const props = withDefaults(defineProps<AdminLayoutProps>(), {
   maxZIndex: LAYOUT_MAX_Z_INDEX,
   headerVisible: true,
   headerHeight: 56,
+  headerInset: 0,
+  headerRadius: 0,
+  floatHeader: false,
   tabVisible: true,
   tabHeight: 48,
   siderVisible: true,
@@ -72,7 +75,9 @@ const isContentScroll = computed(() => props.scrollMode === 'content');
 const isVertical = computed(() => props.mode === 'vertical');
 const isHorizontal = computed(() => props.mode === 'horizontal');
 
-const fixedHeaderAndTab = computed(() => props.fixedTop || (isHorizontal.value && isWrapperScroll.value));
+const fixedHeaderAndTab = computed(
+  () => !props.floatHeader && (props.fixedTop || (isHorizontal.value && isWrapperScroll.value))
+);
 
 // css
 const hasSiderInset = computed(() => (props.siderInset ?? 0) > 0);
@@ -97,7 +102,15 @@ const siderCardClass = computed(() => {
   return classes.join(' ');
 });
 
-const headerLeftGapClass = computed(() => (isVertical.value ? leftGapClass.value : ''));
+const headerFloatClass = computed(() => {
+  if (!props.floatHeader) return '';
+  return style['layout-header-float'];
+});
+
+const headerLeftGapClass = computed(() => {
+  if (props.floatHeader) return '';
+  return isVertical.value ? leftGapClass.value : '';
+});
 
 const footerLeftGapClass = computed(() => {
   const condition1 = isVertical.value;
@@ -145,13 +158,14 @@ function handleClickMask() {
             style['layout-header'],
             commonClass,
             headerLeftGapClass,
-            { 'absolute top-0 left-0 w-full': fixedHeaderAndTab }
+            headerFloatClass,
+            { 'absolute top-0 left-0 w-full': fixedHeaderAndTab && !floatHeader }
           ]"
         >
           <slot name="header"></slot>
         </header>
         <div
-          v-show="!fullContent && fixedHeaderAndTab"
+          v-show="!fullContent && fixedHeaderAndTab && !floatHeader"
           class="flex-shrink-0 overflow-hidden"
           :class="[style['layout-header-placement']]"
         ></div>

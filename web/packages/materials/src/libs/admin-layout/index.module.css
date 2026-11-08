@@ -9,6 +9,19 @@
   z-index: var(--soy-header-z-index);
 }
 
+.layout-header-float {
+  position: absolute !important;
+  top: var(--soy-header-inset);
+  left: var(--soy-header-inset);
+  right: var(--soy-header-inset);
+  width: auto !important;
+  height: var(--soy-header-height);
+  border-radius: var(--soy-header-radius);
+  z-index: calc(var(--soy-header-z-index) + 20) !important;
+  overflow: visible;
+  pointer-events: auto;
+}
+
 .layout-tab {
   top: var(--soy-header-height);
   height: var(--soy-tab-height);

@@ -21,6 +21,7 @@ declare namespace UnionKey {
    * - horizontal: the horizontal menu in top
    * - vertical-mix: two vertical mixed menus in left
    * - vertical-card: borderless left card menu
+   * - horizontal-card: borderless top floating-island menu
    * - top-hybrid-sidebar-first: the vertical first level menus in left and horizontal child level menus in top
    * - top-hybrid-header-first: the horizontal first level menus in top and vertical child level menus in left
    */
@@ -30,6 +31,7 @@ declare namespace UnionKey {
     | 'vertical-mix'
     | 'vertical-hybrid-header-first'
     | 'vertical-card'
+    | 'horizontal-card'
     | 'top-hybrid-sidebar-first'
     | 'top-hybrid-header-first';
 
@@ -53,7 +55,7 @@ declare namespace UnionKey {
   type ThemeTabMode = import('@sa/materials').PageTabMode;
 
   /**
-   * Tab dock anchor in vertical-card layout
+   * Tab dock anchor in card layouts (vertical-card / horizontal-card)
    *
    * - hidden: overlay only
    * - top: dock content top

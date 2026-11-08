@@ -24,6 +24,7 @@ const activeMenu = computed(() => {
     'vertical-hybrid-header-first': VerticalHybridHeaderFirst,
     'vertical-card': VerticalMenu,
     horizontal: HorizontalMenu,
+    'horizontal-card': HorizontalMenu,
     'top-hybrid-sidebar-first': TopHybridSidebarFirst,
     'top-hybrid-header-first': TopHybridHeaderFirst
   };

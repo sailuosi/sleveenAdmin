@@ -1,6 +1,7 @@
 declare const styles: {
   readonly 'layout-header': string;
   readonly 'layout-header-placement': string;
+  readonly 'layout-header-float': string;
   readonly 'layout-tab': string;
   readonly 'layout-tab-placement': string;
   readonly 'layout-sider': string;

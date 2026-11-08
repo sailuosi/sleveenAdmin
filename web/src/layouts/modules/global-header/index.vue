@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { useFullscreen } from '@vueuse/core';
 import { GLOBAL_HEADER_MENU_ID } from '@/constants/app';
 import { useAppStore } from '@/store/modules/app';
 import { useThemeStore } from '@/store/modules/theme';
 import GlobalLogo from '../global-logo/index.vue';
 import GlobalBreadcrumb from '../global-breadcrumb/index.vue';
-import GlobalSearch from '../global-search/index.vue';
 import ThemeButton from './components/theme-button.vue';
 import UserAvatar from './components/user-avatar.vue';
 
@@ -27,18 +27,34 @@ defineProps<Props>();
 const appStore = useAppStore();
 const themeStore = useThemeStore();
 const { isFullscreen, toggle } = useFullscreen();
+
+const isHorizontalCard = computed(() => themeStore.layout.mode === 'horizontal-card');
+
+const headerShellClass = computed(() =>
+  isHorizontalCard.value ? 'header-island-shell' : 'shadow-header'
+);
+
+const logoStyle = computed(() => {
+  if (isHorizontalCard.value) {
+    return { width: 'auto', paddingInline: '12px' };
+  }
+  return { width: `${themeStore.sider.width}px` };
+});
 </script>
 
 <template>
-  <DarkModeContainer class="h-full flex-y-center  shadow-header">
-    <GlobalLogo v-if="showLogo" class="h-full" :style="{ width: themeStore.sider.width + 'px' }" />
+  <DarkModeContainer class="h-full flex-y-center overflow-visible" :class="headerShellClass">
+    <GlobalLogo v-if="showLogo" class="h-full shrink-0" :style="logoStyle" />
     <MenuToggler v-if="showMenuToggler" :collapsed="appStore.siderCollapse" @click="appStore.toggleSiderCollapse" />
-    <div v-if="showMenu" :id="GLOBAL_HEADER_MENU_ID" class="header-menu-slot h-full flex-y-center flex-1 min-w-0"></div>
+    <div
+      v-if="showMenu"
+      :id="GLOBAL_HEADER_MENU_ID"
+      class="header-menu-slot h-full flex-y-center flex-1 min-w-0 overflow-visible"
+    ></div>
     <div v-else class="h-full flex-y-center flex-1-hidden">
       <GlobalBreadcrumb v-if="!appStore.isMobile" class="ml-12px" />
     </div>
-    <div class="h-full flex-y-center justify-end head-btns">
-      <!-- <GlobalSearch v-if="themeStore.header.globalSearch.visible" /> -->
+    <div class="h-full flex-y-center justify-end head-btns shrink-0">
       <FullScreen v-if="!appStore.isMobile" :full="isFullscreen" @click="toggle" />
       <LangSwitch
         v-if="themeStore.header.multilingual.visible"
@@ -57,4 +73,20 @@ const { isFullscreen, toggle } = useFullscreen();
   </DarkModeContainer>
 </template>
 
-<style scoped></style>
+<style scoped>
+.header-island-shell {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: inherit;
+  box-shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+  overflow: visible;
+}
+
+:global(html.dark) .header-island-shell {
+  background: rgba(30, 30, 40, 0.55) !important;
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+}
+</style>

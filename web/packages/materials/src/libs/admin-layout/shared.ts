@@ -15,6 +15,8 @@ function createLayoutCssVarsByCssVarsProps(props: LayoutCssVarsProps) {
   const cssVars: LayoutCssVars = {
     '--soy-header-height': `${props.headerHeight}px`,
     '--soy-header-z-index': props.headerZIndex,
+    '--soy-header-inset': `${props.headerInset ?? 0}px`,
+    '--soy-header-radius': `${props.headerRadius ?? 0}px`,
     '--soy-tab-height': `${props.tabHeight}px`,
     '--soy-tab-z-index': props.tabZIndex,
     '--soy-sider-width': `${props.siderWidth}px`,
@@ -46,10 +48,13 @@ export function createLayoutCssVars(props: AdminLayoutProps) {
     siderCollapsedWidth,
     siderInset = 0,
     siderRadius = 0,
+    headerInset = 0,
+    headerRadius = 0,
+    floatHeader = false,
     footerHeight
   } = props;
 
-  const headerZIndex = maxZIndex - 3;
+  const headerZIndex = floatHeader ? maxZIndex - 1 : maxZIndex - 3;
   const tabZIndex = maxZIndex - 5;
   const siderZIndex = mode === 'vertical' || isMobile ? maxZIndex - 1 : maxZIndex - 4;
   const mobileSiderZIndex = isMobile ? maxZIndex - 2 : 0;
@@ -58,6 +63,8 @@ export function createLayoutCssVars(props: AdminLayoutProps) {
   const cssProps: LayoutCssVarsProps = {
     headerHeight,
     headerZIndex,
+    headerInset,
+    headerRadius,
     tabHeight,
     tabZIndex,
     siderWidth,

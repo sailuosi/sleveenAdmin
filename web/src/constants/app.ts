@@ -26,6 +26,7 @@ export const themeLayoutModeRecord: Record<UnionKey.ThemeLayoutMode, App.I18n.I1
   'vertical-hybrid-header-first': 'theme.layout.layoutMode.vertical-hybrid-header-first',
   'vertical-card': 'theme.layout.layoutMode.vertical-card',
   horizontal: 'theme.layout.layoutMode.horizontal',
+  'horizontal-card': 'theme.layout.layoutMode.horizontal-card',
   'top-hybrid-sidebar-first': 'theme.layout.layoutMode.top-hybrid-sidebar-first',
   'top-hybrid-header-first': 'theme.layout.layoutMode.top-hybrid-header-first'
 };

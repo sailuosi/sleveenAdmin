@@ -119,6 +119,7 @@ const local: App.I18n.Schema = {
         'vertical-mix': 'Vertical Mix Mode',
         'vertical-hybrid-header-first': 'Left Hybrid Header-First',
         'vertical-card': 'Borderless Left Card',
+        'horizontal-card': 'Borderless Top Island',
         'top-hybrid-sidebar-first': 'Top-Hybrid Sidebar-First',
         'top-hybrid-header-first': 'Top-Hybrid Header-First',
         vertical_detail: 'Vertical menu layout, with the menu on the left and content on the right.',
@@ -129,6 +130,8 @@ const local: App.I18n.Schema = {
         'vertical-card_detail':
           'Borderless left card layout: rounded card menu on the left and full-page content on the right; tabs overlay by default and can be pinned.',
         horizontal_detail: 'Horizontal menu layout, with the menu at the top and content below.',
+        'horizontal-card_detail':
+          'Borderless top island layout: floating glass header menu with immersive full-bleed content; hover dropdowns for submenus; tabs use overlay anchors.',
         'top-hybrid-sidebar-first_detail':
           'Top hybrid layout, with the primary menu on the left and the secondary menu at the top.',
         'top-hybrid-header-first_detail':

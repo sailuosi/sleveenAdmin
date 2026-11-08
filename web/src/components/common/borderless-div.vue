@@ -47,6 +47,11 @@ function toCss(value: Edge | undefined, fallbackPx: number): string {
   return typeof value === 'number' ? `${value}px` : String(value);
 }
 
+const isTopOnlyLayout = computed(() => {
+  const mode = themeStore.layout.mode;
+  return mode === 'horizontal' || mode === 'horizontal-card';
+});
+
 /** 按壳层浮层推算建议四边 */
 const autoEdges = computed(() => {
   let top = CHROME_INSET;
@@ -54,9 +59,14 @@ const autoEdges = computed(() => {
   let bottom = CHROME_INSET;
   let left = CHROME_INSET;
 
-  if (!appStore.isMobile) {
+  if (!appStore.isMobile && !isTopOnlyLayout.value) {
     const siderW = appStore.siderCollapse ? themeStore.sider.collapsedWidth : themeStore.sider.width;
     left = CHROME_INSET + siderW + CHROME_GAP;
+  }
+
+  // 顶栏浮岛占位：内容避开顶部浮岛高度
+  if (themeStore.layout.mode === 'horizontal-card') {
+    top = Math.max(top, CHROME_INSET + themeStore.header.height + CHROME_GAP);
   }
 
   if (themeStore.tab.visible) {
@@ -64,6 +74,9 @@ const autoEdges = computed(() => {
     const tabH = themeStore.tab.height;
     if (anchor === 'top') {
       top = CHROME_INSET + tabH + CHROME_GAP;
+      if (themeStore.layout.mode === 'horizontal-card') {
+        top = CHROME_INSET + themeStore.header.height + CHROME_GAP + tabH + CHROME_GAP;
+      }
     } else if (anchor === 'bottom') {
       bottom = CHROME_INSET + tabH + CHROME_GAP;
     } else if (anchor === 'right') {

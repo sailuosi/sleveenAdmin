@@ -50,6 +50,12 @@ const themeStore = useThemeStore();
         <div class="layout-main"></div>
       </div>
     </template>
+    <template #horizontal-card>
+      <div class="horizontal-card-wrapper">
+        <div class="layout-header-island !bg-primary"></div>
+        <div class="layout-main !rd-6px"></div>
+      </div>
+    </template>
     <template #top-hybrid-sidebar-first>
       <div class="layout-header !bg-primary-300"></div>
       <div class="horizontal-wrapper">
@@ -72,6 +78,10 @@ const themeStore = useThemeStore();
   --uno: h-16px rd-4px;
 }
 
+.layout-header-island {
+  --uno: h-12px w-3/4 rd-full mx-auto;
+}
+
 .layout-sider {
   --uno: bg-primary-300 rd-4px;
 }
@@ -90,5 +100,9 @@ const themeStore = useThemeStore();
 
 .horizontal-wrapper {
   --uno: flex-1 flex gap-6px;
+}
+
+.horizontal-card-wrapper {
+  --uno: flex-1 flex-col gap-4px;
 }
 </style>

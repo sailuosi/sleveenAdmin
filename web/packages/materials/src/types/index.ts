@@ -12,6 +12,24 @@ interface AdminLayoutHeaderConfig {
    * @default 56px
    */
   headerHeight?: number;
+  /**
+   * Outer inset for floating island header (margin from viewport edges)
+   *
+   * @default 0
+   */
+  headerInset?: number;
+  /**
+   * Border radius for floating island header
+   *
+   * @default 0
+   */
+  headerRadius?: number;
+  /**
+   * Float header over content without reserving top gap
+   *
+   * @default false
+   */
+  floatHeader?: boolean;
 }
 
 /** Tab config */
@@ -237,7 +255,15 @@ type Prefix = '--soy-';
 
 export type LayoutCssVarsProps = Pick<
   AdminLayoutProps,
-  'headerHeight' | 'tabHeight' | 'siderWidth' | 'siderCollapsedWidth' | 'footerHeight' | 'siderInset' | 'siderRadius'
+  | 'headerHeight'
+  | 'tabHeight'
+  | 'siderWidth'
+  | 'siderCollapsedWidth'
+  | 'footerHeight'
+  | 'siderInset'
+  | 'siderRadius'
+  | 'headerInset'
+  | 'headerRadius'
 > & {
   headerZIndex?: number;
   tabZIndex?: number;
