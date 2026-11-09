@@ -90,7 +90,9 @@ my/                                 # 仓库�?
 ```
 
 - 扫描已有 `[SooTable]`（**无需** `[GenerateMaterializer]`）；`Type=Select`（如 `Biz_*Row`）跳过。
-- 产出读侧 Materializer + 写侧 Accessor；ModuleInitializer 只 `GeneratedClientBootstrap.Add(c => { c.RegisterMaterializer(...); c.RegisterAccessor(...); })`，**不写** `MaterializerRegistry` 静态查找表。
+- 产出读侧 Materializer + 写侧 Accessor（`ReadValue`/`WriteValue`/`IsNull`）+ `Xxx_EntityMeta.Create`（编译期 `EntityInfo` 工厂）。
+- ModuleInitializer 只 `GeneratedClientBootstrap.Add(c => { c.RegisterEntityFactory(...); c.RegisterMaterializer(...); c.RegisterAccessor(...); })`，**不写** `MaterializerRegistry` 静态查找表。
+- 首次 `getEntityInfo` 若 Client 已注册工厂则跳过 `MooEntityAnalyser` 特性反射；未命中仍走解析器。
 - [`MooSqlSetup`](../backend/core/SleveenAdmin.Foundation/src/Data/MooSqlSetup.cs)：先加载 `SleveenAdmin.*`，再 `registerGeneratedMaterializers()`（Apply 安装器到 Client）；**不必** `useAotMode`。
 
 ---
@@ -159,9 +161,9 @@ builder.Services.AddMooSql(builder.Configuration);
 ```csharp
 EnsureAdminAssembliesLoaded(); // 触发各实体程序集 ModuleInitializer
 var cash = new DBClientBuilder()
-    .registerGeneratedMaterializers() // 物化器 + Accessor 装入 Client；不必 useAotMode
+    .registerGeneratedMaterializers() // EntityInfo 工厂 + 物化器 + Accessor 装入 Client；不必 useAotMode
     .doBuild();
-// DBClientBuilder 仍注册 InternalEntityParser，解析 [SooTable] / [SooColumn]
+// 未注册工厂的类型仍走 InternalEntityParser / MooEntityAnalyser 解析 [SooTable] / [SooColumn]
 
 cash.addConfig(options.Connections);
 ```
