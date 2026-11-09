@@ -9,6 +9,7 @@
         <el-button text @click="goBack">返回</el-button>
         <el-button :loading="loading" @click="createNew">新建</el-button>
         <el-button :loading="validating" :disabled="!modeler" @click="validate">校验</el-button>
+        <el-button :disabled="!modeler" @click="openRepair">修复</el-button>
         <el-dropdown :disabled="!modeler" trigger="click" @command="onExport">
           <el-button>导出</el-button>
           <template #dropdown>
@@ -51,6 +52,7 @@
     <SailTransitionConfigDialog />
     <SailAssigneeParamsDialog />
     <SailElementConfigDialog />
+    <SailProcessRepairDialog />
   </div>
 </template>
 
@@ -78,7 +80,9 @@ import SailNodeConfigDialog from '@sail/components/nodeConfig/SailNodeConfigDial
 import SailTransitionConfigDialog from '@sail/components/transitionConfig/SailTransitionConfigDialog.vue';
 import SailAssigneeParamsDialog from '@sail/components/assignee/SailAssigneeParamsDialog.vue';
 import SailElementConfigDialog from '@sail/components/elementConfig/SailElementConfigDialog.vue';
+import SailProcessRepairDialog from '@sail/components/repair/SailProcessRepairDialog.vue';
 import SailDesignerToolbar from '@sail/components/designer/SailDesignerToolbar.vue';
+import { designerEvents } from '@sail/bpmn/ui/designerEvents';
 
 defineOptions({ name: 'SailDesignerPage' });
 
@@ -391,6 +395,22 @@ async function save() {
   } finally {
     saving.value = false;
   }
+}
+
+function openRepair() {
+  if (!modeler.value) return;
+  designerEvents.emit('repair:open', {
+    getXml: async () => {
+      prepareXmlExport();
+      const { xml } = await modeler.value!.saveXML({ format: true });
+      return normalizeSfNamespace(xml || '');
+    },
+    applyXml: async (xml: string) => {
+      await importXml(xml);
+      statusOk.value = true;
+      statusMsg.value = '已执行流程设计修复，建议再点「校验」';
+    }
+  });
 }
 
 async function validate() {

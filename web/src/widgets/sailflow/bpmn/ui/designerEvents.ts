@@ -82,6 +82,11 @@ export type DesignerEvents = {
   'eventconfig:open': ElementConfigPayload;
   /** 基础 BPMN 属性弹窗（Process / Participant / 无扩展事件等） */
   'basicconfig:open': ElementConfigPayload;
+  /** 流程设计修复弹窗：导出当前 XML → 修复 → 回写画布 */
+  'repair:open': {
+    getXml: () => Promise<string>;
+    applyXml: (xml: string) => Promise<void>;
+  };
 };
 
 export type SubProcessDraft = {

@@ -2,18 +2,23 @@
  * 保存前清理 BPMN：去掉无对应流程元素的 DI 形状/连线，避免重开后「幽灵节点」或 import 异常。
  * 不补全缺失的 sourceRef/targetRef（那是画布数据问题，应在设计器内修）。
  */
-export function sanitizeBpmnXml(xml: string): { xml: string; removedDi: string[] } {
+export function sanitizeBpmnXml(xml: string): {
+  xml: string;
+  removedDi: string[];
+  removedFlows: string[];
+} {
   const removedDi: string[] = [];
-  if (!xml || typeof xml !== 'string') return { xml: xml || '', removedDi };
+  const removedFlows: string[] = [];
+  if (!xml || typeof xml !== 'string') return { xml: xml || '', removedDi, removedFlows };
 
   let doc: Document;
   try {
     doc = new DOMParser().parseFromString(xml, 'application/xml');
   } catch {
-    return { xml, removedDi };
+    return { xml, removedDi, removedFlows };
   }
   const parseErr = doc.getElementsByTagName('parsererror')[0];
-  if (parseErr) return { xml, removedDi };
+  if (parseErr) return { xml, removedDi, removedFlows };
 
   const known = new Set<string>();
   const all = doc.getElementsByTagName('*');
@@ -39,7 +44,12 @@ export function sanitizeBpmnXml(xml: string): { xml: string; removedDi: string[]
     if (!src || !tgt || !known.has(src) || !known.has(tgt)) {
       brokenFlows.push(el);
       const id = el.getAttribute('id');
-      if (id) known.delete(id);
+      if (id) {
+        known.delete(id);
+        removedFlows.push(id);
+      } else {
+        removedFlows.push('(no-id)');
+      }
     }
   }
   brokenFlows.forEach(el => el.parentNode?.removeChild(el));
@@ -79,7 +89,7 @@ export function sanitizeBpmnXml(xml: string): { xml: string; removedDi: string[]
   });
 
   const serialized = new XMLSerializer().serializeToString(doc);
-  return { xml: serialized, removedDi };
+  return { xml: serialized, removedDi, removedFlows };
 }
 
 /** 统计 process 内任务类节点数量（用于保存前粗检） */
