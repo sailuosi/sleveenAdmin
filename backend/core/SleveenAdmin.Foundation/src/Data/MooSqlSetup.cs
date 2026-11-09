@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -27,7 +28,11 @@ public static class MooSqlSetup
             throw new InvalidOperationException("DBCoonfig:Connections 不能为空。");
 
         var env = sp.GetService<IHostEnvironment>();
-        var cash = new DBClientBuilder().doBuild();
+        // 先加载实体程序集以触发 ModuleInitializer，再装入 Client（读侧有则自动用，不必 useAotMode）
+        EnsureAdminAssembliesLoaded();
+        var cash = new DBClientBuilder()
+            .registerGeneratedMaterializers()
+            .doBuild();
 
         foreach (var conn in options.Connections)
         {
@@ -95,6 +100,43 @@ public static class MooSqlSetup
         }
 
         return changed ? string.Join(';', rebuilt) : connectString;
+    }
+
+    /// <summary>
+    /// 加载入口程序集已引用的 SleveenAdmin.*，确保 SG ModuleInitializer 已写入引导表后再 RegisterGenerated*。
+    /// </summary>
+    internal static void EnsureAdminAssembliesLoaded()
+    {
+        var loaded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+        {
+            var n = asm.GetName().Name;
+            if (!string.IsNullOrEmpty(n))
+                loaded.Add(n);
+        }
+
+        var entry = Assembly.GetEntryAssembly();
+        if (entry == null)
+            return;
+
+        foreach (var name in entry.GetReferencedAssemblies())
+        {
+            if (name.Name == null
+                || !name.Name.StartsWith("SleveenAdmin.", StringComparison.OrdinalIgnoreCase)
+                || name.Name.Equals("SleveenAdmin.Foundation", StringComparison.OrdinalIgnoreCase)
+                || name.Name.Equals("SleveenAdmin.Generators", StringComparison.OrdinalIgnoreCase))
+                continue;
+            if (loaded.Contains(name.Name))
+                continue;
+            try
+            {
+                Assembly.Load(name);
+            }
+            catch
+            {
+                // 可选模块未部署时忽略
+            }
+        }
     }
 }
 

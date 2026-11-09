@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\generators\EmitGeneratedSources.props" />
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -24,6 +26,9 @@
     <ProjectReference Include="..\..\..\sailflow\src\biz\host\sailflow.biz.csproj" />
     <ProjectReference Include="..\..\..\sailflow\src\core\ext\form\sailflow.form.csproj" />
     <ProjectReference Include="..\core\SleveenAdmin.Foundation\SleveenAdmin.Foundation.csproj" />
+    <ProjectReference Include="..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

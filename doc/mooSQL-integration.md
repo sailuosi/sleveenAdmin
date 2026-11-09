@@ -77,7 +77,21 @@ my/                                 # 仓库�?
 <ProjectReference Include="..\..\..\..\moo-sqlm\mooSQL2024\ext\mooSQL.Ext.csproj" />
 ```
 
-> **说明**：采�?**ProjectReference 源码引用** 而非 NuGet 包，便于联调 DDL、方言�?bugfix。独立发布时可改为打包后�?NuGet 引用，配置与 API 用法不变。项�?*不引�?SqlSugar**，实体映射完全使�?mooSQL 特性�?
+> **说明**：采用 **ProjectReference 源码引用** 而非 NuGet 包，便于联调。项目**不引用 SqlSugar**，实体映射使用 mooSQL 特性。
+
+### 2.3 源生成物化器 / Accessor（本仓独立 SG）
+
+不引用 `mooSQL.Pure.Generators`。实体工程挂本仓 Analyzer：
+
+```xml
+<ProjectReference Include="..\..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
+                  OutputItemType="Analyzer"
+                  ReferenceOutputAssembly="false" />
+```
+
+- 扫描已有 `[SooTable]`（**无需** `[GenerateMaterializer]`）；`Type=Select`（如 `Biz_*Row`）跳过。
+- 产出读侧 Materializer + 写侧 Accessor；ModuleInitializer 只 `GeneratedClientBootstrap.Add(c => { c.RegisterMaterializer(...); c.RegisterAccessor(...); })`，**不写** `MaterializerRegistry` 静态查找表。
+- [`MooSqlSetup`](../backend/core/SleveenAdmin.Foundation/src/Data/MooSqlSetup.cs)：先加载 `SleveenAdmin.*`，再 `registerGeneratedMaterializers()`（Apply 安装器到 Client）；**不必** `useAotMode`。
 
 ---
 
@@ -143,10 +157,12 @@ builder.Services.AddMooSql(builder.Configuration);
 ### 3.3 构建 DBInsCash 流程
 
 ```csharp
-var cash = new DBClientBuilder().doBuild();
-// DBClientBuilder 内置注册 InternalEntityParser，解�?[SooTable] / [SooColumn]
+EnsureAdminAssembliesLoaded(); // 触发各实体程序集 ModuleInitializer
+var cash = new DBClientBuilder()
+    .registerGeneratedMaterializers() // 物化器 + Accessor 装入 Client；不必 useAotMode
+    .doBuild();
+// DBClientBuilder 仍注册 InternalEntityParser，解析 [SooTable] / [SooColumn]
 
-// SQLite 相对路径先解析到 ContentRoot，再�?Position 注册
 cash.addConfig(options.Connections);
 ```
 
