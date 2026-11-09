@@ -53,6 +53,7 @@
     <SailAssigneeParamsDialog />
     <SailElementConfigDialog />
     <SailProcessRepairDialog />
+    <SailProcessValidateResultDialog />
   </div>
 </template>
 
@@ -81,8 +82,10 @@ import SailTransitionConfigDialog from '@sail/components/transitionConfig/SailTr
 import SailAssigneeParamsDialog from '@sail/components/assignee/SailAssigneeParamsDialog.vue';
 import SailElementConfigDialog from '@sail/components/elementConfig/SailElementConfigDialog.vue';
 import SailProcessRepairDialog from '@sail/components/repair/SailProcessRepairDialog.vue';
+import SailProcessValidateResultDialog from '@sail/components/validate/SailProcessValidateResultDialog.vue';
 import SailDesignerToolbar from '@sail/components/designer/SailDesignerToolbar.vue';
 import { designerEvents } from '@sail/bpmn/ui/designerEvents';
+import { parseValidateProcessResponse } from '@sail/api/processValidate';
 
 defineOptions({ name: 'SailDesignerPage' });
 
@@ -111,16 +114,6 @@ const statusOk = ref(false);
 /** 打开已有流程时 import 失败：禁止用空白图覆盖库里的定义 */
 const loadBlocked = ref(false);
 const isEmbed = computed(() => String(route.query.embed || '') === '1');
-
-/** 与后端 ProcessValidateResultTypeEnum 一致；硬拦仅在发布/启用 */
-const VALIDATE_MSG: Record<number, string> = {
-  0: '未得到校验结果',
-  1: '校验通过：存在开始/结束事件，且有通路；用户任务 Resolve/Leave 已配置',
-  2: '校验未通过：缺少开始事件',
-  3: '校验未通过：缺少结束事件',
-  4: '校验未通过：开始到结束无连通路径',
-  5: '校验未通过：用户任务缺少 AssigneeResolve 或 LeaveJudge Type（发布前须配置）'
-};
 
 function fileBaseName() {
   const m = fileMeta.value;
@@ -416,7 +409,6 @@ function openRepair() {
 async function validate() {
   if (!modeler.value) return;
   validating.value = true;
-  statusMsg.value = '';
   try {
     prepareXmlExport();
     const { xml } = await modeler.value.saveXML({ format: true });
@@ -428,23 +420,15 @@ async function validate() {
       Version: String(base.Version ?? (base as Record<string, unknown>).version ?? '1'),
       XmlContent: xml
     });
-    const failStatus = data?.Status ?? data?.status;
-    if (failStatus === -1 || failStatus === '-1') {
-      throw new Error(data?.Message || data?.message || '校验失败');
-    }
-    const entity = (data?.Entity ?? data?.entity ?? data) as Record<string, unknown>;
-    const rawCode = entity?.ProcessValidatedResultType ?? entity?.processValidatedResultType ?? 0;
-    const code = Number(rawCode);
-    const issues = (entity?.Issues ?? entity?.issues ?? []) as unknown;
-    const issueText = Array.isArray(issues) && issues.length
-      ? `：${issues.map(String).join('；')}`
-      : '';
-    const detail = String(entity?.Message ?? entity?.message ?? '').trim();
-    const msg = (VALIDATE_MSG[code] || `校验结果码：${code}`) + (issueText || (detail ? `：${detail}` : ''));
-    statusOk.value = code === 1;
-    statusMsg.value = msg;
-    if (code === 1) ElMessage.success(msg);
-    else ElMessage.warning(msg);
+    const parsed = parseValidateProcessResponse(data);
+    statusOk.value = parsed.passed;
+    designerEvents.emit('validate:open', {
+      result: parsed,
+      onRepair: () => openRepair()
+    });
+    ElMessage[parsed.passed ? 'success' : 'warning'](
+      parsed.passed ? '校验通过' : '校验未通过，请查看详情'
+    );
   } catch (e: unknown) {
     statusOk.value = false;
     statusMsg.value = e instanceof Error ? e.message : String(e);

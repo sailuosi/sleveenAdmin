@@ -18,6 +18,15 @@
             </span>
             <div class="sf-detail-page__head-actions">
               <el-button link :loading="loading" @click="load">刷新</el-button>
+              <el-button
+                link
+                type="warning"
+                :loading="nextTreeLoading"
+                :disabled="!task"
+                @click="probeNextActivityTree"
+              >
+                调试下一跳
+              </el-button>
               <el-button link @click="onPrint">打印</el-button>
               <el-button link @click="router.back()">返回</el-button>
             </div>
@@ -163,13 +172,42 @@
         />
       </div>
     </div>
+
+    <el-dialog
+      v-model="nextTreeVisible"
+      title="GetNextActivityRoleUserTree 调试"
+      width="720px"
+      append-to-body
+      destroy-on-close
+      class="sf-no-print"
+    >
+      <el-alert
+        :title="nextTreeSummary"
+        :type="nextTreeOk ? 'success' : 'error'"
+        show-icon
+        :closable="false"
+        class="sf-detail-page__next-tree-alert"
+      />
+      <pre class="sf-detail-page__next-tree-pre">{{ nextTreeJson }}</pre>
+      <template #footer>
+        <el-button
+          v-if="nextTreeOk && probedNextNodes.length"
+          type="primary"
+          @click="applyProbedNextNodes"
+        >
+          应用到本页办理栏（{{ probedNextNodes.length }}）
+        </el-button>
+        <el-button @click="nextTreeVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { getApprovalWorkbench } from '@sail/api/runtime';
+import { ElMessage } from 'element-plus';
+import { getApprovalWorkbench, getNextActivityRoleUserTree } from '@sail/api/runtime';
 import { queryProcessFile } from '@sail/api/process';
 import { useSailCurrentUser } from '@sail/adapters/currentUser';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
@@ -189,7 +227,7 @@ defineOptions({ name: 'SailProcessDetailPage' });
 
 const route = useRoute();
 const router = useRouter();
-const { userId } = useSailCurrentUser();
+const { userId, userName } = useSailCurrentUser();
 
 const loading = ref(false);
 const err = ref('');
@@ -198,6 +236,12 @@ const task = ref<Record<string, unknown> | null>(null);
 const processInstance = ref<Record<string, unknown> | null>(null);
 const nextNodes = ref<Record<string, unknown>[]>([]);
 const previousNodes = ref<Record<string, unknown>[]>([]);
+const nextTreeLoading = ref(false);
+const nextTreeVisible = ref(false);
+const nextTreeOk = ref(false);
+const nextTreeSummary = ref('');
+const nextTreeJson = ref('');
+const probedNextNodes = ref<Record<string, unknown>[]>([]);
 const activityInstances = ref<Record<string, unknown>[]>([]);
 const formConf = ref('');
 const formFieldsJson = ref('');
@@ -299,6 +343,68 @@ function activityTimelineType(a: Record<string, unknown>) {
   if (st === 1 || st === 2) return 'primary';
   if (st === 6 || st === 7) return 'warning';
   return 'info';
+}
+
+/** 直接调 GetNextActivityRoleUserTree，便于对照 workbench 被吞掉的异常/空列表 */
+async function probeNextActivityTree() {
+  if (!task.value) {
+    ElMessage.warning('当前无待办任务');
+    return;
+  }
+  nextTreeLoading.value = true;
+  try {
+    const t = task.value;
+    const data = await getNextActivityRoleUserTree({
+      TaskId: String(pickField(t, 'Id', 'id') || ''),
+      ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
+      Version: String(pickField(t, 'Version', 'version') || '1'),
+      AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),
+      AppName: String(pickField(t, 'AppName', 'appName') || ''),
+      UserId: userId.value,
+      UserName: userName.value,
+      Conditions: Object.fromEntries(
+        Object.entries(formValues.value || {}).map(([k, v]) => [k, v == null ? '' : String(v)])
+      )
+    });
+    const status = data?.Status ?? data?.status;
+    const msg = String(data?.Message ?? data?.message ?? '');
+    const entity = data?.Entity ?? data?.entity ?? data;
+    const list = Array.isArray(entity)
+      ? (entity as Record<string, unknown>[])
+      : Array.isArray((entity as any)?.StepList)
+        ? ((entity as any).StepList as Record<string, unknown>[])
+        : [];
+    probedNextNodes.value = list;
+    nextTreeOk.value = status !== -1 && status !== '-1';
+    nextTreeSummary.value = nextTreeOk.value
+      ? `成功：共 ${list.length} 个下一跳节点`
+      : `失败：${msg || '未知错误'}`;
+    nextTreeJson.value = JSON.stringify(
+      {
+        status,
+        message: msg || null,
+        count: list.length,
+        entity: entity
+      },
+      null,
+      2
+    );
+    nextTreeVisible.value = true;
+  } catch (e: unknown) {
+    nextTreeOk.value = false;
+    probedNextNodes.value = [];
+    nextTreeSummary.value = e instanceof Error ? e.message : String(e);
+    nextTreeJson.value = nextTreeSummary.value;
+    nextTreeVisible.value = true;
+  } finally {
+    nextTreeLoading.value = false;
+  }
+}
+
+function applyProbedNextNodes() {
+  nextNodes.value = [...probedNextNodes.value];
+  nextTreeVisible.value = false;
+  ElMessage.success(`已写入办理栏 nextNodes（${nextNodes.value.length}）`);
 }
 
 async function load() {
@@ -606,6 +712,21 @@ watch(() => route.query, load, { immediate: true });
   background: var(--el-bg-color);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
   overflow: visible;
+}
+.sf-detail-page__next-tree-alert {
+  margin-bottom: 10px;
+}
+.sf-detail-page__next-tree-pre {
+  margin: 0;
+  max-height: 420px;
+  overflow: auto;
+  padding: 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--el-fill-color-light);
+  border-radius: 6px;
 }
 
 @media print {

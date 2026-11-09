@@ -1,5 +1,6 @@
 import mitt from 'mitt';
 import type { VariableRow } from '@sail/api/variable';
+import type { ParsedValidateResult } from '@sail/api/processValidate';
 
 export type PerformerDraft = {
   name: string;
@@ -86,6 +87,11 @@ export type DesignerEvents = {
   'repair:open': {
     getXml: () => Promise<string>;
     applyXml: (xml: string) => Promise<void>;
+  };
+  /** 流程校验结果弹窗 */
+  'validate:open': {
+    result: ParsedValidateResult;
+    onRepair?: () => void;
   };
 };
 
