@@ -209,6 +209,32 @@ function buildSavePayload() {
   };
 }
 
+async function validateCurrentStep() {
+  if (currentStep.value === 0) {
+    try {
+      await validateBasic();
+    } catch {
+      throw new Error('请完善基本信息');
+    }
+    return;
+  }
+  if (currentStep.value === 1) {
+    try {
+      await validateForm();
+    } catch {
+      throw new Error('请完善表单设计信息');
+    }
+    return;
+  }
+  if (currentStep.value === 2 && formData.value.processId) {
+    try {
+      await validateProcess();
+    } catch (e: any) {
+      throw new Error(e?.message || '请设计流程');
+    }
+  }
+}
+
 async function validateAllSteps() {
   try {
     await validateBasic();
@@ -220,7 +246,7 @@ async function validateAllSteps() {
     await validateForm();
   } catch {
     currentStep.value = 1;
-    throw new Error('请完善自定义表单信息');
+    throw new Error('请完善表单设计信息');
   }
   if (formData.value.processId) {
     try {
@@ -235,13 +261,8 @@ async function validateAllSteps() {
 async function handleSave() {
   saving.value = true;
   try {
-    // 新建时允许先只校验基本信息+表单，便于拿到 ProcessId 再做流程设计
-    if (!formData.value.processId) {
-      await validateBasic();
-      await validateForm();
-    } else {
-      await validateAllSteps();
-    }
+    // 保存只校验当前步骤，便于分步填写；发布时再全量校验
+    await validateCurrentStep();
     const data = await saveProcessEdit(buildSavePayload());
     const r = unpackSailResult<Record<string, unknown>>(data);
     if (!r.ok) {
@@ -251,11 +272,7 @@ async function handleSave() {
     if (r.entity) applyBundle(r.entity);
     actionType.value = 'update';
     pageTitle.value = '修改流程';
-    ElMessage.success(
-      formData.value.processId
-        ? '保存成功，可点击【发布】启用流程'
-        : '保存成功'
-    );
+    ElMessage.success('保存成功');
     // 同步 URL，便于刷新
     if (formData.value.processId) {
       router.replace({
