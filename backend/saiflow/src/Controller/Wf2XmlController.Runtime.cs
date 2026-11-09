@@ -582,14 +582,9 @@ public partial class Wf2XmlController
                 }
             }
 
-            // 表单：显式 FormId → 实例 AppInstanceCode（发起时写入）→ 跳过
-            var formId = query.FormId;
-            if (string.IsNullOrWhiteSpace(formId) &&
-                !string.IsNullOrWhiteSpace(dto.ProcessInstance?.AppInstanceCode) &&
-                int.TryParse(dto.ProcessInstance.AppInstanceCode, out _))
-            {
-                formId = dto.ProcessInstance.AppInstanceCode;
-            }
+            // 表单：显式 FormId → 实例 AppInstanceCode（发起写入的 formId，Guid/数字均可）
+            // → 流程 meta.FormId 回落。FbForm.Id 已是 Guid，禁止再用 int.TryParse 拦截。
+            var formId = ResolveWorkbenchFormId(query.FormId, dto, task);
 
             IList<FieldActivityEdit>? formEdits = null;
             if (!string.IsNullOrWhiteSpace(formId))
@@ -717,6 +712,40 @@ public partial class Wf2XmlController
         catch (Exception ex)
         {
             return ResponseResult<List<TaskViewEntity>>.Error(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 办理表单 Id：query → AppInstanceCode（Guid/旧数字）→ sf_process_meta.FormId。
+    /// </summary>
+    private string? ResolveWorkbenchFormId(
+        string? queryFormId,
+        ApprovalWorkbenchDto dto,
+        TaskViewEntity? task)
+    {
+        if (!string.IsNullOrWhiteSpace(queryFormId))
+            return queryFormId.Trim();
+
+        var code = dto.ProcessInstance?.AppInstanceCode?.Trim();
+        if (!string.IsNullOrWhiteSpace(code))
+            return code;
+
+        var processId = task?.ProcessId
+                        ?? dto.ProcessInstance?.ProcessId;
+        var version = task?.Version
+                      ?? dto.ProcessInstance?.Version
+                      ?? "1";
+        if (string.IsNullOrWhiteSpace(processId))
+            return null;
+
+        try
+        {
+            var metaFormId = _processMeta.GetMeta(processId, version)?.FormId?.Trim();
+            return string.IsNullOrWhiteSpace(metaFormId) ? null : metaFormId;
+        }
+        catch
+        {
+            return null;
         }
     }
 

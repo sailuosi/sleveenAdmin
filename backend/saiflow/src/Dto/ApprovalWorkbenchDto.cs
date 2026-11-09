@@ -49,7 +49,10 @@ public class ApprovalWorkbenchQuery
 {
     public string? TaskId { get; set; }
     public string? ProcessInstanceId { get; set; }
-    /// <summary>显式表单 Id；缺省时尝试用实例 AppInstanceCode（发起时写入的 formId）。</summary>
+    /// <summary>
+    /// 显式表单 Id（Guid 字符串；兼容旧数字 Id）。
+    /// 缺省：实例 AppInstanceCode（发起写入）→ 再回落 sf_process_meta.FormId。
+    /// </summary>
     public string? FormId { get; set; }
     public IDictionary<string, string>? Conditions { get; set; }
 }

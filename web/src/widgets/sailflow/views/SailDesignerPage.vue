@@ -18,7 +18,7 @@
             </el-dropdown-menu>
           </template>
         </el-dropdown>
-        <el-button type="primary" :loading="saving" :disabled="!modeler" @click="save">保存</el-button>
+        <el-button type="primary" :loading="saving" :disabled="!modeler || loadBlocked" @click="save">保存</el-button>
       </div>
     </header>
     <SailDesignerToolbar
@@ -65,6 +65,7 @@ import {
   clearVariableCache,
   stripSfVariablesFromDiagram
 } from '@sail/bpmn/variable/wfVariableCache';
+import { sanitizeBpmnXml } from '@sail/bpmn/utils/sanitizeBpmnXml';
 import { initNewBpmnFile, queryProcessFile, saveProcessFile, validateProcess } from '@sail/api/process';
 import PerformerPickerDialog from '@sail/components/PerformerPickerDialog.vue';
 import FormPickerDialog from '@sail/components/FormPickerDialog.vue';
@@ -103,6 +104,9 @@ const saving = ref(false);
 const validating = ref(false);
 const statusMsg = ref('');
 const statusOk = ref(false);
+/** 打开已有流程时 import 失败：禁止用空白图覆盖库里的定义 */
+const loadBlocked = ref(false);
+const isEmbed = computed(() => String(route.query.embed || '') === '1');
 
 /** 与后端 ProcessValidateResultTypeEnum 一致；硬拦仅在发布/启用 */
 const VALIDATE_MSG: Record<number, string> = {
@@ -189,23 +193,40 @@ function normalizeSfNamespace(xml: string): string {
   return xml.replaceAll('http://www.slickflow.com/schema/sf', 'http://www.saiflow.com/schema/sf');
 }
 
+function fitCanvasViewport(retries = 8) {
+  if (!modeler.value) return;
+  const el = canvasEl.value;
+  const w = el?.clientWidth ?? 0;
+  const h = el?.clientHeight ?? 0;
+  // 容器为 0 时 fit-viewport 会算出 Infinity，触发 SVGMatrix.scale 非有限值
+  if (w < 8 || h < 8) {
+    if (retries > 0) {
+      requestAnimationFrame(() => fitCanvasViewport(retries - 1));
+    }
+    return;
+  }
+  const canvas = modeler.value.get('canvas') as {
+    zoom: (level: string | number, center?: string) => void;
+  };
+  try {
+    canvas.zoom('fit-viewport', 'auto');
+  } catch {
+    try {
+      canvas.zoom('fit-viewport');
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 async function importXml(xml: string) {
   if (!modeler.value) return;
   clearVariableCache();
-  await modeler.value.importXML(normalizeSfNamespace(xml));
-  // iframe/分步页初次挂载时容器尺寸可能为 0，延后 fit 避免视口错乱
+  const result = await modeler.value.importXML(normalizeSfNamespace(xml));
+  const warnings = (result as { warnings?: Array<{ message?: string }> })?.warnings || [];
   await nextTick();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      if (!modeler.value) return;
-      const canvas = modeler.value.get('canvas') as { zoom: (level: string, center?: string) => void };
-      try {
-        canvas.zoom('fit-viewport', 'auto');
-      } catch {
-        canvas.zoom('fit-viewport');
-      }
-    });
-  });
+  requestAnimationFrame(() => fitCanvasViewport());
+  return warnings;
 }
 
 async function onToolbarImportXml(xml: string) {
@@ -230,6 +251,7 @@ async function loadFromQuery() {
 
   loading.value = true;
   statusMsg.value = '';
+  loadBlocked.value = false;
   // 先占位：即使打开失败，保存仍能带上列表传来的 ProcessId
   fileMeta.value = { ProcessId: processId, Version: version };
   try {
@@ -242,24 +264,30 @@ async function loadFromQuery() {
     if (!entity) throw new Error('打开流程失败：响应无流程实体');
     fileMeta.value = { ...entity, ProcessId: entity.ProcessId || processId, Version: entity.Version || version };
 
-    const xml = entity.XmlContent?.trim();
+    const xml = entity.XmlContent?.trimEnd()?.trim();
     if (!xml) throw new Error('流程文件无 XmlContent');
     try {
-      await importXml(xml);
+      const warnings = await importXml(xml);
+      loadBlocked.value = false;
       statusOk.value = true;
-      statusMsg.value = '已打开流程';
+      const warnN = warnings?.length || 0;
+      statusMsg.value = warnN
+        ? `已打开流程（${warnN} 条 import 警告，请检查断链/残缺节点）`
+        : '已打开流程';
     } catch (importErr: unknown) {
-      // 种子/旧 XPDL 等非 bpmn-js 格式：落空白图但保留 ProcessId，可直接保存覆盖
-      await importXml(EMPTY_BPMN_XML);
+      // 已有流程禁止用空白图顶掉库内容，否则一点保存就会丢节点
+      loadBlocked.value = true;
       statusOk.value = false;
-      statusMsg.value = `流程图无法解析，已用空白图打开（可保存覆盖）：${
+      statusMsg.value = `流程图无法解析，已阻止覆盖保存。请用「导出」备份或修复 XML 后再开：${
         importErr instanceof Error ? importErr.message : String(importErr)
       }`;
+      ElMessage.error(statusMsg.value);
     }
   } catch (e: unknown) {
+    loadBlocked.value = true;
     statusOk.value = false;
     statusMsg.value = e instanceof Error ? e.message : String(e);
-    await importXml(EMPTY_BPMN_XML);
+    ElMessage.error(statusMsg.value);
   } finally {
     loading.value = false;
   }
@@ -268,6 +296,7 @@ async function loadFromQuery() {
 async function createNew() {
   loading.value = true;
   statusMsg.value = '';
+  loadBlocked.value = false;
   try {
     const data = await initNewBpmnFile();
     const failStatus = data?.Status ?? data?.status;
@@ -296,12 +325,18 @@ async function createNew() {
 
 async function save() {
   if (!modeler.value) return;
+  if (loadBlocked.value) {
+    ElMessage.error('当前流程图未能正确打开，已禁止保存，以免覆盖库中定义');
+    return;
+  }
   saving.value = true;
   statusMsg.value = '';
   try {
     prepareXmlExport();
     const { xml: rawXml } = await modeler.value.saveXML({ format: true });
-    const xml = normalizeSfNamespace(rawXml);
+    const normalized = normalizeSfNamespace(rawXml || '');
+    const { xml: cleaned, removedDi } = sanitizeBpmnXml(normalized);
+    const xml = cleaned;
     const base = fileMeta.value ?? {};
     const processId =
       metaProcessId(base) || String(route.query.processId ?? '');
@@ -309,10 +344,17 @@ async function save() {
       ElMessage.warning('无 ProcessId，请先「新建」或从列表打开');
       return;
     }
-    // 保存不硬拦；完整校验在发布/启用（UpdateProcessUsingState）
+    const processName = String(
+      base.ProcessName ?? (base as Record<string, unknown>).processName ?? ''
+    ).trim();
+    if (!processName) {
+      ElMessage.warning('流程名称为空，无法保存');
+      return;
+    }
+    // 保存不硬拦结构；完整校验在发布/启用（UpdateProcessUsingState）
     const payload = {
       ProcessId: processId,
-      ProcessName: base.ProcessName ?? (base as Record<string, unknown>).processName,
+      ProcessName: processName,
       ProcessCode: base.ProcessCode ?? (base as Record<string, unknown>).processCode,
       Version: String(base.Version ?? (base as Record<string, unknown>).version ?? route.query.version ?? '1'),
       Status: (base.Status ?? (base as Record<string, unknown>).status ?? 1) as number,
@@ -324,13 +366,28 @@ async function save() {
       throw new Error(data?.Message || data?.message || '保存失败');
     }
     fileMeta.value = { ...base, ...payload, ProcessId: processId, XmlContent: xml };
+    loadBlocked.value = false;
     statusOk.value = true;
-    statusMsg.value = '保存成功';
-    ElMessage.success('保存成功');
+    statusMsg.value = removedDi.length
+      ? `保存成功（已去掉 ${removedDi.length} 个无元素 DI：${removedDi.slice(0, 3).join(',')}）`
+      : '保存成功';
+    ElMessage.success(statusMsg.value);
+    if (isEmbed.value && window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        { type: 'sail-designer-saved', processId, version: payload.Version },
+        '*'
+      );
+    }
   } catch (e: unknown) {
     statusOk.value = false;
     statusMsg.value = e instanceof Error ? e.message : String(e);
     ElMessage.error(statusMsg.value);
+    if (isEmbed.value && window.parent && window.parent !== window) {
+      window.parent.postMessage(
+        { type: 'sail-designer-save-failed', message: statusMsg.value },
+        '*'
+      );
+    }
   } finally {
     saving.value = false;
   }
@@ -398,6 +455,14 @@ async function onExport(cmd: string) {
   }
 }
 
+function onParentMessage(ev: MessageEvent) {
+  const data = ev?.data;
+  if (!data || typeof data !== 'object') return;
+  if (data.type === 'sail-designer-save') {
+    void save();
+  }
+}
+
 onMounted(async () => {
   await nextTick();
   if (!canvasEl.value || !panelEl.value) return;
@@ -405,10 +470,12 @@ onMounted(async () => {
     container: canvasEl.value,
     propertiesPanel: panelEl.value
   });
+  window.addEventListener('message', onParentMessage);
   await loadFromQuery();
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('message', onParentMessage);
   clearVariableCache();
   setDesignerProcessMeta({ processId: '', version: '1' });
   modeler.value?.destroy();

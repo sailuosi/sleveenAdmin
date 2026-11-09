@@ -34,7 +34,7 @@
       <div v-show="currentStep === 1" class="sf-model-edit__pane sf-model-edit__pane--narrow">
         <FormDesign ref="formDesignRef" v-model="formData" :form-list="formList" />
       </div>
-      <div v-if="currentStep === 2" class="sf-model-edit__pane sf-model-edit__pane--wide">
+      <div v-show="currentStep === 2" class="sf-model-edit__pane sf-model-edit__pane--wide">
         <ProcessDesign ref="processDesignRef" v-model="formData" />
       </div>
       <div v-show="currentStep === 3" class="sf-model-edit__pane sf-model-edit__pane--medium">
@@ -263,6 +263,14 @@ async function handleSave() {
   try {
     // 保存只校验当前步骤，便于分步填写；发布时再全量校验
     await validateCurrentStep();
+    // 流程设计步：先让 iframe 内设计器落库 BPMN，再写元数据
+    if (currentStep.value === 2 && formData.value.processId) {
+      const ok = await processDesignRef.value?.saveDesigner?.();
+      if (ok === false) {
+        ElMessage.warning('流程图未保存成功，已取消元数据保存');
+        return;
+      }
+    }
     const data = await saveProcessEdit(buildSavePayload());
     const r = unpackSailResult<Record<string, unknown>>(data);
     if (!r.ok) {

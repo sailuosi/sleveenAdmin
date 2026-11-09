@@ -58,7 +58,7 @@ export function createModeler(options: CreateModelerOptions | HTMLElement): Sail
   const additionalModules: object[] = [ZhTranslateModule];
   const config: Record<string, unknown> = {
     container: opts.container,
-    keyboard: { bindTo: document },
+    // diagram-js 新版已隐式绑定键盘，勿再传 keyboard.bindTo（会报 unsupported configuration）
     moddleExtensions: {
       sf: buildSfModdle(),
       magic: buildMagicModdle()

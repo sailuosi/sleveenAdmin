@@ -13,6 +13,7 @@ using saiflow.WebUtility;
 using SleveenAdmin.Saiflow.Assignee;
 using SleveenAdmin.Saiflow.Dto;
 using SleveenAdmin.Saiflow.Operations;
+using SleveenAdmin.Saiflow.Service;
 using SleveenAdmin.Saiflow.Utility;
 
 namespace SleveenAdmin.Saiflow.Controller;
@@ -30,6 +31,7 @@ public partial class Wf2XmlController : ControllerBase
     private readonly WorkflowQueryService _queryService;
     private readonly SailClient _sail;
     private readonly SailOperationDispatcher _operationDispatcher;
+    private readonly SailProcessMetaService _processMeta;
     private readonly ILogger<Wf2XmlController> _logger;
 
     public Wf2XmlController(
@@ -37,12 +39,14 @@ public partial class Wf2XmlController : ControllerBase
         WorkflowQueryService queryService,
         SailClient sail,
         SailOperationDispatcher operationDispatcher,
+        SailProcessMetaService processMeta,
         ILogger<Wf2XmlController> logger)
     {
         _workflowService = workflowService;
         _queryService = queryService;
         _sail = sail;
         _operationDispatcher = operationDispatcher;
+        _processMeta = processMeta;
         _logger = logger;
     }
 
@@ -68,6 +72,7 @@ public partial class Wf2XmlController : ControllerBase
         try
         {
             var entity = _workflowService.GetProcessFileById(id);
+            NormalizeXmlContent(entity);
             return ResponseResult<ProcessFileEntity>.Success(entity);
         }
         catch (Exception ex)
@@ -83,6 +88,7 @@ public partial class Wf2XmlController : ControllerBase
         try
         {
             var entity = _workflowService.GetProcessFile(query.ProcessId, query.Version);
+            NormalizeXmlContent(entity);
             return ResponseResult<ProcessFileEntity>.Success(entity);
         }
         catch (Exception ex)
@@ -97,7 +103,8 @@ public partial class Wf2XmlController : ControllerBase
     {
         try
         {
-            entity.XmlContent = PaddingContentWithRightSpace(entity.XmlContent);
+            // 不再 PadRight(4096)：SQLite/PG 无害但会污染内容；短 XML 原样存储即可
+            entity.XmlContent = NormalizeXmlContent(entity.XmlContent);
             _workflowService.SaveProcessFile(entity);
             return ResponseResult.Success("SaveProcessFile ok");
         }
@@ -395,19 +402,21 @@ public partial class Wf2XmlController : ControllerBase
         }
     }
 
+    /// <summary>去掉历史 PadRight(4096) 尾部空格；禁止截断。</summary>
+    private static string NormalizeXmlContent(string? content)
+        => string.IsNullOrEmpty(content) ? (content ?? "") : content.TrimEnd();
+
+    private static void NormalizeXmlContent(ProcessFileEntity? entity)
+    {
+        if (entity == null) return;
+        entity.XmlContent = NormalizeXmlContent(entity.XmlContent);
+    }
+
     /// <summary>
-    /// 补足 XmlContent（仅短内容垫到 4096，兼容 Oracle ORA-01483）。
-    /// 注意：不得截断；长 XML 原样返回。SQLite/PG 无害。
+    /// 兼容旧调用：Oracle 短字段垫宽已废弃；仅 TrimEnd，绝不截断。
     /// </summary>
     private static string PaddingContentWithRightSpace(string content)
-    {
-        if (string.IsNullOrEmpty(content))
-            return content;
-        // 已够长则绝不改写，避免误伤 DI 坐标段
-        if (content.Length >= 4096)
-            return content;
-        return content.PadRight(4096);
-    }
+        => NormalizeXmlContent(content);
 }
 
 /// <summary>启用/停用流程版本（Status：1 启用 · 0 停用）。</summary>

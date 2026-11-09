@@ -18,6 +18,7 @@
       </div>
       <iframe
         v-if="showFrame"
+        ref="frameRef"
         class="sf-process-design__frame"
         :src="designerUrl"
         title="Sailflow 设计器"
@@ -31,7 +32,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { queryProcessFile } from '@sail/api/process';
@@ -43,6 +44,11 @@ defineOptions({ name: 'SailProcessDesignStep' });
 const model = defineModel<ProcessEditFormModel>({ required: true });
 const router = useRouter();
 const showFrame = ref(true);
+const frameRef = ref<HTMLIFrameElement | null>(null);
+let saveWait: {
+  resolve: (ok: boolean) => void;
+  timer: ReturnType<typeof setTimeout>;
+} | null = null;
 
 const designerUrl = computed(() => {
   const q = new URLSearchParams({
@@ -66,7 +72,7 @@ async function refreshFlag() {
       Version: model.value.version || '1'
     });
     const r = unpackSailResult<Record<string, unknown>>(data);
-    const xml = String(pickField(r.entity, 'XmlContent', 'xmlContent') || '');
+    const xml = String(pickField(r.entity, 'XmlContent', 'xmlContent') || '').trimEnd();
     model.value.hasBpmn = xml.includes('<process') || xml.includes('<bpmn');
     ElMessage.success(model.value.hasBpmn ? '已检测到流程图' : '仍为初始模板');
   } catch (e: unknown) {
@@ -74,15 +80,70 @@ async function refreshFlag() {
   }
 }
 
+/** 让嵌入设计器先 SaveProcessFile，再由外层保存元数据 */
+function saveDesigner(): Promise<boolean> {
+  if (!showFrame.value || !frameRef.value?.contentWindow) {
+    return Promise.resolve(true);
+  }
+  return new Promise(resolve => {
+    if (saveWait) {
+      clearTimeout(saveWait.timer);
+      saveWait.resolve(false);
+    }
+    const timer = setTimeout(() => {
+      saveWait = null;
+      ElMessage.warning('设计器保存超时，请在设计器内点「保存」后再试');
+      resolve(false);
+    }, 15000);
+    saveWait = { resolve, timer };
+    frameRef.value!.contentWindow!.postMessage({ type: 'sail-designer-save' }, '*');
+  });
+}
+
+function onFrameMessage(ev: MessageEvent) {
+  const data = ev?.data;
+  if (!data || typeof data !== 'object') return;
+  if (data.type === 'sail-designer-saved') {
+    if (saveWait) {
+      clearTimeout(saveWait.timer);
+      saveWait.resolve(true);
+      saveWait = null;
+    }
+    model.value.hasBpmn = true;
+    return;
+  }
+  if (data.type === 'sail-designer-save-failed') {
+    if (saveWait) {
+      clearTimeout(saveWait.timer);
+      saveWait.resolve(false);
+      saveWait = null;
+    }
+    ElMessage.error(String(data.message || '设计器保存失败'));
+  }
+}
+
 async function validate() {
   if (!model.value.processId) {
     throw new Error('请先保存流程基本信息');
   }
-  // 新建会带默认开始节点 XML；此处只要求定义已落库，复杂节点在设计器内完成
+  if (showFrame.value) {
+    const ok = await saveDesigner();
+    if (!ok) throw new Error('请先在设计器中成功保存流程图');
+  }
   await refreshFlag();
 }
 
-defineExpose({ validate, refresh: refreshFlag });
+onMounted(() => window.addEventListener('message', onFrameMessage));
+onBeforeUnmount(() => {
+  window.removeEventListener('message', onFrameMessage);
+  if (saveWait) {
+    clearTimeout(saveWait.timer);
+    saveWait.resolve(false);
+    saveWait = null;
+  }
+});
+
+defineExpose({ validate, refresh: refreshFlag, saveDesigner });
 </script>
 
 <style scoped>
