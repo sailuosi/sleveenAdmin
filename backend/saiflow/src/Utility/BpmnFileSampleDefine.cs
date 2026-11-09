@@ -51,7 +51,7 @@ public static class BpmnFileSampleDefine
 
         var namespaceManager = new XmlNamespaceManager(xmlDoc.NameTable);
         namespaceManager.AddNamespace("bpmn", "http://www.omg.org/spec/BPMN/20100524/MODEL");
-        namespaceManager.AddNamespace("sf", "http://www.slickflow.com/schema/sf");
+        namespaceManager.AddNamespace("sf", "http://www.saiflow.com/schema/sf");
 
         var processNode = xmlDoc.SelectSingleNode("//bpmn:process", namespaceManager)
             ?? xmlDoc.SelectSingleNode("//process");
@@ -80,7 +80,7 @@ public static class BpmnFileSampleDefine
             codeAttr.Value = codeValue;
         else
         {
-            var sfCodeAttr = xmlDoc.CreateAttribute("sf", "code", "http://www.slickflow.com/schema/sf");
+            var sfCodeAttr = xmlDoc.CreateAttribute("sf", "code", "http://www.saiflow.com/schema/sf");
             sfCodeAttr.Value = codeValue;
             processNode.Attributes.Append(sfCodeAttr);
         }

@@ -51,7 +51,7 @@ public static class ProcessXmlBuilder
             ProcessNamespaceDefine.m_namespace_uri_bpmn);
         processNode.AppendChild(startNode);
         startNode.SetAttribute("id", "StartEvent_1");
-        startNode.SetAttribute("name", "Start");
+        startNode.SetAttribute("name", "开始");
 
         var diagramNode = xmlDoc.CreateElement("bpmndi", "BPMNDiagram", ProcessNamespaceDefine.m_namespace_uri_bpmndi);
         root.AppendChild(diagramNode);
@@ -73,6 +73,16 @@ public static class ProcessXmlBuilder
         boundsNode.SetAttribute("width", "36.0");
         boundsNode.SetAttribute("x", "412.0");
         boundsNode.SetAttribute("y", "240.0");
+
+        // 带 name 的开始事件写上 BPMNLabel，避免重开后标签坐标丢失
+        var labelNode = xmlDoc.CreateElement("bpmndi", "BPMNLabel", ProcessNamespaceDefine.m_namespace_uri_bpmndi);
+        shapeNode.AppendChild(labelNode);
+        var labelBounds = xmlDoc.CreateElement("dc", "Bounds", ProcessNamespaceDefine.m_namespace_uri_dc);
+        labelNode.AppendChild(labelBounds);
+        labelBounds.SetAttribute("x", "420.0");
+        labelBounds.SetAttribute("y", "283.0");
+        labelBounds.SetAttribute("width", "22.0");
+        labelBounds.SetAttribute("height", "14.0");
 
         return xmlDoc.OuterXml;
     }

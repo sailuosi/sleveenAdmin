@@ -63,7 +63,7 @@ public static class SailButtonsCatalog
             doc.LoadXml(xml);
             var nsmgr = new XmlNamespaceManager(doc.NameTable);
             nsmgr.AddNamespace("bpmn", "http://www.omg.org/spec/BPMN/20100524/MODEL");
-            nsmgr.AddNamespace("sf", "http://www.slickflow.com/schema/sf");
+            nsmgr.AddNamespace("sf", "http://www.saiflow.com/schema/sf");
 
             XmlNode? activity =
                 doc.SelectSingleNode($"//*[@id='{EscapeXPath(activityId)}']") ??

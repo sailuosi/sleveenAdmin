@@ -184,12 +184,28 @@ function goBack() {
   else router.push('/sail/processes');
 }
 
+/** 统一为引擎约定的 saiflow.com；历史 slickflow.com 导入/保存时改写，避免 sf/sf_1 双前缀 */
+function normalizeSfNamespace(xml: string): string {
+  return xml.replaceAll('http://www.slickflow.com/schema/sf', 'http://www.saiflow.com/schema/sf');
+}
+
 async function importXml(xml: string) {
   if (!modeler.value) return;
   clearVariableCache();
-  await modeler.value.importXML(xml);
-  const canvas = modeler.value.get('canvas') as { zoom: (level: string) => void };
-  canvas.zoom('fit-viewport');
+  await modeler.value.importXML(normalizeSfNamespace(xml));
+  // iframe/分步页初次挂载时容器尺寸可能为 0，延后 fit 避免视口错乱
+  await nextTick();
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (!modeler.value) return;
+      const canvas = modeler.value.get('canvas') as { zoom: (level: string, center?: string) => void };
+      try {
+        canvas.zoom('fit-viewport', 'auto');
+      } catch {
+        canvas.zoom('fit-viewport');
+      }
+    });
+  });
 }
 
 async function onToolbarImportXml(xml: string) {
@@ -284,7 +300,8 @@ async function save() {
   statusMsg.value = '';
   try {
     prepareXmlExport();
-    const { xml } = await modeler.value.saveXML({ format: true });
+    const { xml: rawXml } = await modeler.value.saveXML({ format: true });
+    const xml = normalizeSfNamespace(rawXml);
     const base = fileMeta.value ?? {};
     const processId =
       metaProcessId(base) || String(route.query.processId ?? '');

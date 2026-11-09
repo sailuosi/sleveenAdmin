@@ -1,7 +1,7 @@
 {
   "name": "Sailflow",
   "prefix": "sf",
-  "uri": "http://www.slickflow.com/schema/sf",
+  "uri": "http://www.saiflow.com/schema/sf",
   "xml": {
     "tagAlias": "lowerCase"
   },

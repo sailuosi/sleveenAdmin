@@ -29,6 +29,7 @@ import { SfVariablePropertiesProviderModule } from './provider/sfVariableProvide
 import { initWfVariableCacheLoader } from './variable/wfVariableCache';
 import { ZhTranslateModule } from './i18n/zhTranslate';
 import { installAssigneeDesignDefaults } from './assigneeDefaults';
+import { installEventNameDefaults } from './eventNameDefaults';
 
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-js/dist/assets/bpmn-js.css';
@@ -100,6 +101,7 @@ export function createModeler(options: CreateModelerOptions | HTMLElement): Sail
   }
 
   const modeler = new BpmnModeler(config);
+  installEventNameDefaults(modeler);
   if (opts.propertiesPanel) {
     const eventBus = modeler.get('eventBus') as { on: Function; fire: Function };
     initWfVariableCacheLoader(eventBus);
@@ -115,11 +117,11 @@ export const EMPTY_BPMN_XML = `<?xml version="1.0" encoding="UTF-8"?>
   xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
-  xmlns:sf="http://www.slickflow.com/schema/sf"
+  xmlns:sf="http://www.saiflow.com/schema/sf"
   id="Definitions_SailEmpty"
   targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="Process_1" name="Process_1" isExecutable="true" sf:code="Process_1" sf:version="1">
-    <bpmn:startEvent id="StartEvent_1" name="Start" />
+    <bpmn:startEvent id="StartEvent_1" name="开始" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1">

@@ -395,12 +395,18 @@ public partial class Wf2XmlController : ControllerBase
         }
     }
 
-    /// <summary>补足 XmlContent（兼容 Oracle ORA-01483；SQLite/PG 无害）。</summary>
+    /// <summary>
+    /// 补足 XmlContent（仅短内容垫到 4096，兼容 Oracle ORA-01483）。
+    /// 注意：不得截断；长 XML 原样返回。SQLite/PG 无害。
+    /// </summary>
     private static string PaddingContentWithRightSpace(string content)
     {
         if (string.IsNullOrEmpty(content))
             return content;
-        return content.Length < 4096 ? content.PadRight(4096) : content;
+        // 已够长则绝不改写，避免误伤 DI 坐标段
+        if (content.Length >= 4096)
+            return content;
+        return content.PadRight(4096);
     }
 }
 
