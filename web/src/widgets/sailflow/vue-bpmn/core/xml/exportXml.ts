@@ -25,7 +25,95 @@ function childrenOf(
 
 function appendOpaqueBody(el: DiagramElement, level: number, bodyParts: string[]) {
   if (!el.opaqueInnerXml) return;
-  bodyParts.push(indentOpaqueInner(el.opaqueInnerXml, level + 1));
+  // Strip children that we also emit from businessObject to avoid duplicates
+  let xml = el.opaqueInnerXml;
+  if (el.businessObject.documentation != null && String(el.businessObject.documentation) !== '') {
+    xml = xml
+      .replace(/<\w*:?documentation\b[^>]*\/>/gi, '')
+      .replace(/<\w*:?documentation\b[\s\S]*?<\/\w*:?documentation>/gi, '');
+  }
+  if (el.businessObject.loopCharacteristics) {
+    xml = xml
+      .replace(/<\w*:?multiInstanceLoopCharacteristics\b[^>]*\/>/gi, '')
+      .replace(
+        /<\w*:?multiInstanceLoopCharacteristics\b[\s\S]*?<\/\w*:?multiInstanceLoopCharacteristics>/gi,
+        '',
+      );
+  }
+  const trimmed = xml.trim();
+  if (!trimmed) return;
+  bodyParts.push(indentOpaqueInner(trimmed, level + 1));
+}
+
+/** Emit documentation / eventDefinitions / multi-instance from flattened BO fields. */
+function appendStructuralBoChildren(
+  el: DiagramElement,
+  level: number,
+  bodyParts: string[],
+) {
+  const pad = indent(level + 1);
+  const bo = el.businessObject;
+  const doc = bo.documentation != null ? String(bo.documentation) : '';
+  if (doc) {
+    bodyParts.push(`${pad}<bpmn:documentation>${esc(doc)}</bpmn:documentation>`);
+  }
+
+  const defs = (bo.eventDefinitions as string[] | undefined) ?? [];
+  for (const def of defs) {
+    const local = def.replace(/^bpmn:/, '');
+    const tag = local.charAt(0).toLowerCase() + local.slice(1);
+    if (local.includes('Timer')) {
+      const kind = String(bo.timerKind || 'timeDuration');
+      const body = esc(String(bo.timeDuration ?? ''));
+      const childTag =
+        kind === 'timeDate' ? 'timeDate' : kind === 'timeCycle' ? 'timeCycle' : 'timeDuration';
+      bodyParts.push(
+        `${pad}<bpmn:${tag}>\n${pad}  <bpmn:${childTag} xsi:type="bpmn:tFormalExpression">${body}</bpmn:${childTag}>\n${pad}</bpmn:${tag}>`,
+      );
+    } else if (local.includes('Conditional')) {
+      const body = esc(String(bo.condition ?? ''));
+      bodyParts.push(
+        `${pad}<bpmn:${tag}>\n${pad}  <bpmn:condition xsi:type="bpmn:tFormalExpression">${body}</bpmn:condition>\n${pad}</bpmn:${tag}>`,
+      );
+    } else if (local.includes('Message')) {
+      const name = String(bo.messageName ?? '');
+      const attr = name ? ` messageRef="${esc(name)}"` : '';
+      bodyParts.push(`${pad}<bpmn:${tag}${attr} />`);
+    } else if (local.includes('Signal')) {
+      const name = String(bo.signalName ?? '');
+      const attr = name ? ` signalRef="${esc(name)}"` : '';
+      bodyParts.push(`${pad}<bpmn:${tag}${attr} />`);
+    } else if (local.includes('Error')) {
+      const name = String(bo.errorName ?? '');
+      const attr = name ? ` errorRef="${esc(name)}"` : '';
+      bodyParts.push(`${pad}<bpmn:${tag}${attr} />`);
+    } else if (local.includes('Escalation')) {
+      const name = String(bo.escalationName ?? '');
+      const attr = name ? ` escalationRef="${esc(name)}"` : '';
+      bodyParts.push(`${pad}<bpmn:${tag}${attr} />`);
+    } else if (local.includes('Link')) {
+      const name = String(bo.linkName ?? '');
+      const attr = name ? ` name="${esc(name)}"` : '';
+      bodyParts.push(`${pad}<bpmn:${tag}${attr} />`);
+    } else {
+      bodyParts.push(`${pad}<bpmn:${tag} />`);
+    }
+  }
+
+  const loop = String(bo.loopCharacteristics ?? '');
+  if (loop === 'parallel' || loop === 'sequential') {
+    const seq = loop === 'sequential' || bo.isSequential === true;
+    const card = String(bo.loopCardinality ?? '').trim();
+    if (card) {
+      bodyParts.push(
+        `${pad}<bpmn:multiInstanceLoopCharacteristics isSequential="${seq ? 'true' : 'false'}">\n${pad}  <bpmn:loopCardinality>${esc(card)}</bpmn:loopCardinality>\n${pad}</bpmn:multiInstanceLoopCharacteristics>`,
+      );
+    } else {
+      bodyParts.push(
+        `${pad}<bpmn:multiInstanceLoopCharacteristics isSequential="${seq ? 'true' : 'false'}" />`,
+      );
+    }
+  }
 }
 
 function serializeNode(
@@ -65,6 +153,7 @@ function serializeNode(
     .join('\n');
 
   const bodyParts = [incoming, outgoing].filter(Boolean);
+  appendStructuralBoChildren(el, level, bodyParts);
   appendOpaqueBody(el, level, bodyParts);
 
   if (isContainerActivity(el) || el.type === 'bpmn:Process') {

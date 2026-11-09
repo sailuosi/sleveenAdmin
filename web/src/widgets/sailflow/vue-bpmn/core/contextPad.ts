@@ -4,8 +4,19 @@ import { isConnection } from './xml/elementKind.js';
 export interface ContextPadEntry {
   key: string;
   label: string;
-  action: 'append' | 'connect' | 'replace' | 'delete' | 'lane';
+  action: 'append' | 'connect' | 'replace' | 'delete' | 'lane' | 'configure';
   type?: string;
+}
+
+const CONFIGURE_ENTRY: ContextPadEntry = {
+  key: 'configure',
+  label: '设置',
+  action: 'configure',
+};
+
+function withConfigure(entries: ContextPadEntry[]): ContextPadEntry[] {
+  if (entries.some((e) => e.action === 'configure')) return entries;
+  return [CONFIGURE_ENTRY, ...entries];
 }
 
 function isFlowNode(el: DiagramElement): boolean {
@@ -32,17 +43,17 @@ export function getContextPadEntries(
   if (!el) return [];
 
   if (el.type === 'bpmn:Lane') {
-    return [
+    return withConfigure([
       { key: 'lane-insert-above', label: '上方插入', action: 'lane' },
       { key: 'lane-divide-two', label: '分成两道', action: 'lane' },
       { key: 'lane-divide-three', label: '分成三道', action: 'lane' },
       { key: 'lane-insert-below', label: '下方插入', action: 'lane' },
       { key: 'delete', label: '删除', action: 'delete' },
-    ];
+    ]);
   }
 
   if (el.type === 'bpmn:Participant') {
-    return [
+    return withConfigure([
       { key: 'lane-insert-above', label: '上方插入', action: 'lane' },
       { key: 'lane-divide-two', label: '分成两道', action: 'lane' },
       { key: 'lane-divide-three', label: '分成三道', action: 'lane' },
@@ -50,18 +61,18 @@ export function getContextPadEntries(
       { key: 'connect', label: '连线', action: 'connect' },
       { key: 'replace', label: '替换', action: 'replace' },
       { key: 'delete', label: '删除', action: 'delete' },
-    ];
+    ]);
   }
 
   if (isConnection(el)) {
-    return [
+    return withConfigure([
       { key: 'replace', label: '替换', action: 'replace' },
       { key: 'delete', label: '删除', action: 'delete' },
-    ];
+    ]);
   }
 
   if (el.type === 'bpmn:EventBasedGateway') {
-    return [
+    return withConfigure([
       {
         key: 'append.receive-task',
         label: '接收任务',
@@ -95,11 +106,11 @@ export function getContextPadEntries(
       { key: 'connect', label: '连线', action: 'connect' },
       { key: 'replace', label: '替换', action: 'replace' },
       { key: 'delete', label: '删除', action: 'delete' },
-    ];
+    ]);
   }
 
   if (isFlowNode(el) && el.type !== 'bpmn:EndEvent') {
-    return [
+    return withConfigure([
       { key: 'append.end-event', label: '结束', action: 'append', type: 'bpmn:EndEvent' },
       {
         key: 'append.gateway',
@@ -117,20 +128,20 @@ export function getContextPadEntries(
       { key: 'connect', label: '连线', action: 'connect' },
       { key: 'replace', label: '替换', action: 'replace' },
       { key: 'delete', label: '删除', action: 'delete' },
-    ];
+    ]);
   }
 
   if (el.type === 'bpmn:EndEvent') {
-    return [
+    return withConfigure([
       { key: 'replace', label: '替换', action: 'replace' },
       { key: 'delete', label: '删除', action: 'delete' },
-    ];
+    ]);
   }
 
-  return [
+  return withConfigure([
     { key: 'replace', label: '替换', action: 'replace' },
     { key: 'delete', label: '删除', action: 'delete' },
-  ];
+  ]);
 }
 
 export interface ReplaceOption {

@@ -80,8 +80,26 @@ function parsePolicy(json: string | undefined | null): SailNodePolicy {
   }
 }
 
+function readDoc(bo: ModdleEl & { documentation?: unknown }): string {
+  if (bo.documentation == null) return '';
+  if (typeof bo.documentation === 'string') return bo.documentation;
+  if (Array.isArray(bo.documentation)) {
+    return str((bo.documentation[0] as any)?.text || (bo.documentation[0] as any)?.body);
+  }
+  return str((bo.documentation as any)?.text || (bo.documentation as any)?.body || bo.documentation);
+}
+
 export function loadNodeConfig(element: unknown): SailNodeConfigModel {
-  const bo = getBo(element) as ModdleEl & { id?: string; name?: string; code?: string; url?: string };
+  const bo = getBo(element) as ModdleEl & {
+    id?: string;
+    name?: string;
+    code?: string;
+    url?: string;
+    documentation?: unknown;
+    loopCharacteristics?: unknown;
+    loopCardinality?: unknown;
+    isSequential?: unknown;
+  };
   const resolve = getExtension(bo, 'sf:AssigneeResolve');
   const leave = getExtension(bo, 'sf:LeaveJudge');
   const ms = getExtension(bo, 'sf:MultiSignDetail');
@@ -116,11 +134,20 @@ export function loadNodeConfig(element: unknown): SailNodeConfigModel {
     expression: str(a.expression)
   }));
 
+  let loopCharacteristics = str(bo.loopCharacteristics);
+  if (!loopCharacteristics && bo.isSequential === true) loopCharacteristics = 'sequential';
+  if (loopCharacteristics !== 'parallel' && loopCharacteristics !== 'sequential') {
+    loopCharacteristics = '';
+  }
+
   return {
     id: str(bo.id || (element as any)?.id),
     name: str(bo.name),
     code: str(bo.code),
     url: str(bo.url),
+    documentation: readDoc(bo),
+    loopCharacteristics,
+    loopCardinality: str(bo.loopCardinality),
     assigneeResolveType: str(resolve?.type),
     assigneeResolveParams: str(resolve?.params),
     leaveJudgeType: str(leave?.type),
@@ -176,11 +203,15 @@ export function saveNodeConfig(
 ) {
   const bo = getBo(element);
 
-  // 基本属性
+  // 基本属性 + BPMN 文档 / 多实例
   modeling.updateProperties(element, {
     name: model.name,
     code: model.code || undefined,
-    url: model.url || undefined
+    url: model.url || undefined,
+    documentation: model.documentation || undefined,
+    loopCharacteristics: model.loopCharacteristics || undefined,
+    isSequential: model.loopCharacteristics === 'sequential',
+    loopCardinality: model.loopCardinality || undefined,
   });
 
   // 重新取 BO（updateProperties 后仍同一引用）

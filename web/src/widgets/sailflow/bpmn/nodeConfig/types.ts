@@ -71,6 +71,10 @@ export type SailNodeConfigModel = {
   name: string;
   code: string;
   url: string;
+  documentation: string;
+  /** BPMN multi-instance: '' | parallel | sequential */
+  loopCharacteristics: string;
+  loopCardinality: string;
   /** 待办人定范围 */
   assigneeResolveType: string;
   assigneeResolveParams: string;

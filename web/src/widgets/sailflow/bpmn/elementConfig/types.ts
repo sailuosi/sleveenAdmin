@@ -4,11 +4,14 @@ export type ElementConfigKind =
   | 'script'
   | 'rule'
   | 'subprocess'
-  | 'event';
+  | 'event'
+  | 'basic'
+  | 'process';
 
 export type SailGatewayModel = {
   id: string;
   name: string;
+  documentation: string;
   extraSplitType: string;
   extraJoinType: string;
   joinPassType: string;
@@ -19,6 +22,7 @@ export type SailGatewayModel = {
 export type SailServiceModel = {
   id: string;
   name: string;
+  documentation: string;
   methodType: string;
   subMethodType: string;
   argus: string;
@@ -31,6 +35,7 @@ export type SailServiceModel = {
 export type SailScriptModel = {
   id: string;
   name: string;
+  documentation: string;
   scriptType: string;
   argus: string;
   scriptText: string;
@@ -39,12 +44,14 @@ export type SailScriptModel = {
 export type SailRuleModel = {
   id: string;
   name: string;
+  documentation: string;
   ruleSetCode: string;
 };
 
 export type SailSubProcessModel = {
   id: string;
   name: string;
+  documentation: string;
   subProcessId: string;
   subProcessName: string;
 };
@@ -52,12 +59,28 @@ export type SailSubProcessModel = {
 export type SailEventModel = {
   id: string;
   name: string;
+  documentation: string;
   eventDefType: string;
   timerKind: 'timeDate' | 'timeDuration' | 'timeCycle';
   timerBody: string;
   condition: string;
   messageName: string;
   signalName: string;
+  errorName: string;
+  escalationName: string;
+  linkName: string;
+};
+
+export type SailBasicPropsModel = {
+  id: string;
+  name: string;
+  documentation: string;
+  type: string;
+  /** Process only */
+  isExecutable?: boolean;
+  /** Participant only */
+  processRef?: string;
+  processName?: string;
 };
 
 export const METHOD_OPTS = [

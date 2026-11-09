@@ -80,6 +80,8 @@ export type DesignerEvents = {
   'ruletaskconfig:open': ElementConfigPayload;
   'subprocessconfig:open': ElementConfigPayload;
   'eventconfig:open': ElementConfigPayload;
+  /** 基础 BPMN 属性弹窗（Process / Participant / 无扩展事件等） */
+  'basicconfig:open': ElementConfigPayload;
 };
 
 export type SubProcessDraft = {

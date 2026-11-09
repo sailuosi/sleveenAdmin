@@ -54,8 +54,10 @@ const props = withDefaults(
     store?: DiagramStore;
     xml?: string;
     readonly?: boolean;
+    /** When false, hide the right-side properties panel (Sail uses dialogs instead). */
+    showPropertiesPanel?: boolean;
   }>(),
-  { readonly: false },
+  { readonly: false, showPropertiesPanel: true },
 );
 
 const emit = defineEmits<{
@@ -63,6 +65,7 @@ const emit = defineEmits<{
   'commandStack.changed': [];
   'import.done': [];
   'import.error': [error: Error];
+  configure: [elementId: string];
 }>();
 
 const { store, state } = useDiagramStore(props.store);
@@ -438,6 +441,10 @@ function onContextPadAction(key: string, type?: string) {
   if (props.readonly) return;
   const id = store.getState().selection[0];
   if (!id) return;
+  if (key === 'configure' || key === 'settings') {
+    emit('configure', id);
+    return;
+  }
   if (key === 'delete') {
     removeSelection();
     return;
@@ -731,7 +738,7 @@ defineExpose({
       </footer>
     </div>
     <BpmnPropertiesPanel
-      v-if="!readonly"
+      v-if="!readonly && showPropertiesPanel"
       :state="state"
       @update-name="updateName"
       @update-id="updateId"

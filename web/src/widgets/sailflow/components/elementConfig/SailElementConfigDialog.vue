@@ -17,6 +17,9 @@
         <el-form-item label="Id">
           <el-input :model-value="(model as any).id" disabled />
         </el-form-item>
+        <el-form-item label="文档说明">
+          <el-input v-model="(model as any).documentation" type="textarea" :rows="2" clearable />
+        </el-form-item>
       </el-card>
 
       <template v-if="kind === 'gateway' && gateway">
@@ -142,7 +145,21 @@
           <el-form-item v-else-if="event.eventDefType === 'SignalEventDefinition'" label="信号名">
             <el-input v-model="event.signalName" clearable />
           </el-form-item>
-          <el-alert v-else type="info" :closable="false" title="当前事件定义无额外可编辑字段" />
+          <el-form-item v-else-if="event.eventDefType === 'ErrorEventDefinition'" label="错误引用">
+            <el-input v-model="event.errorName" clearable />
+          </el-form-item>
+          <el-form-item v-else-if="event.eventDefType === 'EscalationEventDefinition'" label="升级引用">
+            <el-input v-model="event.escalationName" clearable />
+          </el-form-item>
+          <el-form-item v-else-if="event.eventDefType === 'LinkEventDefinition'" label="链接名">
+            <el-input v-model="event.linkName" clearable />
+          </el-form-item>
+          <el-alert
+            v-else
+            type="info"
+            :closable="false"
+            :title="event.eventDefType ? `事件定义：${event.eventDefType}` : '当前事件定义无额外可编辑字段'"
+          />
         </el-card>
       </template>
     </el-form>

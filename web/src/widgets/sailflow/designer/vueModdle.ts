@@ -186,6 +186,25 @@ export function wrapDiagramElement(
   return view;
 }
 
+const BO_COPY_KEYS = [
+  'documentation',
+  'isExecutable',
+  'processRef',
+  'loopCharacteristics',
+  'isSequential',
+  'loopCardinality',
+  'eventDefinitions',
+  'timerKind',
+  'timeDuration',
+  'condition',
+  'messageName',
+  'signalName',
+  'errorName',
+  'escalationName',
+  'linkName',
+  'completionCondition',
+] as const;
+
 function materializeView(de: DiagramElement): VueDiagramElementView {
   const bo = createVueModdleEl(String(de.type), {
     id: de.id,
@@ -200,6 +219,12 @@ function materializeView(de: DiagramElement): VueDiagramElementView {
         )
       : {}),
   });
+  for (const k of BO_COPY_KEYS) {
+    if (de.businessObject[k] !== undefined) {
+      bo[k] = de.businessObject[k];
+      bo.set(k, de.businessObject[k]);
+    }
+  }
   // conditionExpression may live in businessObject from import
   if (de.businessObject.conditionExpression != null) {
     bo.conditionExpression = { body: String(de.businessObject.conditionExpression) };
@@ -229,6 +254,26 @@ export function createVueModdleBridge() {
   };
 }
 
+/** Keys that live on DiagramElement.businessObject (not sf: opaque attrs). */
+const BO_PROP_KEYS = new Set([
+  'documentation',
+  'isExecutable',
+  'loopCharacteristics',
+  'isSequential',
+  'loopCardinality',
+  'eventDefinitions',
+  'timerKind',
+  'timeDuration',
+  'condition',
+  'messageName',
+  'signalName',
+  'errorName',
+  'escalationName',
+  'linkName',
+  'completionCondition',
+  'conditionExpression',
+]);
+
 export function createVueModelingBridge(store: DiagramStore) {
   return {
     updateProperties(el: unknown, props: object) {
@@ -239,17 +284,29 @@ export function createVueModelingBridge(store: DiagramStore) {
 
       const next = { ...de };
       const p = props as Record<string, unknown>;
+      const nextBo: Record<string, unknown> = { ...next.businessObject };
 
       if (typeof p.name === 'string') {
         next.name = p.name;
+        nextBo.name = p.name;
         view.businessObject.name = p.name;
         view.businessObject.set('name', p.name);
       }
 
-      // sf attrs stored as opaqueAttrs / camel on BO
       const opaqueAttrs = { ...(next.opaqueAttrs || {}) };
       for (const [k, v] of Object.entries(p)) {
         if (k === 'name' || k === 'extensionElements') continue;
+        if (BO_PROP_KEYS.has(k)) {
+          if (v === undefined || v === null || v === '') {
+            delete nextBo[k];
+            delete view.businessObject[k];
+          } else {
+            nextBo[k] = v;
+            view.businessObject[k] = v;
+            view.businessObject.set(k, v);
+          }
+          continue;
+        }
         if (v === undefined) {
           delete opaqueAttrs[`sf:${k}`];
           delete opaqueAttrs[k];
@@ -277,13 +334,32 @@ export function createVueModelingBridge(store: DiagramStore) {
         next.opaqueInnerXml = replaceExtensionInOpaque(next.opaqueInnerXml, inner);
       }
 
-      next.opaqueAttrs = opaqueAttrs;
-      next.businessObject = {
-        ...next.businessObject,
-        name: next.name,
-      };
+      // Keep opaque XML free of fields we emit from businessObject
+      if ('documentation' in p || 'loopCharacteristics' in p || 'loopCardinality' in p) {
+        let xml = next.opaqueInnerXml || '';
+        if ('documentation' in p) {
+          xml = xml
+            .replace(/<\w*:?documentation\b[^>]*\/>/gi, '')
+            .replace(/<\w*:?documentation\b[\s\S]*?<\/\w*:?documentation>/gi, '');
+        }
+        if ('loopCharacteristics' in p || 'loopCardinality' in p) {
+          xml = xml
+            .replace(/<\w*:?multiInstanceLoopCharacteristics\b[^>]*\/>/gi, '')
+            .replace(
+              /<\w*:?multiInstanceLoopCharacteristics\b[\s\S]*?<\/\w*:?multiInstanceLoopCharacteristics>/gi,
+              '',
+            );
+        }
+        next.opaqueInnerXml = xml.trim() || undefined;
+      }
 
+      next.opaqueAttrs = opaqueAttrs;
+      next.businessObject = { ...nextBo, name: next.name };
       store.updateElement(view.diagramId, next);
+    },
+    updateModdleProperties(el: unknown, _moddleEl: object, props: object) {
+      // Vue path: flatten into element businessObject via updateProperties
+      this.updateProperties(el, props);
     },
   };
 }

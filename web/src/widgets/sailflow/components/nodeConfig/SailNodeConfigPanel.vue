@@ -22,6 +22,39 @@
             </el-form-item>
           </el-col>
         </el-row>
+        <el-form-item label="文档说明">
+          <el-input v-model="model.documentation" type="textarea" :rows="2" clearable />
+        </el-form-item>
+      </el-card>
+
+      <el-card shadow="never" class="sf-node-config__card">
+        <template #header><span class="sf-node-config__h">多实例</span></template>
+        <el-row :gutter="12">
+          <el-col :span="12">
+            <el-form-item label="循环">
+              <el-select v-model="model.loopCharacteristics" clearable style="width: 100%">
+                <el-option label="无" value="" />
+                <el-option label="并行" value="parallel" />
+                <el-option label="串行" value="sequential" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="基数">
+              <el-input v-model="model.loopCardinality" clearable placeholder="loopCardinality" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+      </el-card>
+
+      <el-card shadow="never" class="sf-node-config__card">
+        <template #header>
+          <div class="sf-node-config__card-hd">
+            <span class="sf-node-config__h">变量</span>
+            <el-button size="small" type="primary" link @click="emit('edit-variables')">编辑变量</el-button>
+          </div>
+        </template>
+        <el-alert type="info" :closable="false" show-icon title="变量存 wf_variable，不写入 BPMN XML" />
       </el-card>
 
       <!-- 2 审批类型（对照芋道） -->
@@ -497,6 +530,7 @@ const emit = defineEmits<{
   'pick-form': [];
   'pick-notify': [];
   'edit-resolve-expression': [];
+  'edit-variables': [];
 }>();
 
 const resolveTypes = RESOLVE_TYPE_OPTIONS;

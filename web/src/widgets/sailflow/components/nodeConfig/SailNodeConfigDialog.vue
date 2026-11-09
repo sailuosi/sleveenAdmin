@@ -17,6 +17,7 @@
       @pick-form="openForm"
       @pick-notify="openNotify"
       @edit-resolve-expression="openResolveExpression"
+      @edit-variables="openVariables"
     />
     <template #footer>
       <el-button @click="visible = false">取消</el-button>
@@ -32,6 +33,11 @@ import { designerEvents } from '@sail/bpmn/ui/designerEvents';
 import { loadNodeConfig, saveNodeConfig } from '@sail/bpmn/nodeConfig/loadSave';
 import type { SailNodeConfigModel } from '@sail/bpmn/nodeConfig/types';
 import { getUserAll, unwrapList, type UserRow } from '@sail/api/resource';
+import {
+  getCachedVariables,
+  loadVariablesForActivity,
+  setCachedVariables,
+} from '@sail/bpmn/variable/wfVariableCache';
 import SailNodeConfigPanel from './SailNodeConfigPanel.vue';
 
 defineOptions({ name: 'SailNodeConfigDialog' });
@@ -118,6 +124,26 @@ function openNotify() {
       if (model.value.notifications.some(n => n.outerId === draft.outerId)) return;
       model.value.notifications.push({ ...draft });
     }
+  });
+}
+
+async function openVariables() {
+  if (!model.value) return;
+  const activityId = model.value.id;
+  let rows = getCachedVariables(activityId);
+  if (!rows) {
+    try {
+      rows = await loadVariablesForActivity(activityId);
+    } catch {
+      rows = [];
+    }
+  }
+  designerEvents.emit('variable:open', {
+    activityId,
+    rows: [...(rows || [])],
+    onSaved: next => {
+      setCachedVariables(activityId, next);
+    },
   });
 }
 

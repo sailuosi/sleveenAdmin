@@ -101,6 +101,37 @@ export function importXml(xml: string): {
     if (opaqueInnerXml) node.opaqueInnerXml = opaqueInnerXml;
   };
 
+  const flattenOpaqueProps = (node: DiagramElement) => {
+    if (!node.opaqueInnerXml) return;
+    const docMatch = node.opaqueInnerXml.match(
+      /<\w*:?documentation\b[^>]*>([\s\S]*?)<\/\w*:?documentation>/i,
+    );
+    if (docMatch) {
+      node.businessObject.documentation = docMatch[1]!
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&amp;/g, '&')
+        .replace(/&quot;/g, '"')
+        .trim();
+    }
+    const miMatch = node.opaqueInnerXml.match(
+      /<\w*:?multiInstanceLoopCharacteristics\b([^>]*)>([\s\S]*?)<\/\w*:?multiInstanceLoopCharacteristics>/i,
+    );
+    const miSelf = node.opaqueInnerXml.match(
+      /<\w*:?multiInstanceLoopCharacteristics\b([^>]*)\/>/i,
+    );
+    const miAttrs = (miMatch?.[1] || miSelf?.[1] || '').toString();
+    if (miMatch || miSelf) {
+      const sequential = /isSequential\s*=\s*["']true["']/i.test(miAttrs);
+      node.businessObject.loopCharacteristics = sequential ? 'sequential' : 'parallel';
+      node.businessObject.isSequential = sequential;
+      const card = (miMatch?.[2] || '').match(
+        /<\w*:?loopCardinality\b[^>]*>([\s\S]*?)<\/\w*:?loopCardinality>/i,
+      );
+      if (card) node.businessObject.loopCardinality = card[1]!.trim();
+    }
+  };
+
   const ensure = (id: string, typeLocal: string, parentId: string | null): DiagramElement => {
     const mapped = mapBpmnType(typeLocal);
     if (!elements[id]) {
@@ -140,18 +171,60 @@ export function importXml(xml: string): {
       processRef: attr(el, 'processRef') ?? undefined,
       default: attr(el, 'default') ?? undefined,
     };
-    const eventDefs = Array.from(el.childNodes)
-      .filter((n): n is Element => n.nodeType === 1)
-      .map((n) => localName(n))
-      .filter((n) => n.endsWith('EventDefinition'))
-      .map((n) => `bpmn:${n.charAt(0).toUpperCase()}${n.slice(1)}`);
+    const eventDefEls = Array.from(el.childNodes).filter(
+      (n): n is Element => n.nodeType === 1 && localName(n as Element).endsWith('EventDefinition'),
+    );
+    const eventDefs = eventDefEls.map((n) => {
+      const ln = localName(n);
+      return `bpmn:${ln.charAt(0).toUpperCase()}${ln.slice(1)}`;
+    });
     if (eventDefs.length) {
       node.businessObject.eventDefinitions = eventDefs;
+      const first = eventDefEls[0]!;
+      const formalBody = (tag: string) => {
+        for (const c of Array.from(first.childNodes)) {
+          if (c.nodeType !== 1) continue;
+          const ce = c as Element;
+          if (localName(ce) === tag) {
+            return (ce.textContent || '').trim();
+          }
+        }
+        return '';
+      };
+      const ln = localName(first);
+      if (ln === 'timerEventDefinition') {
+        const timeDate = formalBody('timeDate');
+        const timeDuration = formalBody('timeDuration');
+        const timeCycle = formalBody('timeCycle');
+        if (timeDate) {
+          node.businessObject.timerKind = 'timeDate';
+          node.businessObject.timeDuration = timeDate;
+        } else if (timeCycle) {
+          node.businessObject.timerKind = 'timeCycle';
+          node.businessObject.timeDuration = timeCycle;
+        } else {
+          node.businessObject.timerKind = 'timeDuration';
+          node.businessObject.timeDuration = timeDuration;
+        }
+      } else if (ln === 'conditionalEventDefinition') {
+        node.businessObject.condition = formalBody('condition');
+      } else if (ln === 'messageEventDefinition') {
+        node.businessObject.messageName = attr(first, 'messageRef') || '';
+      } else if (ln === 'signalEventDefinition') {
+        node.businessObject.signalName = attr(first, 'signalRef') || '';
+      } else if (ln === 'errorEventDefinition') {
+        node.businessObject.errorName = attr(first, 'errorRef') || '';
+      } else if (ln === 'escalationEventDefinition') {
+        node.businessObject.escalationName = attr(first, 'escalationRef') || '';
+      } else if (ln === 'linkEventDefinition') {
+        node.businessObject.linkName = attr(first, 'name') || '';
+      }
     }
     if (attr(el, 'attachedToRef')) {
       node.hostId = attr(el, 'attachedToRef');
     }
     applyOpaque(node, el);
+    flattenOpaqueProps(node);
 
     // Nested data associations on activities
     for (const child of Array.from(el.childNodes)) {
@@ -238,8 +311,11 @@ export function importXml(xml: string): {
       processEl.businessObject = {
         ...processEl.businessObject,
         isExecutable: attr(process, 'isExecutable') !== 'false',
+        name: attr(process, 'name') ?? processEl.name,
       };
+      if (attr(process, 'name')) processEl.name = attr(process, 'name')!;
       applyOpaque(processEl, process);
+      flattenOpaqueProps(processEl);
     }
 
     const parentForNodes = collaboration ? processId : rootId;

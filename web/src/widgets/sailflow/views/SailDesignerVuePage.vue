@@ -43,9 +43,12 @@
       <BpmnModeler
         ref="modelerRef"
         class="sf-designer-page__vue-modeler"
-        @command-stack.changed="onStackChanged"
-        @selection.changed="onSelectionChanged"
-        @import.done="ready = true"
+        v-on="{
+          'commandStack.changed': onStackChanged,
+          'selection.changed': onSelectionChanged,
+          'import.done': onImportDone,
+          configure: onConfigure,
+        }"
       />
     </main>
     <PerformerPickerDialog />
@@ -59,6 +62,7 @@
     <SailTransitionConfigDialog />
     <SailAssigneeParamsDialog />
     <SailElementConfigDialog />
+    <SailBasicPropsDialog />
   </div>
 </template>
 
@@ -69,7 +73,6 @@ import { ElMessage } from 'element-plus';
 import { BpmnModeler } from '@vue-bpmn/vue';
 import { EMPTY_BPMN_XML } from '@sail/bpmn/createModeler';
 import { setDesignerProcessMeta } from '@sail/bpmn/ui/designerContext';
-import { designerEvents } from '@sail/bpmn/ui/designerEvents';
 import { downloadSvg, downloadText } from '@sail/bpmn/utils/download';
 import { clearVariableCache } from '@sail/bpmn/variable/wfVariableCache';
 import { sanitizeBpmnXml } from '@sail/bpmn/utils/sanitizeBpmnXml';
@@ -80,8 +83,8 @@ import {
   createVueModdleBridge,
   createVueModelingBridge,
   stripSfVariablesFromStore,
-  wrapDiagramElement,
 } from '@sail/designer/vueModdle';
+import { openSailConfig } from '@sail/designer/openSailConfig';
 import { installVueDesignDefaults } from '@sail/designer/vueDefaults';
 import PerformerPickerDialog from '@sail/components/PerformerPickerDialog.vue';
 import FormPickerDialog from '@sail/components/FormPickerDialog.vue';
@@ -94,6 +97,7 @@ import SailNodeConfigDialog from '@sail/components/nodeConfig/SailNodeConfigDial
 import SailTransitionConfigDialog from '@sail/components/transitionConfig/SailTransitionConfigDialog.vue';
 import SailAssigneeParamsDialog from '@sail/components/assignee/SailAssigneeParamsDialog.vue';
 import SailElementConfigDialog from '@sail/components/elementConfig/SailElementConfigDialog.vue';
+import SailBasicPropsDialog from '@sail/components/elementConfig/SailBasicPropsDialog.vue';
 import SailDesignerToolbar from '@sail/components/designer/SailDesignerToolbar.vue';
 
 defineOptions({ name: 'SailDesignerVuePage' });
@@ -222,6 +226,11 @@ function onSelectionChanged(ids: string[]) {
   notifyChange();
 }
 
+/** Vue 会把 @import.done 解析成修饰符；须用对象语法监听带点号的事件名 */
+function onImportDone() {
+  ready.value = true;
+}
+
 function buildEngine(): ProcessDesignerEngine {
   const m = () => modelerRef.value;
   const store = () => m()?.getStore();
@@ -291,59 +300,21 @@ function openConfigForSelection() {
     ElMessage.warning('请先选中一个节点或连线');
     return;
   }
-  const de = s.getElement(id);
-  if (!de) return;
-  const view = wrapDiagramElement(s, id, { withFlowEnds: true });
-  if (!view) return;
-  const modeling = createVueModelingBridge(s);
-  const moddle = createVueModdleBridge();
-  const t = String(de.type);
-  if (t === 'bpmn:SequenceFlow') {
-    designerEvents.emit('transitionconfig:open', { element: view, modeling, moddle });
-    return;
-  }
-  if (
-    t === 'bpmn:UserTask' ||
-    t === 'bpmn:Task' ||
-    t.endsWith('Task') ||
-    t === 'bpmn:SubProcess' ||
-    t.includes('Gateway') ||
-    t.includes('Event')
-  ) {
-    if (t === 'bpmn:UserTask' || t === 'bpmn:Task') {
-      designerEvents.emit('nodeconfig:open', { element: view, modeling, moddle });
-      return;
-    }
-    if (t.includes('Gateway')) {
-      designerEvents.emit('gatewayconfig:open', { element: view, modeling, moddle });
-      return;
-    }
-    if (t.includes('Service') || t.includes('Script') || t.includes('BusinessRule')) {
-      const ev =
-        t.includes('Script')
-          ? 'scripttaskconfig:open'
-          : t.includes('BusinessRule') || t.includes('Rule')
-            ? 'ruletaskconfig:open'
-            : 'servicetaskconfig:open';
-      designerEvents.emit(ev as any, { element: view, modeling, moddle });
-      return;
-    }
-    if (t.includes('Event')) {
-      designerEvents.emit('eventconfig:open', { element: view, modeling, moddle });
-      return;
-    }
-    if (t === 'bpmn:SubProcess' || t === 'bpmn:CallActivity') {
-      designerEvents.emit('subprocessconfig:open', { element: view, modeling, moddle });
-      return;
-    }
-  }
-  ElMessage.info('当前元素暂无完整配置面板，可使用右侧属性编辑');
+  openSailConfig(s, id);
+}
+
+function onConfigure(elementId: string) {
+  const s = modelerRef.value?.getStore();
+  if (!s) return;
+  openSailConfig(s, elementId);
 }
 
 async function importXml(xml: string) {
   if (!modelerRef.value) return;
   clearVariableCache();
   const result = await modelerRef.value.importXML(normalizeSfNamespace(xml));
+  // 与事件监听双保险：导入成功即可保存（避免点号事件监听失败导致一直禁用）
+  ready.value = true;
   await nextTick();
   modelerRef.value.zoomFit();
   return result?.warnings || [];
@@ -395,6 +366,7 @@ async function loadFromQuery() {
         : '已打开流程（Vue 设计器）';
     } catch (importErr: unknown) {
       loadBlocked.value = true;
+      ready.value = false;
       statusOk.value = false;
       statusMsg.value = `流程图无法解析，已阻止覆盖保存：${
         importErr instanceof Error ? importErr.message : String(importErr)
@@ -403,6 +375,7 @@ async function loadFromQuery() {
     }
   } catch (e: unknown) {
     loadBlocked.value = true;
+    ready.value = false;
     statusOk.value = false;
     statusMsg.value = e instanceof Error ? e.message : String(e);
     ElMessage.error(statusMsg.value);
