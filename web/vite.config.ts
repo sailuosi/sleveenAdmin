@@ -38,6 +38,18 @@ export default defineConfig(configEnv => {
           replacement: fileURLToPath(new URL('./src/widgets/sailflow', import.meta.url))
         },
         {
+          find: '@vue-bpmn/core',
+          replacement: fileURLToPath(
+            new URL('./src/widgets/sailflow/vue-bpmn/core/index.ts', import.meta.url)
+          )
+        },
+        {
+          find: '@vue-bpmn/vue',
+          replacement: fileURLToPath(
+            new URL('./src/widgets/sailflow/vue-bpmn/vue/index.ts', import.meta.url)
+          )
+        },
+        {
           find: '@ho',
           replacement: fileURLToPath(new URL('./src/widgets/holdOrgPan', import.meta.url))
         }

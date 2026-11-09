@@ -1,4 +1,3 @@
-import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
 import { defaultButtonsSetting, parseButtonsJson } from '../buttonsCatalog';
 import {
   ensureChildExtension,
@@ -153,18 +152,20 @@ function setCollection(
   const ee = ensureExtensionElements(bo, moddle);
   let col = getExtension(bo, collectionType);
   if (!col) {
-    col = moddle.create(collectionType, { [listProp]: [] });
-    (ee.values as ModdleEl[]).push(col);
+    const created = moddle.create(collectionType, { [listProp]: [] }) as ModdleEl;
+    (ee.values as ModdleEl[]).push(created);
+    col = created;
   }
+  const collection = col;
   const list = items.map(row => {
     const data: Record<string, string> = {};
     for (const k of props) data[k] = row[k] ?? '';
     const el = moddle.create(itemType, data);
-    el.$parent = col;
+    el.$parent = collection;
     return el;
   });
-  col[listProp] = list;
-  if (typeof col.set === 'function') col.set(listProp, list);
+  collection[listProp] = list;
+  if (typeof collection.set === 'function') collection.set(listProp, list);
 }
 
 export function saveNodeConfig(
@@ -174,7 +175,6 @@ export function saveNodeConfig(
   moddle: Moddle
 ) {
   const bo = getBo(element);
-  const businessObject = getBusinessObject(element as never);
 
   // 基本属性
   modeling.updateProperties(element, {
@@ -237,9 +237,11 @@ export function saveNodeConfig(
     const ee = ensureExtensionElements(bo, moddle);
     let col = getExtension(bo, 'sf:Actions');
     if (!col) {
-      col = moddle.create('sf:Actions', { actions: [] });
-      (ee.values as ModdleEl[]).push(col);
+      const created = moddle.create('sf:Actions', { actions: [] }) as ModdleEl;
+      (ee.values as ModdleEl[]).push(created);
+      col = created;
     }
+    const collection = col;
     const list = (model.actions || []).map((a: SailNodeActionRef) => {
       const el = moddle.create('sf:Action', {
         fireType: a.fireType,
@@ -248,14 +250,14 @@ export function saveNodeConfig(
         argus: a.argus,
         expression: a.expression
       });
-      el.$parent = col;
+      el.$parent = collection;
       return el;
     });
-    col.actions = list;
+    collection.actions = list;
   }
 
   modeling.updateProperties(element, {
-    extensionElements: businessObject.get('extensionElements') || bo.extensionElements
+    extensionElements: bo.get?.('extensionElements') || bo.extensionElements
   });
 }
 

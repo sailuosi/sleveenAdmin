@@ -58,6 +58,7 @@ const routePathMap: RoutePathMap = {
   "_widgets_sailflow_views_process_SailProcessMyPage": "/widgets/sailflow/views/process/SailProcessMyPage",
   "_widgets_sailflow_views_SailAiModelPage": "/widgets/sailflow/views/SailAiModelPage",
   "_widgets_sailflow_views_SailDesignerPage": "/widgets/sailflow/views/SailDesignerPage",
+  "_widgets_sailflow_views_SailDesignerVuePage": "/widgets/sailflow/views/SailDesignerVuePage",
   "_widgets_sailflow_views_SailKnowledgeBasePage": "/widgets/sailflow/views/SailKnowledgeBasePage",
   "_widgets_sailflow_views_SailRuleSetPage": "/widgets/sailflow/views/SailRuleSetPage",
   "_widgets_sailflow_views_SailTemplateGalleryPage": "/widgets/sailflow/views/SailTemplateGalleryPage",

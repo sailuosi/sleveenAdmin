@@ -61,6 +61,7 @@ export const views: Record<RouteFileKey, RawRouteComponent> = {
   _widgets_sailflow_views_process_SailProcessMyPage: () => import("@/widgets/sailflow/views/process/SailProcessMyPage.vue"),
   _widgets_sailflow_views_SailAiModelPage: () => import("@/widgets/sailflow/views/SailAiModelPage.vue"),
   _widgets_sailflow_views_SailDesignerPage: () => import("@/widgets/sailflow/views/SailDesignerPage.vue"),
+  _widgets_sailflow_views_SailDesignerVuePage: () => import("@/widgets/sailflow/views/SailDesignerVuePage.vue"),
   _widgets_sailflow_views_SailKnowledgeBasePage: () => import("@/widgets/sailflow/views/SailKnowledgeBasePage.vue"),
   _widgets_sailflow_views_SailRuleSetPage: () => import("@/widgets/sailflow/views/SailRuleSetPage.vue"),
   _widgets_sailflow_views_SailTemplateGalleryPage: () => import("@/widgets/sailflow/views/SailTemplateGalleryPage.vue"),

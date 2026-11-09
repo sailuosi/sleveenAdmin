@@ -73,6 +73,7 @@ declare module "vue-router/auto-routes" {
     "_widgets_sailflow_views_process_SailProcessMyPage": RouteRecordInfo<"_widgets_sailflow_views_process_SailProcessMyPage", "/widgets/sailflow/views/process/SailProcessMyPage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_SailAiModelPage": RouteRecordInfo<"_widgets_sailflow_views_SailAiModelPage", "/widgets/sailflow/views/SailAiModelPage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_SailDesignerPage": RouteRecordInfo<"_widgets_sailflow_views_SailDesignerPage", "/widgets/sailflow/views/SailDesignerPage", Record<never, never>, Record<never, never>>;
+    "_widgets_sailflow_views_SailDesignerVuePage": RouteRecordInfo<"_widgets_sailflow_views_SailDesignerVuePage", "/widgets/sailflow/views/SailDesignerVuePage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_SailKnowledgeBasePage": RouteRecordInfo<"_widgets_sailflow_views_SailKnowledgeBasePage", "/widgets/sailflow/views/SailKnowledgeBasePage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_SailRuleSetPage": RouteRecordInfo<"_widgets_sailflow_views_SailRuleSetPage", "/widgets/sailflow/views/SailRuleSetPage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_SailTemplateGalleryPage": RouteRecordInfo<"_widgets_sailflow_views_SailTemplateGalleryPage", "/widgets/sailflow/views/SailTemplateGalleryPage", Record<never, never>, Record<never, never>>;

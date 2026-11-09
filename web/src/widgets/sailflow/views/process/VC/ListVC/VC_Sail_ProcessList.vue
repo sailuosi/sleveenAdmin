@@ -25,6 +25,7 @@
                         <el-link type="primary" @click="goEdit(cellp.row)" style="margin-right: 10px;">修改</el-link>
                         <el-link @click="goCopy(cellp.row)" style="margin-right: 10px;">复制</el-link>
                         <el-link type="primary" @click="goDesigner(cellp.row)" style="margin-right: 10px;">设计</el-link>
+                        <el-link type="primary" @click="goDesignerVue(cellp.row)" style="margin-right: 10px;">Vue设计</el-link>
                         <el-link
                             v-if="Number(field(cellp.row, 'Status', 'status')) !== 1"
                             type="success"
@@ -153,6 +154,16 @@ function goCopy(row) {
 function goDesigner(row) {
     router.push({
         path: '/sail/designer',
+        query: {
+            processId: String(field(row, 'ProcessId', 'processId')),
+            version: String(field(row, 'Version', 'version') || '1')
+        }
+    })
+}
+
+function goDesignerVue(row) {
+    router.push({
+        path: '/sail/designer-vue',
         query: {
             processId: String(field(row, 'ProcessId', 'processId')),
             version: String(field(row, 'Version', 'version') || '1')

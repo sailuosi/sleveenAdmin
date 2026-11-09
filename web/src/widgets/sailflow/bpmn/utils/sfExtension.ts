@@ -8,7 +8,15 @@ export type ModdleEl = {
   [key: string]: unknown;
 };
 
+/** Supports bpmn-js shapes and vue-bpmn `__sailVue` wrappers. */
 export function getBo(element: unknown): ModdleEl {
+  const anyEl = element as { __sailVue?: boolean; businessObject?: ModdleEl } | null;
+  if (anyEl?.__sailVue && anyEl.businessObject) {
+    return anyEl.businessObject;
+  }
+  if (anyEl?.businessObject && typeof (anyEl.businessObject as ModdleEl).$instanceOf === 'function') {
+    return anyEl.businessObject;
+  }
   return getBusinessObject(element as never) as ModdleEl;
 }
 

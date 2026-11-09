@@ -145,6 +145,27 @@ const builtinRoutes: CustomRoute[] = [
       }
     ]
   },
+  {
+    name: 'sail-designer-vue',
+    path: '/sail/designer-vue',
+    component: () => import('@/layouts/blank-layout/index.vue'),
+    meta: {
+      title: 'Sailflow 设计器 (Vue)',
+      constant: false,
+      hideInMenu: true
+    },
+    children: [
+      {
+        name: 'sail-designer-vue-page',
+        path: '',
+        component: () => import('@sail/views/SailDesignerVuePage.vue'),
+        meta: {
+          title: 'Sailflow 设计器 (Vue)',
+          constant: false
+        }
+      }
+    ]
+  },
   // 门户设计：列表「设计」入口；blank-layout + 全屏（对齐 minehub Teleport/embedded）
   {
     name: 'portal-design',

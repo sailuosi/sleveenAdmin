@@ -15,7 +15,9 @@
       "@p": ["./src/widgets/portaldesign"],
       "@p/*": ["./src/widgets/portaldesign/*"],
       "@sail": ["./src/widgets/sailflow"],
-      "@sail/*": ["./src/widgets/sailflow/*"]
+      "@sail/*": ["./src/widgets/sailflow/*"],
+      "@vue-bpmn/core": ["./src/widgets/sailflow/vue-bpmn/core/index.ts"],
+      "@vue-bpmn/vue": ["./src/widgets/sailflow/vue-bpmn/vue/index.ts"]
     },
     "resolveJsonModule": true,
     "types": ["vite/client", "node", "unplugin-icons/types/vue"],

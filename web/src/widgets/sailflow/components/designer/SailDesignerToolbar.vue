@@ -2,13 +2,13 @@
   <div class="sf-designer-toolbar">
     <el-button-group>
       <el-tooltip content="打开本地 BPMN/XML" placement="bottom">
-        <el-button :disabled="!modeler" @click="fileInput?.click()">
+        <el-button :disabled="!active" @click="fileInput?.click()">
           <el-icon><FolderOpened /></el-icon>
           <span class="sf-designer-toolbar__txt">打开文件</span>
         </el-button>
       </el-tooltip>
-      <el-dropdown :disabled="!modeler" trigger="click" @command="onDownload">
-        <el-button :disabled="!modeler">
+      <el-dropdown :disabled="!active" trigger="click" @command="onDownload">
+        <el-button :disabled="!active">
           <el-icon><Download /></el-icon>
           <span class="sf-designer-toolbar__txt">下载文件</span>
         </el-button>
@@ -20,8 +20,8 @@
           </el-dropdown-menu>
         </template>
       </el-dropdown>
-      <el-dropdown :disabled="!modeler" trigger="click" @command="onPreview">
-        <el-button :disabled="!modeler">
+      <el-dropdown :disabled="!active" trigger="click" @command="onPreview">
+        <el-button :disabled="!active">
           <el-icon><View /></el-icon>
           <span class="sf-designer-toolbar__txt">预览</span>
         </el-button>
@@ -33,7 +33,11 @@
         </template>
       </el-dropdown>
       <el-tooltip :content="simulationOn ? '退出模拟' : '开启模拟'" placement="bottom">
-        <el-button :disabled="!modeler" :type="simulationOn ? 'warning' : undefined" @click="toggleSimulation">
+        <el-button
+          :disabled="!active || !supportsSimulation"
+          :type="simulationOn ? 'warning' : undefined"
+          @click="toggleSimulation"
+        >
           <el-icon><Cpu /></el-icon>
           <span class="sf-designer-toolbar__txt">模拟</span>
         </el-button>
@@ -47,7 +51,7 @@
         :content="a.label"
         placement="bottom"
       >
-        <el-button :disabled="!modeler" class="sf-align" :class="'sf-align--' + a.align" @click="align(a.align)">
+        <el-button :disabled="!active" class="sf-align" :class="'sf-align--' + a.align" @click="align(a.align)">
           <span class="sf-align__icon" aria-hidden="true" />
         </el-button>
       </el-tooltip>
@@ -55,18 +59,18 @@
 
     <el-button-group>
       <el-tooltip content="缩小视图" placement="bottom">
-        <el-button :disabled="!modeler || zoom <= 0.2" @click="zoomOut">
+        <el-button :disabled="!active || zoom <= 0.2" @click="zoomOut">
           <el-icon><ZoomOut /></el-icon>
         </el-button>
       </el-tooltip>
       <el-button disabled class="sf-designer-toolbar__zoom">{{ zoomPct }}</el-button>
       <el-tooltip content="放大视图" placement="bottom">
-        <el-button :disabled="!modeler || zoom >= 4" @click="zoomIn">
+        <el-button :disabled="!active || zoom >= 4" @click="zoomIn">
           <el-icon><ZoomIn /></el-icon>
         </el-button>
       </el-tooltip>
       <el-tooltip content="重置视图并居中" placement="bottom">
-        <el-button :disabled="!modeler" @click="zoomFit">
+        <el-button :disabled="!active" @click="zoomFit">
           <el-icon><FullScreen /></el-icon>
         </el-button>
       </el-tooltip>
@@ -74,17 +78,17 @@
 
     <el-button-group>
       <el-tooltip content="撤销" placement="bottom">
-        <el-button :disabled="!modeler || !canUndo" @click="undo">
+        <el-button :disabled="!active || !canUndo" @click="undo">
           <el-icon><RefreshLeft /></el-icon>
         </el-button>
       </el-tooltip>
       <el-tooltip content="恢复" placement="bottom">
-        <el-button :disabled="!modeler || !canRedo" @click="redo">
+        <el-button :disabled="!active || !canRedo" @click="redo">
           <el-icon><RefreshRight /></el-icon>
         </el-button>
       </el-tooltip>
       <el-tooltip content="重新绘制" placement="bottom">
-        <el-button :disabled="!modeler" @click="restart">
+        <el-button :disabled="!active" @click="restart">
           <el-icon><Refresh /></el-icon>
         </el-button>
       </el-tooltip>
@@ -135,6 +139,7 @@ import { parseXmlString } from 'steady-xml';
 import type { SailBpmnModeler } from '@sail/bpmn/createModeler';
 import { EMPTY_BPMN_XML } from '@sail/bpmn/createModeler';
 import { downloadSvg, downloadText } from '@sail/bpmn/utils/download';
+import type { ProcessDesignerEngine } from '@sail/designer/engine';
 
 hljs.registerLanguage('xml', xmlLang);
 hljs.registerLanguage('json', jsonLang);
@@ -142,7 +147,10 @@ hljs.registerLanguage('json', jsonLang);
 defineOptions({ name: 'SailDesignerToolbar' });
 
 const props = defineProps<{
-  modeler: SailBpmnModeler | null;
+  /** bpmn-js modeler（旧设计器） */
+  modeler?: SailBpmnModeler | null;
+  /** 统一引擎（Vue 设计器）；优先于 modeler */
+  engine?: ProcessDesignerEngine | null;
   fileBaseName?: string;
   /** 导出/预览前清理（如剥离 sf:Variables） */
   prepareExport?: () => void;
@@ -172,6 +180,11 @@ const previewVisible = ref(false);
 const previewType = ref<'xml' | 'json'>('xml');
 const previewRaw = ref('');
 
+const active = computed(() => !!(props.engine || props.modeler));
+const supportsSimulation = computed(
+  () => props.engine?.supportsSimulation !== false && !!props.modeler && !props.engine
+);
+
 const zoomPct = computed(() => `${Math.floor(zoom.value * 100)}%`);
 const previewHtml = computed(() => {
   const lang = previewType.value;
@@ -189,7 +202,7 @@ const previewHtml = computed(() => {
 type Off = { off?: (e: string, fn: (...a: any[]) => void) => void };
 let detach: (() => void) | null = null;
 
-function syncStack(m: SailBpmnModeler) {
+function syncStackModeler(m: SailBpmnModeler) {
   try {
     const stack = m.get('commandStack') as { canUndo: () => boolean; canRedo: () => boolean };
     canUndo.value = !!stack.canUndo();
@@ -198,6 +211,12 @@ function syncStack(m: SailBpmnModeler) {
     canUndo.value = false;
     canRedo.value = false;
   }
+}
+
+function syncStackEngine(e: ProcessDesignerEngine) {
+  canUndo.value = e.canUndo();
+  canRedo.value = e.canRedo();
+  zoom.value = e.getZoom();
 }
 
 function bindModeler(m: SailBpmnModeler | null) {
@@ -214,15 +233,15 @@ function bindModeler(m: SailBpmnModeler | null) {
     off: (e: string, fn: (...a: any[]) => void) => void;
   };
 
-  const onStack = () => syncStack(m);
-  const onViewbox = (e: { viewbox?: { scale?: number } }) => {
-    const scale = e?.viewbox?.scale;
+  const onStack = () => syncStackModeler(m);
+  const onViewbox = (ev: { viewbox?: { scale?: number } }) => {
+    const scale = ev?.viewbox?.scale;
     if (typeof scale === 'number') zoom.value = Math.floor(scale * 100) / 100;
   };
 
   eventBus.on('commandStack.changed', onStack);
   eventBus.on('canvas.viewbox.changed', onViewbox);
-  syncStack(m);
+  syncStackModeler(m);
 
   detach = () => {
     (eventBus as Off).off?.('commandStack.changed', onStack);
@@ -230,9 +249,24 @@ function bindModeler(m: SailBpmnModeler | null) {
   };
 }
 
+function bindEngine(e: ProcessDesignerEngine | null) {
+  detach?.();
+  detach = null;
+  simulationOn.value = false;
+  zoom.value = 1;
+  canUndo.value = false;
+  canRedo.value = false;
+  if (!e) return;
+  syncStackEngine(e);
+  detach = e.onChange(() => syncStackEngine(e));
+}
+
 watch(
-  () => props.modeler,
-  m => bindModeler(m),
+  () => [props.engine, props.modeler] as const,
+  ([eng, mod]) => {
+    if (eng) bindEngine(eng);
+    else bindModeler(mod ?? null);
+  },
   { immediate: true }
 );
 
@@ -259,20 +293,40 @@ async function onLocalFile(ev: Event) {
   }
 }
 
+async function exportXmlFromActive(): Promise<string> {
+  if (props.engine) {
+    const { xml } = await props.engine.exportXML();
+    return xml || '';
+  }
+  if (!props.modeler) return '';
+  const { xml } = await props.modeler.saveXML({ format: true });
+  return xml || '';
+}
+
+async function exportSvgFromActive(): Promise<string> {
+  if (props.engine) {
+    const { svg } = await props.engine.exportSVG();
+    return svg || '';
+  }
+  if (!props.modeler) return '';
+  const { svg } = await props.modeler.saveSVG();
+  return svg || '';
+}
+
 async function onDownload(cmd: string) {
-  if (!props.modeler) return;
+  if (!active.value) return;
   try {
     props.prepareExport?.();
     const name = baseName();
     if (cmd === 'svg') {
-      const { svg } = await props.modeler.saveSVG();
-      downloadSvg(`${name}.svg`, svg || '');
+      const svg = await exportSvgFromActive();
+      downloadSvg(`${name}.svg`, svg);
       ElMessage.success('已下载 SVG');
       return;
     }
-    const { xml } = await props.modeler.saveXML({ format: true });
+    const xml = await exportXmlFromActive();
     const ext = cmd === 'bpmn' ? 'bpmn' : 'xml';
-    downloadText(`${name}.${ext}`, xml || '', 'application/xml');
+    downloadText(`${name}.${ext}`, xml, 'application/xml');
     ElMessage.success(`已下载 ${ext.toUpperCase()}`);
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : String(e));
@@ -280,10 +334,10 @@ async function onDownload(cmd: string) {
 }
 
 async function onPreview(cmd: string) {
-  if (!props.modeler) return;
+  if (!active.value) return;
   try {
     props.prepareExport?.();
-    const { xml } = await props.modeler.saveXML({ format: true });
+    const xml = await exportXmlFromActive();
     if (cmd === 'json') {
       const root = parseXmlString(xml || '');
       previewRaw.value = JSON.stringify(root.toJsObject(), null, 2);
@@ -299,6 +353,15 @@ async function onPreview(cmd: string) {
 }
 
 function toggleSimulation() {
+  if (props.engine) {
+    if (!props.engine.supportsSimulation) {
+      ElMessage.warning('Vue 设计器暂不支持令牌模拟');
+      return;
+    }
+    const on = props.engine.toggleSimulation?.();
+    if (typeof on === 'boolean') simulationOn.value = on;
+    return;
+  }
   if (!props.modeler) return;
   try {
     const toggle = props.modeler.get('toggleMode', false) as { toggleMode: () => void } | false;
@@ -314,6 +377,16 @@ function toggleSimulation() {
 }
 
 function align(dir: AlignDir) {
+  if (props.engine) {
+    ElMessageBox.confirm('自动对齐可能造成图形变形，是否继续？', '警告', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+      .then(() => props.engine!.align(dir))
+      .catch(() => undefined);
+    return;
+  }
   if (!props.modeler) return;
   const Align = props.modeler.get('alignElements') as {
     trigger: (els: unknown[], align: string) => void;
@@ -334,6 +407,11 @@ function align(dir: AlignDir) {
 }
 
 function zoomIn() {
+  if (props.engine) {
+    props.engine.zoom(0.1);
+    zoom.value = props.engine.getZoom();
+    return;
+  }
   if (!props.modeler) return;
   const next = Math.min(4, Math.floor(zoom.value * 100 + 10) / 100);
   zoom.value = next;
@@ -341,6 +419,11 @@ function zoomIn() {
 }
 
 function zoomOut() {
+  if (props.engine) {
+    props.engine.zoom(-0.1);
+    zoom.value = props.engine.getZoom();
+    return;
+  }
   if (!props.modeler) return;
   const next = Math.max(0.2, Math.floor(zoom.value * 100 - 10) / 100);
   zoom.value = next;
@@ -348,6 +431,11 @@ function zoomOut() {
 }
 
 function zoomFit() {
+  if (props.engine) {
+    props.engine.zoom('fit-viewport');
+    zoom.value = props.engine.getZoom();
+    return;
+  }
   if (!props.modeler) return;
   zoom.value = 1;
   (props.modeler.get('canvas') as { zoom: (n: string, c?: string) => void }).zoom(
@@ -357,17 +445,25 @@ function zoomFit() {
 }
 
 function undo() {
+  if (props.engine) {
+    props.engine.undo();
+    return;
+  }
   props.modeler?.get('commandStack') &&
     (props.modeler.get('commandStack') as { undo: () => void }).undo();
 }
 
 function redo() {
+  if (props.engine) {
+    props.engine.redo();
+    return;
+  }
   props.modeler?.get('commandStack') &&
     (props.modeler.get('commandStack') as { redo: () => void }).redo();
 }
 
 async function restart() {
-  if (!props.modeler) return;
+  if (!active.value) return;
   try {
     await ElMessageBox.confirm('将清空当前画布并加载空白图，是否继续？', '重新绘制', {
       type: 'warning',

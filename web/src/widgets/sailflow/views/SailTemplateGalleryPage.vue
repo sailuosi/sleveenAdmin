@@ -5,6 +5,7 @@
         <el-button @click="router.push('/sail/processes')">流程定义</el-button>
         <el-button @click="router.push('/sail/leave')">请假样例</el-button>
         <el-button type="primary" @click="router.push('/sail/designer')">打开设计器</el-button>
+        <el-button @click="router.push('/sail/designer-vue')">Vue 设计器</el-button>
       </div>
     </template>
     <main class="sf-tpl-page__main">

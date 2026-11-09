@@ -298,6 +298,12 @@ export const routes: AutoRouterRoute[
       component: '_widgets_sailflow_views_SailDesignerPage',
     },
     {
+      name: '_widgets_sailflow_views_SailDesignerVuePage',
+      path: '/widgets/sailflow/views/SailDesignerVuePage',
+      layout: 'base',
+      component: '_widgets_sailflow_views_SailDesignerVuePage',
+    },
+    {
       name: '_widgets_sailflow_views_SailKnowledgeBasePage',
       path: '/widgets/sailflow/views/SailKnowledgeBasePage',
       layout: 'base',

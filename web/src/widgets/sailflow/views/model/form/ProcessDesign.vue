@@ -14,6 +14,7 @@
           {{ model.hasBpmn ? '已有流程图' : '尚未设计（有默认开始节点）' }}
         </el-tag>
         <el-button type="primary" @click="openDesigner">在设计器中打开</el-button>
+        <el-button @click="openDesignerVue">用 Vue 设计器打开</el-button>
         <el-button @click="refreshFlag">刷新状态</el-button>
       </div>
       <iframe
@@ -50,18 +51,26 @@ let saveWait: {
   timer: ReturnType<typeof setTimeout>;
 } | null = null;
 
-const designerUrl = computed(() => {
+function buildDesignerUrl(path: string, embed = true) {
   const q = new URLSearchParams({
     processId: String(model.value.processId || ''),
-    version: String(model.value.version || '1'),
-    embed: '1'
+    version: String(model.value.version || '1')
   });
-  return `${router.resolve({ path: '/sail/designer' }).href}?${q.toString()}`;
-});
+  if (embed) q.set('embed', '1');
+  return `${router.resolve({ path }).href}?${q.toString()}`;
+}
+
+const designerUrl = computed(() => buildDesignerUrl('/sail/designer', true));
+const designerVueUrl = computed(() => buildDesignerUrl('/sail/designer-vue', false));
 
 function openDesigner() {
   if (!model.value.processId) return;
   window.open(designerUrl.value, '_blank');
+}
+
+function openDesignerVue() {
+  if (!model.value.processId) return;
+  window.open(designerVueUrl.value, '_blank');
 }
 
 async function refreshFlag() {
