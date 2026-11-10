@@ -6,8 +6,8 @@ using mooSQL.data.model;
 
 namespace SleveenAdmin.Business.Portal;
 
-public sealed class PortalDbInitializer : IScoped
-{
+[Scoped]
+public sealed class PortalDbInitializer {
     private static readonly Type[] EntityTypes =
     [
         typeof(SysPortal),

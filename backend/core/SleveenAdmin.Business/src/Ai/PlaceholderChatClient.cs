@@ -3,7 +3,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Business.Ai;
 
-public sealed class PlaceholderChatClient : IChatClient, ISingleton
+[Singleton]
+public sealed class PlaceholderChatClient : IChatClient
 {
     public ChatClientMetadata Metadata { get; } = new("placeholder");
 

@@ -110,7 +110,7 @@ SleveenAdmin.Web.Api   ──► System + Business + Foundation
 
 #### BizService
 
-- 继承 `BizServiceBase<TRow>`，生命周期 `IScoped`
+- 继承 `BizServiceBase<TRow>`（基类已标 `[Scoped]`，子类无需再标）
 - 逻辑名 `BizName = "Biz_Sa_Xxx"` / `"Biz_Sys_User"`（保留下划线）
 - 强类型方法：`BizInitData GetInitData()`、`PagedResult<TRow> LoadPageList`、`TRow? LoadRowById`、`BizAffectedResult SaveList(IReadOnlyList<TRow>)`、`BizAffectedResult RemoveByOIDs`
 - 默认软删过滤；系统域 `UseSoftDelete=false` 时物理删除

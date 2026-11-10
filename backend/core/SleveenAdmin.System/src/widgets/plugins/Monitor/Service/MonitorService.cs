@@ -5,8 +5,8 @@ using SleveenAdmin.System.Monitor.Dtos;
 
 namespace SleveenAdmin.System.Monitor.Service;
 
-public sealed class MonitorService : IScoped
-{
+[Scoped]
+public sealed class MonitorService {
     private static readonly Process CurrentProcess = Process.GetCurrentProcess();
 
     public ServerInfoDto GetServerInfo()

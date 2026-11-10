@@ -211,7 +211,8 @@ public class MooRepository<T> where T : class, new()
 ### 4.2 业务 Service 注入示例
 
 ```csharp
-public sealed class UserService : IScoped
+[Scoped]
+public sealed class UserService
 {
     private readonly MooRepository<SysUser> _users;
     private readonly MooRepository<SysUserRole> _userRoles;

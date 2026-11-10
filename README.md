@@ -207,7 +207,7 @@ BPMN 设计器不止依赖 `bpmn-js`：同仓源码集成自研 **vue-bpmn**，�
 
 - **.NET 10**（`net10.0`）
 - **mooSQL.Ext** — ORM，开发默认 SQLite，可切换 SQL Server 等
-- **Scrutor** — 约定式依赖注入（`*Service` + 生命周期标记）
+- **DI 源生成** — `[Scoped]` / `[Singleton]` / `[Transient]` + 编译期 `Add*Services()`
 - **JWT Bearer** + 自定义 `PermissionAuthorizationHandler`
 - **Hangfire** — 定时任务，存储走 **Hangfire.MooSql**（复用主库 + 表前缀 `hf_`；默认启用，SQLite / MSSQL 等均可）
 - **StackExchange.Redis** — 缓存与监控

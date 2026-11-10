@@ -4,7 +4,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Web.Api.Auth;
 
-public sealed class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>, ISingleton
+[Singleton]
+public sealed class PermissionAuthorizationHandler : AuthorizationHandler<PermissionRequirement>
 {
     protected override Task HandleRequirementAsync(
         AuthorizationHandlerContext context,

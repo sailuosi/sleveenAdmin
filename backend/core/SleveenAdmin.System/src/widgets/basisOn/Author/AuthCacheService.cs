@@ -5,8 +5,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.System.Author;
 
-public sealed class AuthCacheService : ISingleton
-{
+[Singleton]
+public sealed class AuthCacheService {
     private readonly IMemoryCache _cache;
     private readonly HashSet<string> _keys = new(StringComparer.Ordinal);
     private readonly object _lock = new();

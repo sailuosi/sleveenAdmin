@@ -7,8 +7,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class SysPortCellService : IScoped
-{
+[Scoped]
+public sealed class SysPortCellService {
     private readonly MooRepository<SysPortCell> _cells;
     private readonly SysPortalCommonService _portalCommon;
 

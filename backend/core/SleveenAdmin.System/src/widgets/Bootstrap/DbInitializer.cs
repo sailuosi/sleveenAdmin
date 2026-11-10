@@ -18,7 +18,8 @@ using mooSQL.data.model;
 
 namespace SleveenAdmin.System.Bootstrap;
 
-public sealed class DbInitializer : IDbInitializer, IScoped
+[Scoped]
+public sealed class DbInitializer : IDbInitializer
 {
     private static readonly Type[] EntityTypes =
     [

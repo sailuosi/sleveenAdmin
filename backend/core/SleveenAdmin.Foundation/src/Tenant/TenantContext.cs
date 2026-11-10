@@ -5,7 +5,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Foundation.Tenant;
 
-public sealed class TenantContext(IHttpContextAccessor httpContextAccessor) : ITenantContext, IScoped
+[Scoped]
+public sealed class TenantContext(IHttpContextAccessor httpContextAccessor) : ITenantContext
 {
     private ClaimsPrincipal? User => httpContextAccessor.HttpContext?.User;
 

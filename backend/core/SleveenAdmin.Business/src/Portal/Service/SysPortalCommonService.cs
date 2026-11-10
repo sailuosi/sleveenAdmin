@@ -9,7 +9,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class SysPortalCommonService : IScoped
+[Scoped]
+public sealed class SysPortalCommonService
 {
     private readonly IMemoryCache _cache;
 

@@ -8,8 +8,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class SysPortalService : IScoped
-{
+[Scoped]
+public sealed class SysPortalService {
     private readonly SysPortalCommonService _portalCommon;
 
     public SysPortalService(SysPortalCommonService portalCommon) => _portalCommon = portalCommon;

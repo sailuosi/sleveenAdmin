@@ -4,8 +4,8 @@ using SleveenAdmin.System.Online.Dtos;
 
 namespace SleveenAdmin.System.Online.Service;
 
-public sealed class OnlineUserTracker : ISingleton
-{
+[Singleton]
+public sealed class OnlineUserTracker {
     private readonly ConcurrentDictionary<string, OnlineUserDto> _sessions = new();
 
     public void Add(OnlineUserDto session) => _sessions[session.ConnectionId] = session;

@@ -15,8 +15,8 @@ using mooSQL.data;
 
 namespace SleveenAdmin.System.AuthBag.Service;
 
-public sealed class AuthBagService : IScoped
-{
+[Scoped]
+public sealed class AuthBagService {
     private readonly MooRepository<AuthDutyItem> _dutyItems;
     private readonly MooRepository<AuthGoodsBag> _goodsBags;
     private readonly MooRepository<AuthGoodsItem> _goodsItems;

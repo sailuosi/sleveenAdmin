@@ -6,33 +6,27 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SleveenAdmin.Business.Ai;
 using SleveenAdmin.Business.Ai.Controller;
-using SleveenAdmin.Business.Ai.Service;
 using SleveenAdmin.Business.Portal;
 using SleveenAdmin.Business.Portal.Controller;
-using SleveenAdmin.Business.Portal.Service;
 using SleveenAdmin.Officeman.Ebook;
 using SleveenAdmin.Officeman.Ebook.Controller;
-using SleveenAdmin.Officeman.Ebook.Service;
+using SleveenAdmin.Foundation;
 using SleveenAdmin.Foundation.AspNet;
 using SleveenAdmin.Foundation.Auth;
 using SleveenAdmin.Foundation.Configuration;
 using SleveenAdmin.Foundation.Data;
-using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Foundation.Ids;
 using SleveenAdmin.Foundation.Models;
 using SleveenAdmin.Foundation.Options;
 using SleveenAdmin.Foundation.Storage;
 using SleveenAdmin.System;
 using SleveenAdmin.System.Author;
-using SleveenAdmin.System.Auth.Service;
 using SleveenAdmin.System.Bootstrap;
-
 using SleveenAdmin.System.User.Controller;
-using SleveenAdmin.System.User.Service;
 using SleveenAdmin.System.Online.Hubs;
 using SleveenAdmin.System.Tenant.Controller;
 using SleveenAdmin.Saiflow.Controller;
 using SleveenAdmin.Saiflow.Hosting;
+using SleveenAdmin.Web.Api;
 using SleveenAdmin.Web.Api.Auth;
 using SleveenAdmin.Web.Api.Scheduling;
 using SleveenAdmin.Web.Api.Swagger;
@@ -49,6 +43,7 @@ builder.Configuration.AddJsonFile(
 
 builder.Services.AddMooProjectOptions(builder.Configuration);
 builder.Services.AddMooSql(builder.Configuration);
+builder.Services.AddSleveenAdminFoundationServices();
 builder.Services.AddSaiflowHost(builder.Configuration);
 builder.Services.AddSleveenAdminSystem(builder.Configuration);
 builder.Services.AddSleveenAdminAi(builder.Configuration);
@@ -56,23 +51,13 @@ builder.Services.AddSleveenAdminPortal();
 builder.Services.AddSleveenAdminOfficeman();
 builder.Services.AddSleveenAdminHangfire(builder.Configuration);
 builder.Services.AddSignalR();
-
-builder.Services.AddSleveenAdminServiceDiscovery(
-    typeof(BizSysUserService),
-    typeof(SysPortalService),
-    typeof(AiChatService),
-    typeof(AuthService),
-    typeof(GuidV7Generator),
-    typeof(LocalFileStorage),
-    typeof(PermissionAuthorizationHandler),
-    typeof(SleveenAdmin.System.AuthBag.Service.AuthBagService),
-    typeof(BizSaEbMatService));
+builder.Services.AddSleveenAdminWebApiServices();
 
 var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
           ?? throw new InvalidOperationException("Jwt configuration is required.");
 
 builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
-// Scrutor 可能未将 AuthorizationHandler 注册为 IAuthorizationHandler，导致 PermissionRequirement 无人处理 → 403 且断点不进 Handler
+// 显式注册 IAuthorizationHandler（与源生成 AsSelf 并存，确保策略能解析到 Handler）
 builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

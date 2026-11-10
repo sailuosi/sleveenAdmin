@@ -2,8 +2,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.System.Bootstrap.Service;
 
-public sealed class HealthService : IScoped
-{
+[Scoped]
+public sealed class HealthService {
     private readonly IDbInitializer _dbInitializer;
 
     public HealthService(IDbInitializer dbInitializer) => _dbInitializer = dbInitializer;

@@ -24,7 +24,8 @@ public sealed class ApiResultFilter : IResultFilter
     }
 }
 
-public sealed class GlobalExceptionFilter : IExceptionFilter, IScoped
+[Scoped]
+public sealed class GlobalExceptionFilter : IExceptionFilter
 {
     private readonly ILogger<GlobalExceptionFilter> _logger;
 

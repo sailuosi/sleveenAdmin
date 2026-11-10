@@ -109,8 +109,9 @@ Dtos/        → 必要时的入参出参（非 Biz 页面也可）
 
 ### 3.3 依赖注入
 
-- 业务：`UserService` / `Biz_*Service` 等 **具体类** + Scrutor（`*Service` → Scoped，或 `ITransient` / `IScoped` / `ISingleton` 标记）
-- 允许基础设施抽象：`IDbInitializer`、`IIdGenerator` 等跨层可替换契约
+- 业务：`UserService` / `Biz_*Service` 等 **具体类** + `[Scoped]` / `[Singleton]` / `[Transient]`（基类可继承，如 `BizServiceBase`）
+- 源生成：`DiRegistrationGenerator` 按程序集生成 `Add*Services()`，模块 Setup / `Program` 显式调用
+- 允许基础设施抽象：`IDbInitializer`、`IIdGenerator` 等跨层可替换契约（生成时额外按接口注册；不以 `Service` 结尾）
 - **不要**为每个业务 Service 再套一层仅转发的接口
 
 ### 3.4 分散配置 JSON
@@ -196,7 +197,7 @@ web/src/
 | 能力 | 方案 |
 |------|------|
 | 宿主 | 标准 `WebApplication` + 分散 JSON 配置 |
-| DI | Scrutor + 生命周期标记 + `*Service` 约定 |
+| DI | `[Scoped]`/`[Singleton]`/`[Transient]` + 源生成 `Add*Services` |
 | ORM | mooSQL `DBInsCash` / `MooRepository<T>` |
 | 缓存 | StackExchange.Redis |
 | 定时任务 | Hangfire.MooSql（复用主库 + `hf_` 前缀；默认开） |

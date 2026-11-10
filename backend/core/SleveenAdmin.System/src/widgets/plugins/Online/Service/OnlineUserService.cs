@@ -4,8 +4,8 @@ using SleveenAdmin.System.Online.Service;
 
 namespace SleveenAdmin.System.Online.Service;
 
-public sealed class OnlineUserService : IScoped
-{
+[Scoped]
+public sealed class OnlineUserService {
     private readonly OnlineUserTracker _tracker;
 
     public OnlineUserService(OnlineUserTracker tracker) => _tracker = tracker;

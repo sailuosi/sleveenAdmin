@@ -2,7 +2,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Foundation.Ids;
 
-public sealed class GuidV7Generator : IIdGenerator, ISingleton
+[Singleton]
+public sealed class GuidV7Generator : IIdGenerator
 {
     public Guid Create() => Guid.CreateVersion7();
 }

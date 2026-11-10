@@ -12,7 +12,8 @@ namespace SleveenAdmin.Foundation.Biz;
 /// <summary>
 /// 业务 Biz 服务基类（强类型行）。子类提供表名 / OID 列，并可选覆盖筛选、初始化码表与保存钩子。
 /// </summary>
-public abstract class BizServiceBase<TRow> : IScoped
+[Scoped]
+public abstract class BizServiceBase<TRow>
     where TRow : class, new()
 {
     static readonly JsonSerializerOptions JsonOpts = new()

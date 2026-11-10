@@ -9,8 +9,8 @@ using SleveenAdmin.System.File.Dtos;
 
 namespace SleveenAdmin.System.File.Service;
 
-public sealed class FileService : IScoped
-{
+[Scoped]
+public sealed class FileService {
     private readonly MooRepository<SysFile> _files;
     private readonly LocalFileStorage _storage;
 

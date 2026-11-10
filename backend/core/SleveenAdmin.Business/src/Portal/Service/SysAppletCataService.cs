@@ -7,8 +7,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Business.Portal.Service;
 
-public sealed class SysAppletCataService : IScoped
-{
+[Scoped]
+public sealed class SysAppletCataService {
     private readonly MooRepository<SysAppletCata> _catas;
 
     public SysAppletCataService(MooRepository<SysAppletCata> catas) => _catas = catas;

@@ -6,7 +6,8 @@ using SleveenAdmin.Foundation.Options;
 
 namespace SleveenAdmin.Foundation.Storage;
 
-public sealed class LocalFileStorage : ISingleton
+[Singleton]
+public sealed class LocalFileStorage
 {
     private readonly FileStorageOptions _options;
     private readonly string _rootPath;

@@ -7,8 +7,8 @@ using SleveenAdmin.System.Dict.Dtos;
 
 namespace SleveenAdmin.System.Dict.Service;
 
-public sealed class DictService : IScoped
-{
+[Scoped]
+public sealed class DictService {
     private readonly MooRepository<SysDictType> _types;
     private readonly MooRepository<SysDictData> _data;
 

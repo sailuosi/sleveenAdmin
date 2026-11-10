@@ -20,8 +20,8 @@ using mooSQL.data;
 
 namespace SleveenAdmin.System.Auth.Service;
 
-public sealed class AuthService : IScoped
-{
+[Scoped]
+public sealed class AuthService {
     private readonly MooRepository<SysUser> _users;
     private readonly MooRepository<SysMenu> _menus;
     private readonly MooRepository<SysRefreshToken> _refreshTokens;

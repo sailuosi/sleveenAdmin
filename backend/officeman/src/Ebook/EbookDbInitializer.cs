@@ -6,8 +6,8 @@ using SleveenAdmin.Officeman.Ebook.DBLayer;
 
 namespace SleveenAdmin.Officeman.Ebook;
 
-public sealed class EbookDbInitializer : IScoped
-{
+[Scoped]
+public sealed class EbookDbInitializer {
     private static readonly Type[] EntityTypes =
     [
         typeof(Sa_EbCata),

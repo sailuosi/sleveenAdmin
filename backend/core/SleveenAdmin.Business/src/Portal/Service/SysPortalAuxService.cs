@@ -8,8 +8,8 @@ using SleveenAdmin.Foundation.DI;
 namespace SleveenAdmin.Business.Portal.Service;
 
 /// <summary>门户角色、链接、页面选择/字段/关联等辅助表 CRUD。</summary>
-public sealed class SysPortalAuxService : IScoped
-{
+[Scoped]
+public sealed class SysPortalAuxService {
     private readonly MooRepository<SysPortalRole> _roles;
     private readonly MooRepository<SysPortalLink> _links;
     private readonly MooRepository<SysPageSelect> _selects;

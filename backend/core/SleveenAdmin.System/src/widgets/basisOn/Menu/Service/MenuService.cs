@@ -9,8 +9,8 @@ using SleveenAdmin.System.User.DBLayer;
 
 namespace SleveenAdmin.System.Menu.Service;
 
-public sealed class MenuService : IScoped
-{
+[Scoped]
+public sealed class MenuService {
     private readonly MooRepository<SysUser> _users;
     private readonly MooRepository<SysMenu> _menus;
 

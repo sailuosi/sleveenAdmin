@@ -8,7 +8,8 @@ using StackExchange.Redis;
 
 namespace SleveenAdmin.System.Monitor.Service;
 
-public sealed class RedisService : IScoped
+[Scoped]
+public sealed class RedisService
 {
     private const int MaxScanKeys = 5000;
 

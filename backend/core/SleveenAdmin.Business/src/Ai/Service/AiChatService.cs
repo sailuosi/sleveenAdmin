@@ -5,8 +5,8 @@ using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Business.Ai.Service;
 
-public sealed class AiChatService : IScoped
-{
+[Scoped]
+public sealed class AiChatService {
     private readonly AIAgent _agent;
 
     public AiChatService(AIAgent agent) => _agent = agent;

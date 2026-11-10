@@ -11,6 +11,7 @@ public static class SystemSetupExtensions
         services.AddHttpContextAccessor();
         services.AddMemoryCache();
         // FileStorage / Redis / Captcha 由宿主 AddMooProjectOptions 集中注册
+        services.AddSleveenAdminSystemServices();
         return services;
     }
 }

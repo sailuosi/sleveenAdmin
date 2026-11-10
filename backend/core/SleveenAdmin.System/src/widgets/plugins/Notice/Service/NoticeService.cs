@@ -10,8 +10,8 @@ using SleveenAdmin.System.User.DBLayer;
 
 namespace SleveenAdmin.System.Notice.Service;
 
-public sealed class NoticeService : IScoped
-{
+[Scoped]
+public sealed class NoticeService {
     private readonly MooRepository<SysNotice> _notices;
     private readonly MooRepository<SysNoticeUser> _noticeUsers;
     private readonly MooRepository<SysUser> _users;

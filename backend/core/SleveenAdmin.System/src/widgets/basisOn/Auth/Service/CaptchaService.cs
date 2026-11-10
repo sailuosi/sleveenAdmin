@@ -7,8 +7,8 @@ using SleveenAdmin.System.Auth.Dtos;
 
 namespace SleveenAdmin.System.Auth.Service;
 
-public sealed class CaptchaService : ISingleton
-{
+[Singleton]
+public sealed class CaptchaService {
     private const string CachePrefix = "captcha:";
     private const string Chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
 
