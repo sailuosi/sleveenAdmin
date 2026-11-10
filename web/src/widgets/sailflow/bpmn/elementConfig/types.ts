@@ -52,6 +52,9 @@ export type SailSubProcessModel = {
   id: string;
   name: string;
   documentation: string;
+  /** 被引用流程定义行主键 → XML subId / SubProcessDefId（勿用流程设计定义键兜底） */
+  subId: string;
+  /** 流程设计定义键 → XML subProcessId */
   subProcessId: string;
   subProcessName: string;
 };

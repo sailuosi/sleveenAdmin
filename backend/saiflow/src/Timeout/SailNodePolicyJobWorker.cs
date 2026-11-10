@@ -102,7 +102,7 @@ public sealed class SailNodePolicyJobWorker(
             }
 
             tasks = tasks
-                .GroupBy(x => x.Id)
+                .GroupBy(x => x.TaskId)
                 .Select(g => g.First())
                 .Take(20)
                 .ToList();
@@ -116,7 +116,7 @@ public sealed class SailNodePolicyJobWorker(
         foreach (var task in tasks)
         {
             ct.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(task.Id)) continue;
+            if (string.IsNullOrWhiteSpace(task.TaskId)) continue;
             try
             {
                 var uid = string.IsNullOrWhiteSpace(task.AssignedUserId)
@@ -132,11 +132,11 @@ public sealed class SailNodePolicyJobWorker(
                 // Job 路径用同步 API，避免伪 async 线程池切换（草案阶段 0）
                 var exec = wf.RunProcess(runner);
                 if (exec.Status != WfExecutedStatus.Success)
-                    logger.LogWarning("LegacyPolicySkip Run failed task={TaskId}: {Msg}", task.Id, exec.Message);
+                    logger.LogWarning("LegacyPolicySkip Run failed task={TaskId}: {Msg}", task.TaskId, exec.Message);
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "LegacyPolicySkip Run exception task={TaskId}", task.Id);
+                logger.LogWarning(ex, "LegacyPolicySkip Run exception task={TaskId}", task.TaskId);
             }
         }
     }
@@ -161,7 +161,7 @@ public sealed class SailNodePolicyJobWorker(
         foreach (var task in tasks)
         {
             ct.ThrowIfCancellationRequested();
-            if (string.IsNullOrWhiteSpace(task.Id)) continue;
+            if (string.IsNullOrWhiteSpace(task.TaskId)) continue;
             try
             {
                 var runner = BuildRunnerFromTask(sail, task,
@@ -172,11 +172,11 @@ public sealed class SailNodePolicyJobWorker(
                 runner.DynamicVariables["sail.comment"] = "approveType=自动拒绝";
                 var exec = wf.RejectProcess(runner);
                 if (exec.Status != WfExecutedStatus.Success)
-                    logger.LogWarning("PolicyReject failed task={TaskId}: {Msg}", task.Id, exec.Message);
+                    logger.LogWarning("PolicyReject failed task={TaskId}: {Msg}", task.TaskId, exec.Message);
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "PolicyReject exception task={TaskId}", task.Id);
+                logger.LogWarning(ex, "PolicyReject exception task={TaskId}", task.TaskId);
             }
         }
     }
@@ -193,7 +193,7 @@ public sealed class SailNodePolicyJobWorker(
             var waiting = clip.select(t).queryList() ?? new List<TaskEntity>();
             // 主路径：已落库的 task.overdue_datetime；旧行无 Due 时回退 Created+策略（Handle 内）
             dueTasks = waiting
-                .Where(x => !string.IsNullOrWhiteSpace(x.Id))
+                .Where(x => !string.IsNullOrWhiteSpace(x.TaskId))
                 .Where(x => x.OverdueDateTime.HasValue && ToUtc(x.OverdueDateTime.Value) <= now)
                 .Take(20)
                 .ToList();
@@ -202,7 +202,7 @@ public sealed class SailNodePolicyJobWorker(
             if (dueTasks.Count < 20)
             {
                 var legacy = waiting
-                    .Where(x => !string.IsNullOrWhiteSpace(x.Id) && !x.OverdueDateTime.HasValue)
+                    .Where(x => !string.IsNullOrWhiteSpace(x.TaskId) && !x.OverdueDateTime.HasValue)
                     .Take(20 - dueTasks.Count)
                     .ToList();
                 dueTasks.AddRange(legacy);
@@ -223,7 +223,7 @@ public sealed class SailNodePolicyJobWorker(
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "timeout handle failed task={Id}", task.Id);
+                logger.LogWarning(ex, "timeout handle failed task={Id}", task.TaskId);
             }
         }
     }
@@ -278,7 +278,7 @@ public sealed class SailNodePolicyJobWorker(
                     : task.AssignedUserName;
                 var exec = wf.RunProcess(runner);
                 if (exec.Status != WfExecutedStatus.Success)
-                    logger.LogWarning("Timeout agree failed task={Id}: {Msg}", task.Id, exec.Message);
+                    logger.LogWarning("Timeout agree failed task={Id}: {Msg}", task.TaskId, exec.Message);
                 break;
             }
             case 3: // 自动拒绝
@@ -291,7 +291,7 @@ public sealed class SailNodePolicyJobWorker(
                 runner.DynamicVariables["sail.comment"] = "超时策略：自动拒绝";
                 var exec = wf.RejectProcess(runner);
                 if (exec.Status != WfExecutedStatus.Success)
-                    logger.LogWarning("Timeout reject failed task={Id}: {Msg}", task.Id, exec.Message);
+                    logger.LogWarning("Timeout reject failed task={Id}: {Msg}", task.TaskId, exec.Message);
                 break;
             }
         }
@@ -319,14 +319,14 @@ public sealed class SailNodePolicyJobWorker(
         var kit = sail.UseRunSQL();
         foreach (var task in tasks)
         {
-            if (string.IsNullOrWhiteSpace(task.Id)) continue;
-            var count = RemindCounts.AddOrUpdate(task.Id, 1, (_, c) => c + 1);
+            if (string.IsNullOrWhiteSpace(task.TaskId)) continue;
+            var count = RemindCounts.AddOrUpdate(task.TaskId, 1, (_, c) => c + 1);
             if (count > max)
                 continue;
 
             logger.LogInformation(
                 "Timeout remind #{Count}/{Max} task={TaskId} user={User} activity={Act}",
-                count, max, task.Id, task.AssignedUserId, task.ActivityId);
+                count, max, task.TaskId, task.AssignedUserId, task.ActivityId);
             try
             {
                 sail.CapabilityDispatcher.FireTaskLifecycle(
@@ -334,7 +334,7 @@ public sealed class SailNodePolicyJobWorker(
             }
             catch (Exception ex)
             {
-                logger.LogDebug(ex, "timeout remind notifier failed task={Id}", task.Id);
+                logger.LogDebug(ex, "timeout remind notifier failed task={Id}", task.TaskId);
             }
         }
     }
@@ -361,7 +361,7 @@ public sealed class SailNodePolicyJobWorker(
             Version = version,
             AppName = task.AppName,
             AppInstanceId = task.AppInstanceId,
-            TaskId = task.Id
+            TaskId = task.TaskId
         };
     }
 }

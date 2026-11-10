@@ -152,7 +152,7 @@ public partial class Wf2XmlController : ControllerBase
             entity.XmlContent = fileEntity.XmlContent;
 
             var processId = _workflowService.CreateProcess(entity);
-            entity.Id = processId;
+            entity.ProcessDefId = processId;
             return ResponseResult<ProcessEntity>.Success(entity, "CreateProcess ok");
         }
         catch (Exception ex)

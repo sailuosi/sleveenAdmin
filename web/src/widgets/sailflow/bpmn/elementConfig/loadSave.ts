@@ -203,6 +203,7 @@ export function loadSubProcess(element: unknown): SailSubProcessModel {
     id: str(bo.id),
     name: str(bo.name),
     documentation: readDocumentation(element),
+    subId: str(first?.subId),
     subProcessId: str(first?.subProcessId),
     subProcessName: str(first?.subProcessName)
   };
@@ -220,6 +221,10 @@ export function saveSubProcess(
     documentation: model.documentation || undefined,
   });
   if (!model.subProcessId) return;
+  // D1：subId 必须是定义行主键；禁止用流程设计定义键 ProcessId 兜底
+  if (!model.subId) {
+    throw new Error('子流程未绑定定义行主键（subId）；请重新选择子流程');
+  }
   const col = ensureChildExtension(bo, 'sf:SubInfoes', moddle);
   let list = (col.get?.('values') as ModdleEl[] | undefined) ?? (col.values as ModdleEl[] | undefined);
   if (!Array.isArray(list)) {
@@ -234,7 +239,7 @@ export function saveSubProcess(
   }
   item.subProcessId = model.subProcessId;
   item.subProcessName = model.subProcessName;
-  item.subId = item.subId || model.subProcessId;
+  item.subId = model.subId;
   modeling.updateProperties(element, { extensionElements: bo.extensionElements });
 }
 

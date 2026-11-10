@@ -60,7 +60,7 @@ public class WfCopyController : ControllerBase
                 .Where(t => !string.IsNullOrWhiteSpace(t.UserId))
                 .Select(t => new SailProcessCopyEntity
                 {
-                    Id = Guid.NewGuid().ToString("N"),
+                    ProcessCopyId = Guid.NewGuid().ToString("N"),
                     UserId = t.UserId!,
                     UserName = t.UserName ?? t.UserId!,
                     StartUserId = req.StartUserId ?? "",

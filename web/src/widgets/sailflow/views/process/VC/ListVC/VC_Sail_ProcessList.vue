@@ -90,7 +90,7 @@ const props = defineProps({
 
 const router = useRouter()
 const listHolder = useListEditor()
-const oidField = "Id"
+const oidField = "ProcessDefId"
 const loading = ref(false)
 const mlist = ref([])
 const total = ref(0)

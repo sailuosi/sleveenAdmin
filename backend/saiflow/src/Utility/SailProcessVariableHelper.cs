@@ -40,7 +40,7 @@ public static class SailProcessVariableHelper
                     Name = kv.Key
                 });
 
-                if (exist != null && !string.IsNullOrWhiteSpace(exist.Id))
+                if (exist != null && !string.IsNullOrWhiteSpace(exist.ProcessVariableId))
                 {
                     exist.Value = kv.Value;
                     exist.AppInstanceId = runner.AppInstanceId ?? exist.AppInstanceId;

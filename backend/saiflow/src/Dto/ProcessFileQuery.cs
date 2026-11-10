@@ -5,7 +5,6 @@ namespace SleveenAdmin.Saiflow.Dto;
 /// </summary>
 public class ProcessFileQuery
 {
-    public int Id { get; set; }
     public string ProcessId { get; set; } = string.Empty;
     public string? Version { get; set; }
 }

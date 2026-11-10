@@ -355,7 +355,7 @@ async function probeNextActivityTree() {
   try {
     const t = task.value;
     const data = await getNextActivityRoleUserTree({
-      TaskId: String(pickField(t, 'Id', 'id') || ''),
+      TaskId: String(pickField(t, 'TaskId', 'taskId', 'Id', 'id') || ''),
       ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
       Version: String(pickField(t, 'Version', 'version') || '1'),
       AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),

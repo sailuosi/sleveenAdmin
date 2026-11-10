@@ -113,7 +113,7 @@ async function confirm() {
   }
 
   const payload: VariableRow[] = rows.value.map((r, i) => ({
-    Id: r.Id,
+    VariableId: r.VariableId ?? r.Id ?? r.id,
     ProcessId: processId,
     Version: version || '1',
     ActivityId: activityId,

@@ -588,7 +588,7 @@ function buildRunner(extra?: Partial<FlowCommandContextPayload>): FlowCommandCon
     AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),
     ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
     Version: String(pickField(t, 'Version', 'version') || '1'),
-    TaskId: String(pickField(t, 'Id', 'id') || '').trim() || null,
+    TaskId: String(pickField(t, 'TaskId', 'taskId', 'Id', 'id') || '').trim() || null,
     ActivityInstanceId:
       String(pickField(t, 'ActivityInstanceId', 'activityInstanceId') || '').trim() || null,
     Conditions: conditions,
@@ -829,7 +829,7 @@ async function onCopy() {
       ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
       ProcessName: String(pickField(pi || {}, 'ProcessName', 'processName') || ''),
       AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),
-      TaskId: String(pickField(t, 'Id', 'id') || ''),
+      TaskId: String(pickField(t, 'TaskId', 'taskId', 'Id', 'id') || ''),
       TaskName: String(pickField(t, 'ActivityName', 'activityName') || ''),
       StartUserId: String(pickField(pi || {}, 'CreatedUserId', 'createdUserId') || ''),
       CreatorId: userId.value,

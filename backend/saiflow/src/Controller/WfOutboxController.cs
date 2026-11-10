@@ -95,7 +95,7 @@ public class WfOutboxController : ControllerBase
         }
     }
 
-    /// <summary>POST api/WfOutbox/ResetDeadBatch · { Ids: number[] }</summary>
+    /// <summary>POST api/WfOutbox/ResetDeadBatch · { Ids: string[] }</summary>
     [HttpPost]
     public ResponseResult ResetDeadBatch([FromBody] ResetIdsRequest? body)
     {

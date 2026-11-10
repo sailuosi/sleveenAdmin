@@ -310,7 +310,7 @@ public partial class Wf2XmlController
     {
         try
         {
-            var ok = _workflowService.DeleteInstanceInt(query.ProcessId, query.Version);
+            var ok = _workflowService.DeleteProcessInstances(query.ProcessId, query.Version);
             return ok
                 ? ResponseResult.Success("DeleteInstance ok")
                 : ResponseResult.Error("DeleteInstance failed");
@@ -497,7 +497,7 @@ public partial class Wf2XmlController
             {
                 var runner = new FlowCommandContext
                 {
-                    TaskId = task.Id,
+                    TaskId = task.TaskId,
                     AppInstanceId = task.AppInstanceId,
                     ProcessId = task.ProcessId,
                     Version = task.Version,
@@ -541,7 +541,7 @@ public partial class Wf2XmlController
                     ActivityInstanceEntity? ai = null;
                     if (!string.IsNullOrWhiteSpace(task.ActivityInstanceId))
                     {
-                        ai = dto.ActivityInstances.FirstOrDefault(a => a.Id == task.ActivityInstanceId)
+                        ai = dto.ActivityInstances.FirstOrDefault(a => a.ActivityInstanceId == task.ActivityInstanceId)
                              ?? _workflowService.GetActivityInstance(task.ActivityInstanceId);
                     }
                     if (!string.IsNullOrWhiteSpace(ai?.BackSrcActivityInstanceId))

@@ -189,7 +189,7 @@ async function onSelect(row: RuleSetRow | null) {
     }
     const entity = unwrapEntity(data) as RuleSetRow;
     Object.assign(form, {
-      Id: entity.Id,
+      Id: entity.RuleSetId ?? entity.Id,
       RuleSetCode: entity.RuleSetCode || '',
       RuleSetName: entity.RuleSetName || '',
       Description: entity.Description || '',
@@ -211,7 +211,7 @@ async function onSave() {
   saving.value = true;
   try {
     const data = await saveRuleSet({
-      Id: form.Id,
+      RuleSetId: form.Id,
       RuleSetCode: form.RuleSetCode.trim(),
       RuleSetName: form.RuleSetName.trim(),
       Description: form.Description || '',

@@ -84,8 +84,14 @@ function confirm() {
     ElMessage.warning('请选择流程');
     return;
   }
+  const rowId =
+    selected.value.ProcessDefId ?? selected.value.processDefId ?? selected.value.Id ?? selected.value.id;
+  if (rowId == null || rowId === '') {
+    ElMessage.warning('所选流程缺少定义行主键，无法绑定子流程');
+    return;
+  }
   onConfirm?.({
-    subId: String(selected.value.Id ?? selected.value.ProcessId),
+    subId: String(rowId),
     subProcessId: String(selected.value.ProcessId),
     subProcessName: String(selected.value.ProcessName || selected.value.ProcessCode || '')
   });

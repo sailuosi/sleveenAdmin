@@ -83,7 +83,7 @@ function reload() {
 function goDetail(row) {
   router.push({
     path: '/sail/process-detail',
-    query: { processInstanceId: String(row?.id ?? row?.Id ?? '') }
+    query: { processInstanceId: String(row?.processInstanceId ?? row?.ProcessInstanceId ?? row?.id ?? row?.Id ?? '') }
   });
 }
 

@@ -282,6 +282,7 @@ function pickSub() {
   designerEvents.emit('subprocess:pick', {
     onConfirm: draft => {
       if (!sub.value) return;
+      sub.value.subId = draft.subId;
       sub.value.subProcessId = draft.subProcessId;
       sub.value.subProcessName = draft.subProcessName;
     }

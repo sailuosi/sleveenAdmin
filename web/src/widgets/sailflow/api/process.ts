@@ -36,8 +36,8 @@ export function queryProcessFile(data: { ProcessId: string; Version?: string }) 
   });
 }
 
-/** GET api/Wf2Xml/GetProcessFile/{id} */
-export function getProcessFileById(id: number | string) {
+/** GET api/Wf2Xml/GetProcessFile/{id} · id = 定义行主键 */
+export function getProcessFileById(id: string) {
   return request({
     url: `/api/Wf2Xml/GetProcessFile/${id}`,
     method: 'get'
@@ -119,8 +119,8 @@ export function deleteProcess(data: { ProcessId: string; Version?: string }) {
   });
 }
 
-/** GET api/Wf2Xml/DeleteProcessById/{id} */
-export function deleteProcessById(id: number | string) {
+/** GET api/Wf2Xml/DeleteProcessById/{id} · id = 定义行主键 */
+export function deleteProcessById(id: string) {
   return request({
     url: `/api/Wf2Xml/DeleteProcessById/${id}`,
     method: 'get'

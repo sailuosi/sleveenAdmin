@@ -101,7 +101,7 @@ function goDetail(row) {
   router.push({
     path: '/sail/process-detail',
     query: {
-      taskId: String(row?.id ?? row?.Id ?? ''),
+      taskId: String(row?.taskId ?? row?.TaskId ?? row?.id ?? row?.Id ?? ''),
       processInstanceId: String(row?.processInstanceId || row?.ProcessInstanceId || '')
     }
   });
