@@ -110,7 +110,7 @@ function pick(row, ...keys) {
 }
 
 function rowId(row) {
-  return String(pick(row, 'id', 'Id') || '');
+  return String(pick(row, 'processInstanceId', 'ProcessInstanceId', 'id', 'Id') || '');
 }
 
 function rowState(row) {

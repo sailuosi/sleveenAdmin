@@ -113,7 +113,7 @@
               <el-timeline v-if="activityInstances.length">
                 <el-timeline-item
                   v-for="a in activityInstances"
-                  :key="String(field(a, 'Id', 'id'))"
+                  :key="String(field(a, 'ActivityInstanceId', 'activityInstanceId', 'Id', 'id'))"
                   :timestamp="formatTime(field(a, 'CreatedDateTime', 'createdDateTime'))"
                   placement="top"
                   :type="activityTimelineType(a)"

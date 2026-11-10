@@ -4,6 +4,8 @@
 import request from '@/utils/requestAPI6.js';
 
 export type RuleSetRow = {
+  /** 定义行主键（D4）；兼容旧字段 Id */
+  RuleSetId?: string;
   Id?: string;
   RuleSetCode?: string;
   RuleSetName?: string;

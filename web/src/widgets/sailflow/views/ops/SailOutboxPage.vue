@@ -40,8 +40,10 @@
         @selection-change="onSel"
       >
         <el-table-column type="selection" width="48" />
-        <el-table-column label="Id" width="70">
-          <template #default="{ row }">{{ field(row, 'Id', 'id') }}</template>
+        <el-table-column label="OutboxId" min-width="160" show-overflow-tooltip>
+          <template #default="{ row }">{{
+            field(row, 'HookOutboxId', 'hookOutboxId', 'Id', 'id')
+          }}</template>
         </el-table-column>
         <el-table-column label="Kind" width="90">
           <template #default="{ row }">{{ field(row, 'Kind', 'kind') }}</template>
@@ -111,7 +113,9 @@ function field(row: Record<string, unknown>, ...keys: string[]) {
 
 function onSel(list: Record<string, unknown>[]) {
   selectedIds.value = list
-    .map(r => String(field(r, 'Id', 'id') || '').trim())
+    .map(r =>
+      String(field(r, 'HookOutboxId', 'hookOutboxId', 'Id', 'id') || '').trim()
+    )
     .filter(id => id !== '');
 }
 
@@ -140,7 +144,7 @@ async function load() {
 }
 
 async function onResetOne(row: Record<string, unknown>) {
-  const id = String(field(row, 'Id', 'id') || '').trim();
+  const id = String(field(row, 'HookOutboxId', 'hookOutboxId', 'Id', 'id') || '').trim();
   if (!id) return;
   try {
     const data = await resetOutboxDead(id);

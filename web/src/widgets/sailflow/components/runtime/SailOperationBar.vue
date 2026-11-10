@@ -823,7 +823,7 @@ async function onCopy() {
       }),
       ProcessInstanceId: String(
         pickField(t, 'ProcessInstanceId', 'processInstanceId') ||
-          pickField(pi || {}, 'Id', 'id') ||
+          pickField(pi || {}, 'ProcessInstanceId', 'processInstanceId', 'Id', 'id') ||
           ''
       ),
       ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),

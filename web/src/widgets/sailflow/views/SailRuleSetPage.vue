@@ -29,7 +29,11 @@
       <section class="sf-ruleset-page__editor">
         <el-form label-width="88px" size="default">
           <el-form-item label="编码" required>
-            <el-input v-model="form.RuleSetCode" :disabled="!!form.Id" placeholder="RuleSetCode" />
+            <el-input
+              v-model="form.RuleSetCode"
+              :disabled="!!(form.RuleSetId || form.Id)"
+              placeholder="RuleSetCode"
+            />
           </el-form-item>
           <el-form-item label="名称" required>
             <el-input v-model="form.RuleSetName" placeholder="RuleSetName" />
@@ -130,6 +134,7 @@ function goProcesses() {
 
 function createNew() {
   Object.assign(form, {
+    RuleSetId: undefined,
     Id: undefined,
     RuleSetCode: '',
     RuleSetName: '',
@@ -189,6 +194,7 @@ async function onSelect(row: RuleSetRow | null) {
     }
     const entity = unwrapEntity(data) as RuleSetRow;
     Object.assign(form, {
+      RuleSetId: entity.RuleSetId ?? entity.Id,
       Id: entity.RuleSetId ?? entity.Id,
       RuleSetCode: entity.RuleSetCode || '',
       RuleSetName: entity.RuleSetName || '',
@@ -211,7 +217,7 @@ async function onSave() {
   saving.value = true;
   try {
     const data = await saveRuleSet({
-      RuleSetId: form.Id,
+      RuleSetId: form.RuleSetId || form.Id,
       RuleSetCode: form.RuleSetCode.trim(),
       RuleSetName: form.RuleSetName.trim(),
       Description: form.Description || '',

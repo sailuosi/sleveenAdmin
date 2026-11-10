@@ -43,7 +43,7 @@ export function querySailProcesslist(para) {
 }
 
 export function removeSailProcess(row) {
-  const id = pickField(row, 'Id', 'id');
+  const id = pickField(row, 'ProcessDefId', 'processDefId', 'Id', 'id');
   if (id != null && id !== '') {
     return deleteProcessById(String(id));
   }
