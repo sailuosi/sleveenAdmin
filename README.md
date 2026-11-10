@@ -1,14 +1,191 @@
 # sleveen-admin
 
-基于 **.NET 10** 与 **Soybean Admin** 的现代化后台管理系统（仓库名 **sleveen-admin**）。以 Admin.NET 标准版为功能蓝本，采用自研 ORM **mooSQL** 与清晰的分层架构，提供认证授权、RBAC、多租户、基础设施运维等开箱即用的平台能力；前端深度改造为 Element Plus + Biz/VC 范式，并接入独立引擎仓 **sailflow** 的流程工作台。
+**Element Plus 版 Soybean + .NET 10** 的现代化后台管理系统。面向习惯 Element 生态的团队，提供高颜值壳层与干净可扩展的平台底座；业务、系统模块只保留最核心能力，其余以扩展插件方式生长。
 
-> **当前重点**：权限与基础场景打磨；**无界壳 + 门户工作台**一体感；**Sailflow 流程工作台**联调与 UAT  
-> **引擎**：运行语义走独立仓 **sailflow**（`Start/Run/Reject/…`）  
-> **壳层**：默认主题「左栏无界」；首页等为无界 Vue + 门户装配（详见 [doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md)）
+以 Admin.NET 标准版为功能蓝本，采用自研 ORM **mooSQL** 与清晰分层；前端深度改造为 Element Plus + Biz/VC 范式；同仓集成工作流引擎 **sailflow** 与自研 **vue-bpmn**，开箱可搭 OA 与上层业务。
+
+> **壳层**：默认「左栏无界」；首页等为无界 Vue + 门户装配（见 [无界模式](./doc/无界模式/无界模式.md)）  
+> **引擎**：流程运行语义走独立仓 **sailflow**（`Start/Run/Reject/…`）  
+> **文档**：完善规范文档，便于 AI 驱动上层业务模块搭建
 
 ---
 
-## 特性概览
+## 九大特色
+
+| # | 特色 | 一句话 |
+|---|------|--------|
+| 1 | [Element Plus × Soybean × .NET 10](#1-element-plus--soybean--net-10) | 习惯 Element 也能拥有高颜值壳 + 现代后端 |
+| 2 | [高达 9 种布局模式](#2-高达-9-种布局模式) | 常规后台到沉浸式工作台全覆盖 |
+| 3 | [特色【无界】模式](#3-特色无界模式) | 业务模块沉浸式一体化，氛围感拉满 |
+| 4 | [内置门户功能](#4-内置门户功能) | 设计器 + 组件 + 千人千面准可用 |
+| 5 | [同仓工作流引擎 sailflow](#5-同仓工作流引擎-sailflow) | 各类 OA 开箱可搭 |
+| 6 | [源码集成自研 vue-bpmn](#6-源码集成自研-vue-bpmn) | 符合 BPMN，改扩建不受黑盒约束 |
+| 7 | [完善规范文档](#7-完善规范文档) | 轻松驱动 AI 搭建上层业务模块 |
+| 8 | [多数据库适配无痕](#8-多数据库适配无痕) | 方言切换 + 初始化一键化 |
+| 9 | [纯净核心](#9-纯净核心) | 核心精简，扩展以插件生长 |
+
+---
+
+### 1. Element Plus × Soybean × .NET 10
+
+面向习惯 **Element** 生态的团队：前端不是 Naive 原版 Soybean，而是 **Element Plus 深度改造壳**；后端全量 **.NET 10**。
+
+- 前端依赖：`web/package.json` 以 `element-plus` 为主 UI，并保留 `@sa/*`（`materials` / `hooks` / `axios` 等）Soybean 物料体系。
+- 壳层改造落点：`web/src/layouts/`、`web/src/theme/settings.ts`、UnoCSS 主题与主题抽屉。
+- 后端目标框架：`backend/core/SleveenAdmin.*.csproj` 均为 `net10.0`（Foundation / System / Business / Web.Api）。
+- 功能蓝本对齐 Admin.NET（认证、RBAC、租户、基础设施等），ORM 走自研 **mooSQL**（`SleveenAdmin.Foundation` → `MooSqlSetup`）。
+
+一句话：Element 熟练度可直接复用，同时享受 Soybean 级壳体验与 .NET 10 宿主。
+
+---
+
+### 2. 高达 9 种布局模式
+
+布局枚举写死在 `web/src/typings/union-key.d.ts` 的 `ThemeLayoutMode`，主题抽屉与 `base-layout` 全量接线：
+
+| mode | 中文名（`zh-cn.ts`） |
+|------|----------------------|
+| `vertical` | 左侧菜单模式 |
+| `vertical-mix` | 左侧菜单混合模式 |
+| `vertical-hybrid-header-first` | 左侧混合-顶部优先 |
+| `vertical-card` | **左栏无界**（默认） |
+| `horizontal` | 顶部菜单模式 |
+| `horizontal-card` | **顶栏无界** |
+| `bottom-card` | **底部无界** |
+| `top-hybrid-sidebar-first` | 顶部混合-侧边优先 |
+| `top-hybrid-header-first` | 顶部混合-顶部优先 |
+
+关键代码：
+
+- 默认布局：`web/src/theme/settings.ts` → `layout.mode: 'vertical-card'`
+- 编排入口：`web/src/layouts/base-layout/index.vue`（按 mode 切换侧栏/顶栏/底栏、页签宿主、氛围底）
+- 切换 UI：`web/src/layouts/modules/theme-drawer/.../layout-mode.vue` + `layout-mode-card.vue`
+- 文案：`web/src/locales/langs/zh-cn.ts` → `theme.layout.layoutMode.*`
+
+从经典左栏后台到无界卡片、底部停靠栏，一套主题配置即可切换，无需另起壳工程。
+
+---
+
+### 3. 特色【无界】模式
+
+「无界」解决传统 Admin「菜单栏 · 页签栏 · 内容栏」三层下巴的割裂感：菜单与内容同一画幅，业务页可沉浸铺满。
+
+两套正交能力：
+
+1. **布局级无界**（`vertical-card` / `horizontal-card` / `bottom-card`）  
+   侧栏/顶栏/底栏以圆角卡片或毛玻璃浮岛呈现，内容区整页展示；`base-layout` 挂 `glass-atmosphere` 氛围底。
+2. **页面级无界**（`menuType=4`「无界 Vue 组件」）  
+   与布局 mode 正交：压缩顶栏与页签、侧栏悬浮、内容 `borderless-content` 去掉 `mainpan` 外边距，背景可全屏穿透。
+
+关键代码：
+
+- `web/src/layouts/base-layout/index.vue`：`isBorderlessPage`（读 `route.meta.menuType`）、`borderless-content`、无界时 `CardTabHost` overlay
+- `web/src/components/common/borderless-div.vue`：门户/首页内容穿透容器
+- `web/src/views/home/homePage.vue`：首页无界 + 门户装配
+- 内置路由示例：`web/src/router/routes/builtin.ts`（`menuType: '4'`）
+- 专题文档：[doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md)
+
+业务模块只要把菜单类型设为无界 Vue，即可直接吃到沉浸式一体观感。
+
+---
+
+### 4. 内置门户功能
+
+门户不是演示页，而是可配置工作台：**方案 / 页面 / 组件库 / 可视化设计器**，并已接「个人优先 → 组织/公开兜底」的千人千面解析。
+
+| 层次 | 落点 |
+|------|------|
+| 运行时引擎 | `web/src/ui/portal/paotal.vue` + `ui/portlet.vue`、`ui/cell/applet.vue`、图表与多播部件 |
+| 首页外壳 | `web/src/views/home/homePage.vue`（`BorderlessDiv` + `paotal`） |
+| 设计器 | `web/src/widgets/portaldesign/views/designPage` |
+| 管理页 | `web/src/widgets/sysext/views/paotalconfig/*`（门户方案、页面、组件库、预览） |
+| 后端服务 | `backend/core/SleveenAdmin.Business/src/Portal/`（`Biz_Sys_PortalService`、`SysPortalCommonService`、`PortalDbInitializer`） |
+
+千人千面准可用：`SysPortalCommonService.LoadHomePortal` 优先按当前用户个人门户（`Sp_UserId` + `P_Pulic='2'`），再回落组织/公开方案与页面编码绑定——首页与业务子门户同一套解析链。
+
+门户码表种子（控件类型、布局方式、共享类型、主题等）由 `PortalDbInitializer` 启动时写入，设计器与运行时共用。
+
+---
+
+### 5. 同仓工作流引擎 sailflow
+
+流程引擎不以「外挂黑盒」方式接入：运行语义在独立仓 **sailflow**，本仓以 Host 薄适配 + 前端工作台同仓交付，覆盖待办办理、设计、表单、运维等 OA 面。
+
+| 层次 | 落点 |
+|------|------|
+| Host 适配 | `backend/saiflow/`（`/api/Wf2Xml/*`、`/api/sail/*`，办理聚合、Assignee 适配） |
+| 前端工作台 | `web/src/widgets/sailflow/`（待办/已办/抄送、发起与办理、定义/表单、分类/报表、规则集·AI·知识库·模板库） |
+| 引擎库配置 | `Configuration/DBCoonfig.json` 中独立连接 `saiflow`（默认同为 SQLite 文件库） |
+| 能力说明 | [doc/sailflow-features.md](./doc/sailflow-features.md)、[doc/sailflow-menu-mount.md](./doc/sailflow-menu-mount.md) |
+
+典型办理闭环页面：`SailTaskTodoPage` / `SailTaskDonePage` / `SailProcessDetailPage`；设计入口：`SailDesignerPage`（bpmn-js）与 `SailDesignerVuePage`（vue-bpmn）。菜单按 Seed / 挂载文档写入后即可开箱使用。
+
+---
+
+### 6. 源码集成自研 vue-bpmn
+
+BPMN 设计器不止依赖 `bpmn-js`：同仓源码集成自研 **vue-bpmn**，符合 BPMN 标准，改扩建不受第三方黑盒约束。
+
+- 源码目录：`web/src/widgets/sailflow/vue-bpmn/`（`core/` + `vue/`）
+- Vite / TS 别名：`@vue-bpmn/core`、`@vue-bpmn/vue`（见 `web/vite.config.ts`、`web/tsconfig.json`）
+- 宿主页：`SailDesignerVuePage.vue` → `import { BpmnModeler } from '@vue-bpmn/vue'`
+- 统一工具栏抽象：`designer/engine.ts`（`kind: 'bpmn-js' | 'vue-bpmn'`）
+- 约束与同步说明：`vue-bpmn/README.md`（禁止产品代码依赖 `bpmn-js` / `diagram-js`；sf 扩展 round-trip 脚本可验）
+
+需要改选区、属性面板、XML 进出或 `sf:` 扩展时，直接改本仓库源码即可，不必 fork 上游 npm 包。
+
+---
+
+### 7. 完善规范文档
+
+文档不是附录，而是 **AI / 人共建上层业务的驱动契约**：从 Biz/VC 范式到无界、门户、SQL 安全、流程挂载均有落点。
+
+| 文档 | 用途 |
+|------|------|
+| [doc/pc/design/biz-module-paradigm.md](./doc/pc/design/biz-module-paradigm.md) | Page / VC / Biz 栈标准结构（含分层图） |
+| [doc/pc/design/代码风格规范.md](./doc/pc/design/代码风格规范.md) | 前后端风格与落位 |
+| [doc/pc/design/数据库查询.md](./doc/pc/design/数据库查询.md) / [树查询.md](./doc/pc/design/树查询.md) | mooSQL 查询约定 |
+| [doc/pc/design/业务子门户工作台实施计划.md](./doc/pc/design/业务子门户工作台实施计划.md) | 业务子门户 + `paotal` 标准路径 |
+| [doc/无界模式/无界模式.md](./doc/无界模式/无界模式.md) | 无界壳与穿透约定 |
+| [doc/pc/audit/](./doc/pc/audit/) | 审计与 SQL 安全红线 |
+| [doc/sailflow-*.md](./doc/sailflow-features.md) | 流程能力、菜单挂载、按钮与表单等 |
+| `.cursor/rules/` | Cursor 规则与文档交叉索引，直接约束 AI 改码 |
+
+按范式在 `web/src/widgets/<域>/` 与对应后端 Biz 栈落文件，再挂菜单，即可稳定扩展业务模块。
+
+---
+
+### 8. 多数据库适配无痕
+
+数据库切换尽量「改配置、不改业务代码」：ORM 走 **mooSQL** 方言；启动时自动建表 + Seed，开发默认 SQLite 开箱即用。
+
+- 连接配置：`backend/core/SleveenAdmin.Web.Api/Configuration/DBCoonfig.json`  
+  - `Master`：`DbType: SQLite` → `App_Data/sleveenadmin.db`  
+  - `saiflow`：流程库独立文件，可与主库分置
+- 装载与 SQLite 目录保障：`SleveenAdmin.Foundation/src/Data/MooSqlSetup.cs`（相对路径落到 ContentRoot，自动建目录）
+- 一键初始化：`Program.cs` 启动时依次  
+  `IDbInitializer`（系统表 + 菜单/用户 Seed）→ `PortalDbInitializer` → `EbookDbInitializer`
+- 建表：`DbInitializer` 内 `db.useDDL().doInitTable(...)`，按实体类型幂等初始化
+
+切换 SQL Server 等：改 `DbType` / `ConnectString`（及可选 Hangfire）即可；业务层继续用 Repository / SQLBuilder，无需为方言分叉业务代码。细则见 [doc/mooSQL-integration.md](./doc/mooSQL-integration.md)。
+
+---
+
+### 9. 纯净核心
+
+平台刻意保持「瘦核心 + 厚扩展」：系统与业务底座只留认证、RBAC、组织、字典、配置、文件、日志等最核心能力；领域功能以 **widgets / 独立后端包** 插入，避免巨石堆叠。
+
+| 层次 | 核心 | 扩展示例 |
+|------|------|----------|
+| 后端分层 | `Foundation`（基础设施）+ `System`（basisOn / Bootstrap）+ `Web.Api` 宿主 | `Business`（门户、AI…）、`backend/saiflow`、`backend/officeman` |
+| 前端壳 | `layouts` / `views` / `ui` 平台壳 | `web/src/widgets/sailflow`、`officeman`、`portaldesign`、`sysext`、`holdOrgPan` |
+| System 内切 | `widgets/basisOn`、`Bootstrap`、`configs` | `widgets/plugins` 预留插件位 |
+
+新增业务域的推荐路径：后端独立包或 `Business` 切片 + 前端 `widgets/<域>`（Page/VC/Biz 范式）→ Seed/菜单挂载。核心仓保持干净，扩展可单独演进甚至拆仓。
+
+---
+
+### 平台能力速览
 
 | 模块 | 能力 |
 |------|------|
@@ -16,15 +193,11 @@
 | **RBAC** | 用户 / 角色 / 菜单 / 组织，动态路由与菜单 |
 | **平台扩展** | 多租户隔离、公告与站内信、SignalR 在线用户、Hangfire 定时任务 |
 | **基础设施** | 文件上传、操作/访问日志、服务器监控、Redis 键值管理 |
-| **无界壳** | 左栏无界布局（`vertical-card`）、无界 Vue 页（`menuType=4`）、悬浮侧栏 / 压缩顶栏页签、内容背景可铺满全屏 |
-| **门户工作台** | `paotal` 可配置卡片网格；首页 / 业务子门户外壳；与无界组合达到菜单与内容浑然一体 |
+| **无界壳** | 左栏无界（`vertical-card`）、无界 Vue 页（`menuType=4`）、悬浮侧栏 / 压缩顶栏页签 |
+| **门户工作台** | `paotal` 可配置卡片网格；首页 / 业务子门户；与无界组合浑然一体 |
 | **AI 助手** | Microsoft Agents Framework (MAF) 流式对话，SSE 接口 |
-| **Sailflow 流程** | BPMN 设计器（`sf:` 扩展）、动态表单、待办/已办/抄送、发起与办理台、分类/模板/报表、规则集·AI 活动·知识库·Outbox |
+| **Sailflow 流程** | BPMN 设计器（`sf:` 扩展）、动态表单、待办/已办/抄送、规则集·AI 活动·知识库 |
 | **部署** | YARP 开发代理、生产 SPA 静态托管、Docker 单端口部署 |
-
-### 无界理念（摘要）
-
-打破传统 Admin「菜单栏 · 页签栏 · 内容栏」三层下巴的臃肿感，让菜单与内容区干净整洁、浑然一体。无界页压缩顶栏与页签，侧栏以悬浮卡片融入同一画幅，内容组件背景可铺满屏幕。完整说明见 [无界模式专题](./doc/无界模式/无界模式.md)。
 
 ---
 
@@ -45,11 +218,12 @@
 ### 前端
 
 - **Vue 3** + **Vite 7** + **TypeScript**
-- **Element Plus** + **UnoCSS**（Soybean Admin Element 壳，深度改造）
-- **门户引擎** — `@/ui/portal/paotal.vue` + Portlet VC；首页 `homePage` + `BorderlessDiv`
+- **Element Plus** + **UnoCSS**（Soybean Admin Element 壳，深度改造；**9 种布局**含无界系列）
+- **门户引擎** — `@/ui/portal/paotal.vue` + Portlet VC + 门户设计器；首页 `homePage` + `BorderlessDiv`
+- **vue-bpmn** — 源码集成自研 BPMN Vue 组件（`widgets/sailflow/vue-bpmn`），改扩建不受约束
 - **vue-element-plus-x** — AI 助手流式 UI
 - **SignalR** — 在线用户实时连接
-- **widgets/sailflow** — 流程工作台（待办办理壳 + BPMN 设计器，API 为 Sail 形状）
+- **widgets/sailflow** — 流程工作台（待办办理壳 + 设计器，API 为 Sail 形状）
 
 ---
 
@@ -86,11 +260,13 @@ sleveen-admin/
 
 **设计原则**
 
+- **纯净核心**：系统 / 业务仅保留最核心能力，其余以扩展插件（widgets / 插件包）生长
 - 业务 Service 用具体类，禁止 Java 式 `IUserService` / `UserServiceImpl` 堆叠
 - 域内 `DBLayer → Service → Controller` 纵向切片；配置拆 `Configuration/*.json`
 - 前端为 Soybean **深度改造副本**（Element Plus + Biz/VC 范式），非上游 Naive 原样
 - 主键 **Guid v7**，列名带表前缀；流程身份键对齐 **`SysUser.Account`**
 - 壳层优先「无界」观感：菜单与内容同一画幅，避免多余实色嵌套壳
+- 多库无痕：开发默认 SQLite 一键 Seed；切换方言即可面对 SQL Server 等
 
 ---
 
