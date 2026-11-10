@@ -1,9 +1,7 @@
 using Hangfire;
 using Hangfire.Dashboard;
-using Hangfire.SqlServer;
-using mooSQL.config;
+using mooSQL.data;
 using SleveenAdmin.Foundation.Data;
-using SleveenAdmin.Foundation.Options;
 using SleveenAdmin.Saiflow.Jobs;
 using SleveenAdmin.System.Jobs;
 
@@ -17,23 +15,20 @@ public static class HangfireSetupExtensions
         if (!options.Enabled)
             return services;
 
-        var master = ResolveMasterConnection(configuration);
-        if (IsSqlite(master.DbType))
+        services.AddHangfire((sp, config) =>
         {
-            throw new InvalidOperationException(
-                "Hangfire 当前使用 SQL Server 存储，不能与 SQLITE 主库同时启用。" +
-                "请将 Hangfire:Enabled 设为 false，或将 DBCoonfig 主库改为 MSSQL。");
-        }
-
-        services.AddHangfire(config => config
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(master.ConnectString, new SqlServerStorageOptions
-            {
-                SchemaName = options.SchemaName,
-                PrepareSchemaIfNecessary = true
-            }));
+            var cash = sp.GetRequiredService<DBInsCash>();
+            var db = cash.getInstance(MooSqlSetup.DefaultPosition);
+            config
+                .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseRecommendedSerializerSettings()
+                .UseMooSqlStorage(db, opt =>
+                {
+                    opt.TablesPrefix = options.TablesPrefix;
+                    opt.PrepareSchemaIfNecessary = true;
+                });
+        });
 
         services.AddHangfireServer();
         services.AddScoped<RefreshTokenCleanupJob>();
@@ -67,16 +62,4 @@ public static class HangfireSetupExtensions
 
         return app;
     }
-
-    private static DBPosition ResolveMasterConnection(IConfiguration configuration)
-    {
-        var dbConfig = configuration.GetSection(DBCoonfigOptions.SectionName).Get<DBCoonfigOptions>()
-                       ?? throw new InvalidOperationException("DBCoonfig configuration is required.");
-        return dbConfig.Connections.FirstOrDefault(c => c.Position == MooSqlSetup.DefaultPosition)
-               ?? dbConfig.Connections.FirstOrDefault()
-               ?? throw new InvalidOperationException("DBCoonfig master connection is required.");
-    }
-
-    private static bool IsSqlite(string? dbType) =>
-        string.Equals(dbType, "SQLITE", StringComparison.OrdinalIgnoreCase);
 }

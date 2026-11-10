@@ -199,7 +199,7 @@ web/src/
 | DI | Scrutor + 生命周期标记 + `*Service` 约定 |
 | ORM | mooSQL `DBInsCash` / `MooRepository<T>` |
 | 缓存 | StackExchange.Redis |
-| 定时任务 | Hangfire（SQL Server；SQLite 默认关） |
+| 定时任务 | Hangfire.MooSql（复用主库 + `hf_` 前缀；默认开） |
 | 反向代理 | YARP 内嵌 Web.Api |
 | 统一响应 | 平台 `ApiResult`；Sail Host `ResponseResult` |
 | AI | Microsoft.Agents.AI (MAF) + 前端流式组件 |

@@ -167,7 +167,7 @@ BPMN 设计器不止依赖 `bpmn-js`：同仓源码集成自研 **vue-bpmn**，�
   `IDbInitializer`（系统表 + 菜单/用户 Seed）→ `PortalDbInitializer` → `EbookDbInitializer`
 - 建表：`DbInitializer` 内 `db.useDDL().doInitTable(...)`，按实体类型幂等初始化
 
-切换 SQL Server 等：改 `DbType` / `ConnectString`（及可选 Hangfire）即可；业务层继续用 Repository / SQLBuilder，无需为方言分叉业务代码。细则见 [doc/mooSQL-integration.md](./doc/mooSQL-integration.md)。
+切换 SQL Server 等：改 `DbType` / `ConnectString` 即可；Hangfire 随主库方言走 Hangfire.MooSql，业务层继续用 Repository / SQLBuilder，无需为方言分叉业务代码。细则见 [doc/mooSQL-integration.md](./doc/mooSQL-integration.md)。
 
 ---
 
@@ -209,7 +209,7 @@ BPMN 设计器不止依赖 `bpmn-js`：同仓源码集成自研 **vue-bpmn**，�
 - **mooSQL.Ext** — ORM，开发默认 SQLite，可切换 SQL Server 等
 - **Scrutor** — 约定式依赖注入（`*Service` + 生命周期标记）
 - **JWT Bearer** + 自定义 `PermissionAuthorizationHandler`
-- **Hangfire** — SQL Server 存储的定时任务（默认关闭；主库为 SQLite 时不可启用）
+- **Hangfire** — 定时任务，存储走 **Hangfire.MooSql**（复用主库 + 表前缀 `hf_`；默认启用，SQLite / MSSQL 等均可）
 - **StackExchange.Redis** — 缓存与监控
 - **YARP** — 内嵌反向代理，单端口联调/部署
 - **Mapster** — 对象映射
@@ -300,7 +300,7 @@ sleveen-admin/
 | 租户管理 | 多租户 |
 | 通知管理 / 我的通知 | 公告与站内信 |
 | 在线用户 | SignalR 在线列表 |
-| 定时任务 | Hangfire 控制台入口（主库 MSSQL 且启用时） |
+| 定时任务 | Hangfire 控制台入口（默认启用；iframe → `/hangfire`） |
 
 ### 基础设施
 
@@ -362,8 +362,8 @@ sleveen-admin/
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js](https://nodejs.org/) 20+ 与 [pnpm](https://pnpm.io/)
 - （可选）Redis，用于监控与键值管理
-- （可选）SQL Server — 仅在切换主库为 `MSSQL` 并启用 Hangfire 时需要
-- 同级或可引用的 **sailflow** 引擎仓（`backend/saiflow` 已 ProjectReference）
+- （可选）SQL Server / MySQL / PostgreSQL — 切换主库方言时使用
+- 同级可引用的 **sailflow**、**hangfire.moo-sql**、**moo-sqlm** 仓（Web.Api / Foundation 已 ProjectReference）
 
 ### 1. 数据库（默认 SQLite，开箱即用）
 
@@ -375,7 +375,7 @@ sleveen-admin/
 |------|------|
 | `admin` | `123456` |
 
-默认连接配置：`Configuration/DBCoonfig.json`（节点 `DBCoonfig`）。如需改用 SQL Server 并开启 Hangfire，可覆盖该分片或通过环境变量：
+默认连接配置：`Configuration/DBCoonfig.json`（节点 `DBCoonfig`）。Hangfire 默认启用，经 **Hangfire.MooSql** 复用主库（表前缀见 `Configuration/Hangfire.json` 的 `TablesPrefix`，默认 `hf_`）。如需改用 SQL Server，可覆盖主库分片：
 
 ```json
 {
@@ -391,12 +391,13 @@ sleveen-admin/
     ]
   },
   "Hangfire": {
-    "Enabled": true
+    "Enabled": true,
+    "TablesPrefix": "hf_"
   }
 }
 ```
 
-主库为 `SQLite` 时请保持 `Hangfire:Enabled=false`（Hangfire 当前仅支持 SQL Server 存储）。
+关闭定时任务：设 `Hangfire:Enabled=false`。
 
 ### 2. 启动后端
 

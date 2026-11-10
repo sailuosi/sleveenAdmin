@@ -1,8 +1,8 @@
 {
   "Hangfire": {
-    "Enabled": false,
+    "Enabled": true,
     "DashboardPath": "/hangfire",
-    "SchemaName": "Hangfire",
+    "TablesPrefix": "hf_",
     "RefreshTokenCleanupCron": "0 3 * * *",
     "SailProcessArchiveEnabled": true,
     "SailProcessArchiveCron": "30 3 * * *"

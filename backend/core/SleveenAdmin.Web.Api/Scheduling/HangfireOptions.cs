@@ -4,11 +4,12 @@ public sealed class HangfireOptions
 {
     public const string SectionName = "Hangfire";
 
-    public bool Enabled { get; set; } = false;
+    public bool Enabled { get; set; } = true;
 
     public string DashboardPath { get; set; } = "/hangfire";
 
-    public string SchemaName { get; set; } = "Hangfire";
+    /// <summary>Hangfire.MooSql 表前缀（复用主库时与业务表隔离）。</summary>
+    public string TablesPrefix { get; set; } = "hf_";
 
     public string RefreshTokenCleanupCron { get; set; } = "0 3 * * *";
 

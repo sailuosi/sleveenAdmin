@@ -373,7 +373,7 @@ public Task InitializeAsync(...)
 
 ### 7.1 Hangfire
 
-Hangfire 使用 **SQL Server** 存储，复�?Master 连接串（`HangfireSetupExtensions`），Schema 默认 `Hangfire`。开发默认主库为 SQLite 时，`Hangfire:Enabled` 应为 `false`；若�?SQLITE 下误开，启动会抛出明确异常。切�?`MSSQL` 后可�?`Hangfire:Enabled` 设为 `true`�?
+Hangfire 使用 **Hangfire.MooSql** 存储，复用主库 `DBInsCash.getInstance(0)`（`HangfireSetupExtensions`），表前缀默认 `hf_`（配置项 `Hangfire:TablesPrefix`）。默认 `Hangfire:Enabled=true`，SQLite / MSSQL 等主库方言均可启用；设为 `false` 时不注册 Server / Dashboard / RecurringJob。
 
 ### 7.2 错误日志
 
@@ -438,7 +438,7 @@ SQL 异常 �?`MooSqlQueryWatchor.onAfterExecuteSetError` �?控制�?+ `log/
 
 ### Q4：能否换 MySQL / PostgreSQL / SQL Server�?
 
-配置中将 `DbType` 改为 `MYSQL`、`POSTGRESQL` �?`MSSQL` 并更换连接串即可（由 mooSQL `DBPosition.asDataBase` / `asDBType` 解析）。开发默认在 SQLite 上验证；换库需自行回归 DDL 与方言差异。启�?Hangfire 时主库须�?SQL Server�?
+配置中将 `DbType` 改为 `MYSQL`、`POSTGRESQL` 或 `MSSQL` 并更换连接串即可（由 mooSQL `DBPosition.asDataBase` / `asDBType` 解析）。开发默认在 SQLite 上验证；换库需自行回归 DDL 与方言差异。Hangfire 随主库走 Hangfire.MooSql，无需单独 SQL Server。
 
 ### Q5：为�?System 重复引用 mooSQL.Ext�?
 

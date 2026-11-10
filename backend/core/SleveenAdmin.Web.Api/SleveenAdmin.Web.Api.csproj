@@ -13,11 +13,11 @@
     <ProjectReference Include="..\SleveenAdmin.Business\SleveenAdmin.Business.csproj" />
     <ProjectReference Include="..\..\saiflow\SleveenAdmin.Saiflow.csproj" />
     <ProjectReference Include="..\..\officeman\SleveenAdmin.Officeman.csproj" />
+    <ProjectReference Include="..\..\..\..\hangfire.moo-sql\src\Hangfire.MooSql\Hangfire.MooSql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
-    <PackageReference Include="Hangfire.SqlServer" Version="1.8.23" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
     <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
