@@ -1,11 +1,13 @@
 using mooSQL.data;
 using saiflow.data;
 using saiflow.engine.Client;
+using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Saiflow.Entity;
 
 namespace SleveenAdmin.Saiflow.Service;
 
 /// <summary>请假样例 CRUD + 状态回写。</summary>
+[Scoped]
 public class SailLeaveService
 {
     private readonly SailClient _sail;

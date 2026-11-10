@@ -20,7 +20,6 @@ using SleveenAdmin.Saiflow.Hooks;
 using SleveenAdmin.Saiflow.Integration.UnifiedReport;
 using SleveenAdmin.Saiflow.Operations;
 using SleveenAdmin.Saiflow.Resource;
-using SleveenAdmin.Saiflow.Service;
 using SleveenAdmin.Saiflow.SideEffects;
 using SleveenAdmin.Saiflow.Timeout;
 using mooSQL.data;
@@ -101,18 +100,12 @@ public static class SaiflowHostSetup
             return client;
         });
 
-        services.AddScoped<IWorkflowService>(sp => new WorkflowService(sp.GetRequiredService<SailClient>()));
-        services.AddScoped(sp => new WorkflowQueryService(sp.GetRequiredService<SailClient>()));
-        services.AddScoped<IAiModelDataService>(sp => new AiModelDataService(sp.GetRequiredService<SailClient>()));
-        services.AddScoped(sp => new SailLeaveService(sp.GetRequiredService<SailClient>()));
-        services.AddScoped(sp => new SailTodoPortalRecordService(sp.GetRequiredService<SailClient>()));
-        services.AddScoped(sp => new SailReportService(sp.GetRequiredService<SailClient>()));
-        services.AddScoped(sp => new SailCategoryService(
-            sp.GetRequiredService<SailClient>(),
-            sp.GetRequiredService<IWorkflowService>()));
-        services.AddScoped(sp => new SailProcessMetaService(
-            sp.GetRequiredService<SailClient>(),
-            sp.GetRequiredService<IWorkflowService>()));
+        // 引擎 / biz 跨程序集：生成器扫不到，且 I*Service 接口需手工挂
+        services.AddScoped<IWorkflowService, WorkflowService>();
+        services.AddScoped<WorkflowQueryService>();
+        services.AddScoped<IAiModelDataService, AiModelDataService>();
+        // 本程序集 [Scoped] → GeneratedDiRegistration
+        services.AddSleveenAdminSaiflowServices();
 
         services.AddSailFormBiz();
         services.AddSailOperationHandlers();

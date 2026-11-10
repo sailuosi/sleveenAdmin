@@ -4,12 +4,14 @@ using saiflow.engine.Entity;
 using saiflow.engine.Manager;
 using saiflow.engine.Client;
 using saiflow.engine.Common;
+using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Saiflow.Dto;
 using SleveenAdmin.Saiflow.Entity;
 
 namespace SleveenAdmin.Saiflow.Service;
 
 /// <summary>流程报表聚合（只读查询）。</summary>
+[Scoped]
 public class SailReportService
 {
     private readonly SailClient _sail;

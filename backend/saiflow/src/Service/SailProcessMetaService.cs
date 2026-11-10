@@ -2,6 +2,7 @@ using mooSQL.data;
 using saiflow.engine.Entity;
 using saiflow.engine.Client;
 using saiflow.engine.Service;
+using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Saiflow.Dto;
 using SleveenAdmin.Saiflow.Entity;
 using SleveenAdmin.Saiflow.Utility;
@@ -9,6 +10,7 @@ using SleveenAdmin.Saiflow.Utility;
 namespace SleveenAdmin.Saiflow.Service;
 
 /// <summary>流程编辑：定义字段 + sf_process_meta 产品扩展。</summary>
+[Scoped]
 public class SailProcessMetaService
 {
     private readonly SailClient _sail;

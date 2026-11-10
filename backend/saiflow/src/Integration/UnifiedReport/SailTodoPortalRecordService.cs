@@ -1,9 +1,11 @@
 using mooSQL.data;
 using saiflow.engine.Client;
+using SleveenAdmin.Foundation.DI;
 
 namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
 
 /// <summary>集成平台推送流水。</summary>
+[Scoped]
 public sealed class SailTodoPortalRecordService
 {
     private const int ResultMaxLen = 2000;

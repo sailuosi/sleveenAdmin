@@ -3,11 +3,13 @@ using saiflow.data;
 using saiflow.engine.Entity;
 using saiflow.engine.Client;
 using saiflow.engine.Service;
+using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Saiflow.Entity;
 
 namespace SleveenAdmin.Saiflow.Service;
 
 /// <summary>流程分类目录；绑定落在 Process.AppType。</summary>
+[Scoped]
 public class SailCategoryService
 {
     private readonly SailClient _sail;
