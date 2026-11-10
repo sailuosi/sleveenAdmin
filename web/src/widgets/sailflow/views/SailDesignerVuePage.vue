@@ -79,6 +79,7 @@ import { setDesignerProcessMeta } from '@sail/bpmn/ui/designerContext';
 import { downloadSvg, downloadText } from '@sail/bpmn/utils/download';
 import { clearVariableCache } from '@sail/bpmn/variable/wfVariableCache';
 import { sanitizeBpmnXml } from '@sail/bpmn/utils/sanitizeBpmnXml';
+import { confirmStaleSubBindingsOnSave } from '@sail/bpmn/utils/confirmStaleSubBindingsOnSave';
 import { initNewBpmnFile, queryProcessFile, saveProcessFile, validateProcess } from '@sail/api/process';
 import type { ProcessDesignerEngine, DesignerAlignDir } from '@sail/designer/engine';
 import { alignDirToMode } from '@sail/designer/engine';
@@ -428,6 +429,9 @@ async function save() {
     const normalized = normalizeSfNamespace(rawXml || '');
     const { xml: cleaned, removedDi } = sanitizeBpmnXml(normalized);
     const xml = cleaned;
+    if (!(await confirmStaleSubBindingsOnSave(xml))) {
+      return;
+    }
     const base = fileMeta.value ?? {};
     const processId = metaProcessId(base) || String(route.query.processId ?? '');
     if (!processId) {

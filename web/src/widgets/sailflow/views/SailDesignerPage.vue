@@ -69,6 +69,7 @@ import {
   stripSfVariablesFromDiagram
 } from '@sail/bpmn/variable/wfVariableCache';
 import { sanitizeBpmnXml } from '@sail/bpmn/utils/sanitizeBpmnXml';
+import { confirmStaleSubBindingsOnSave } from '@sail/bpmn/utils/confirmStaleSubBindingsOnSave';
 import { initNewBpmnFile, queryProcessFile, saveProcessFile, validateProcess } from '@sail/api/process';
 import PerformerPickerDialog from '@sail/components/PerformerPickerDialog.vue';
 import FormPickerDialog from '@sail/components/FormPickerDialog.vue';
@@ -334,6 +335,9 @@ async function save() {
     const normalized = normalizeSfNamespace(rawXml || '');
     const { xml: cleaned, removedDi } = sanitizeBpmnXml(normalized);
     const xml = cleaned;
+    if (!(await confirmStaleSubBindingsOnSave(xml))) {
+      return;
+    }
     const base = fileMeta.value ?? {};
     const processId =
       metaProcessId(base) || String(route.query.processId ?? '');

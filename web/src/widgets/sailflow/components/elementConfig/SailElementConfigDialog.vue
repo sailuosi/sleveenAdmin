@@ -107,6 +107,15 @@
       <template v-else-if="kind === 'subprocess' && sub">
         <el-card shadow="never" class="sf-el-config__card">
           <template #header><span class="sf-el-config__h">子流程绑定</span></template>
+          <el-alert
+            v-if="subStale"
+            type="warning"
+            show-icon
+            :closable="false"
+            class="sf-el-config__stale"
+            :title="`关联定义行已落后：钉住 v${subStale.pinnedVersion || '?'}，最新 v${subStale.latest.Version || '?'}`"
+            description="按产品规则不会自动升版；确认后可将关联更新到最新定义行。"
+          />
           <el-form-item label="子流程">
             <div class="sf-el-config__row">
               <el-input
@@ -116,6 +125,14 @@
               <el-button type="primary" @click="pickSub">选择</el-button>
             </div>
           </el-form-item>
+          <el-form-item v-if="sub.subId" label="定义行主键">
+            <el-input :model-value="sub.subId" disabled />
+          </el-form-item>
+          <div v-if="subStale" class="sf-el-config__row">
+            <el-button type="warning" :loading="subStaleUpdating" @click="confirmUpdateSubBinding">
+              更新关联到最新版本
+            </el-button>
+          </div>
         </el-card>
       </template>
 
@@ -173,7 +190,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { ElMessage } from 'element-plus';
+import { ElMessage, ElMessageBox } from 'element-plus';
 import { designerEvents } from '@sail/bpmn/ui/designerEvents';
 import {
   loadEvent,
@@ -205,12 +222,19 @@ import {
   type SailServiceModel,
   type SailSubProcessModel
 } from '@sail/bpmn/elementConfig/types';
+import {
+  checkSubBindingStale,
+  fetchProcessDefRows,
+  type StaleSubBinding
+} from '@sail/bpmn/utils/subProcessVersionCheck';
 
 defineOptions({ name: 'SailElementConfigDialog' });
 
 const visible = ref(false);
 const saving = ref(false);
 const kind = ref<ElementConfigKind | null>(null);
+const subStale = ref<StaleSubBinding | null>(null);
+const subStaleUpdating = ref(false);
 const model = ref<
   | SailGatewayModel
   | SailServiceModel
@@ -258,13 +282,58 @@ function openKind(k: ElementConfigKind, payload: {
   modeling = payload.modeling;
   moddle = payload.moddle;
   kind.value = k;
+  subStale.value = null;
   if (k === 'gateway') model.value = loadGateway(payload.element);
   else if (k === 'service') model.value = loadService(payload.element);
   else if (k === 'script') model.value = loadScript(payload.element);
   else if (k === 'rule') model.value = loadRule(payload.element);
-  else if (k === 'subprocess') model.value = loadSubProcess(payload.element);
-  else if (k === 'event') model.value = loadEvent(payload.element);
+  else if (k === 'subprocess') {
+    model.value = loadSubProcess(payload.element);
+    void refreshSubStale();
+  } else if (k === 'event') model.value = loadEvent(payload.element);
   visible.value = true;
+}
+
+async function refreshSubStale() {
+  const s = sub.value;
+  if (!s?.subId || !s.subProcessId) {
+    subStale.value = null;
+    return;
+  }
+  try {
+    const rows = await fetchProcessDefRows();
+    subStale.value = checkSubBindingStale(
+      { subId: s.subId, subProcessId: s.subProcessId, subProcessName: s.subProcessName },
+      rows
+    );
+  } catch {
+    subStale.value = null;
+  }
+}
+
+async function confirmUpdateSubBinding() {
+  const s = sub.value;
+  const stale = subStale.value;
+  if (!s || !stale) return;
+  try {
+    await ElMessageBox.confirm(
+      `确认将子流程「${stale.subProcessName || stale.subProcessId}」的关联从钉住版本 v${stale.pinnedVersion || '?'} 更新到最新 v${stale.latest.Version || '?'}？\n不会自动跟版；仅在本次确认后改写 subId。`,
+      '更新子流程关联',
+      { type: 'warning', confirmButtonText: '确认更新', cancelButtonText: '取消' }
+    );
+  } catch {
+    return;
+  }
+  subStaleUpdating.value = true;
+  try {
+    s.subId = stale.latest.ProcessDefId;
+    s.subProcessId = stale.latest.ProcessId;
+    s.subProcessName = stale.latest.ProcessName || s.subProcessName;
+    subStale.value = null;
+    ElMessage.success('已改写关联（请点「写入图元」落盘到图）');
+  } finally {
+    subStaleUpdating.value = false;
+  }
 }
 
 function pickRule() {
@@ -285,6 +354,7 @@ function pickSub() {
       sub.value.subId = draft.subId;
       sub.value.subProcessId = draft.subProcessId;
       sub.value.subProcessName = draft.subProcessName;
+      void refreshSubStale();
     }
   });
 }
@@ -314,6 +384,7 @@ function onSave() {
 function onClosed() {
   model.value = null;
   kind.value = null;
+  subStale.value = null;
   element = null;
   modeling = null;
   moddle = null;
@@ -362,5 +433,8 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 8px;
   width: 100%;
+}
+.sf-el-config__stale {
+  margin-bottom: 12px;
 }
 </style>
