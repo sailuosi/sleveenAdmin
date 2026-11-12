@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <Import Project="..\..\generators\EmitGeneratedSources.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SleveenAdmin.Web.Api</RootNamespace>
+    <AssemblyName>SleveenAdmin.Web.Api</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SleveenAdmin.Foundation\SleveenAdmin.Foundation.publish.csproj" />
+    <ProjectReference Include="..\SleveenAdmin.System\SleveenAdmin.System.publish.csproj" />
+    <ProjectReference Include="..\SleveenAdmin.Business\SleveenAdmin.Business.publish.csproj" />
+    <ProjectReference Include="..\..\saiflow\SleveenAdmin.Saiflow.publish.csproj" />
+    <ProjectReference Include="..\..\officeman\SleveenAdmin.Officeman.publish.csproj" />
+    <ProjectReference Include="..\..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hangfire.MooSql" Version="$(HangfireMooSqlPackageVersion)" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+    <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Configuration\**\*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- 若 web/dist 已构建，发布时自动复制至 wwwroot -->
+  <Target Name="CopyFrontendDist" BeforeTargets="ComputeFilesToPublish">
+    <PropertyGroup>
+      <FrontendDistPath>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\..\..\web\dist'))</FrontendDistPath>
+    </PropertyGroup>
+    <ItemGroup Condition="Exists('$(FrontendDistPath)\index.html')">
+      <FrontendDistFiles Include="$(FrontendDistPath)\**\*.*" />
+    </ItemGroup>
+    <Copy Condition="'@(FrontendDistFiles)' != ''" SourceFiles="@(FrontendDistFiles)" DestinationFiles="@(FrontendDistFiles->'$(MSBuildProjectDirectory)\wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

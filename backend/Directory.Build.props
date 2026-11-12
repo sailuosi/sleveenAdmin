@@ -1,0 +1,18 @@
+<Project>
+  <!-- Package versions for *.publish.csproj (dev *.csproj unchanged). -->
+  <PropertyGroup>
+    <MooSqlExtPackageVersion>8.2.1.10</MooSqlExtPackageVersion>
+    <SaiflowBizPackageVersion>0.1.0</SaiflowBizPackageVersion>
+    <HangfireMooSqlPackageVersion>0.1.0</HangfireMooSqlPackageVersion>
+  </PropertyGroup>
+
+  <!-- Isolate publish twin outputs from dev builds (must be early — Directory.Build.props).
+       Exclude all obj/bin from default globs so the sibling *.csproj's generated AssemblyInfo
+       under obj/Release is not double-compiled (BaseIntermediateOutputPath alone only excludes obj/publish). -->
+  <PropertyGroup Condition="$(MSBuildProjectName.EndsWith('.publish'))">
+    <BaseOutputPath>bin\publish\</BaseOutputPath>
+    <BaseIntermediateOutputPath>obj\publish\</BaseIntermediateOutputPath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);obj\**;bin\**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>
+
