@@ -1,6 +1,6 @@
 using mooSQL.data;
 
-namespace SleveenAdmin.Saiflow.Entity;
+namespace SleveenAdmin.Sailflow.Entity;
 
 /// <summary>
 /// 流程产品元数据（表单绑定 / 可见性 / 发起范围 / 更多设置 JSON）。

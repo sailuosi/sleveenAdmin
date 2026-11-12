@@ -4,7 +4,7 @@ using sailflow.assignee;
 using sailflow.assignee.Builtin;
 using SleveenAdmin.Foundation.Data;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// R3：覆盖 JobRelative。宿主尚无独立 HR 岗位编制表：

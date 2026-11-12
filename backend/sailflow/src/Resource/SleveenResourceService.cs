@@ -2,9 +2,9 @@ using System.Data;
 using mooSQL.data;
 using sailflow.hub.Resource;
 using SleveenAdmin.Foundation.Data;
-using SleveenAdmin.Saiflow.Assignee;
+using SleveenAdmin.Sailflow.Assignee;
 
-namespace SleveenAdmin.Saiflow.Resource;
+namespace SleveenAdmin.Sailflow.Resource;
 
 /// <summary>
 /// 宿主具化的 <see cref="IResourceService"/>：SysUser + AuthVisitorBag/Duty，不依赖引擎组织人员表。

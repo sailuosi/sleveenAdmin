@@ -2,7 +2,7 @@
   <!-- Package versions for *.publish.csproj (dev *.csproj unchanged). -->
   <PropertyGroup>
     <MooSqlExtPackageVersion>8.2.1.10</MooSqlExtPackageVersion>
-    <SaiflowBizPackageVersion>0.1.0</SaiflowBizPackageVersion>
+    <SailflowBizPackageVersion>0.1.0</SailflowBizPackageVersion>
     <HangfireMooSqlPackageVersion>0.1.0</HangfireMooSqlPackageVersion>
   </PropertyGroup>
 

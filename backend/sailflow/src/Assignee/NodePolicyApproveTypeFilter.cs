@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using sailflow.assignee;
 using sailflow.engine.Common;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// approveType=2/3：有人后仍覆盖为策略跳过/自动拒绝（对齐原装饰器优先语义）。

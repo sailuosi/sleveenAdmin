@@ -3,7 +3,7 @@ using System.Text.Json;
 using sailflow.engine.Hooks;
 using sailflow.msg.SideEffect;
 
-namespace SleveenAdmin.Saiflow.SideEffects;
+namespace SleveenAdmin.Sailflow.SideEffects;
 
 /// <summary>
 /// BestEffort：流程事件串行追加写文件。主路径只入 Channel；满队可丢；崩溃不补。

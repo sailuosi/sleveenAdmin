@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
-using SleveenAdmin.Saiflow.Operations.Handlers;
+using SleveenAdmin.Sailflow.Operations.Handlers;
 
-namespace SleveenAdmin.Saiflow.Operations;
+namespace SleveenAdmin.Sailflow.Operations;
 
 public static class SailOperationHostingExtensions
 {

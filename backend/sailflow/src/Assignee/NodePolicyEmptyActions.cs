@@ -2,9 +2,9 @@ using sailflow.assignee;
 using sailflow.assignee.Builtin;
 using sailflow.engine.Assignee;
 using sailflow.engine.Common;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>空人=1：策略跳过占位 + AutoApprove 锚点。</summary>
 public sealed class NodePolicySkipEmptyAction : IAssigneeEmptyAction

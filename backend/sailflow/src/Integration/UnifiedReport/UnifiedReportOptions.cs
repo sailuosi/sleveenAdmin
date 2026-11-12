@@ -1,4 +1,4 @@
-namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
+namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
 /// <summary>统一用户中心 / 集成平台待办同步配置（对齐 szkfpt <c>unified-report.*</c>）。</summary>
 public sealed class UnifiedReportOptions

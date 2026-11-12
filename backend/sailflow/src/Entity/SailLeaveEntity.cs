@@ -1,6 +1,6 @@
 using mooSQL.data;
 
-namespace SleveenAdmin.Saiflow.Entity;
+namespace SleveenAdmin.Sailflow.Entity;
 
 /// <summary>请假业务样例（产品表；流程结束经 Hook 回写 Status）。</summary>
 [SooTable(Name = "sf_demo_leave", Caption = "请假样例", Type = DBTableType.Table)]

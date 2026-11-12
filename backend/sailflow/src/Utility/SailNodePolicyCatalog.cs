@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
 
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>节点产品策略（sf:NodePolicy.json）解析；引擎不解释，Host/办理台消费。</summary>
 public sealed class SailNodePolicyDto

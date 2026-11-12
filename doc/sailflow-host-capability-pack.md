@@ -1,7 +1,7 @@
 # Sailflow 宿主能力包写法（最佳实践）
 
 > 状态：现行（2026-11-01）  
-> 落点：`backend/saiflow`（`SaiflowHostSetup` + `Hooks/*` + `Integration/UnifiedReport/*`）  
+> 落点：`backend/sailflow`（`SailflowHostSetup` + `Hooks/*` + `Integration/UnifiedReport/*`）  
 > 引擎契约全文：[sailflow/doc/sail/最佳实践-宿主能力包UseXxx.md](../../sailflow/doc/sail/最佳实践-宿主能力包UseXxx.md)  
 > 关联：[sailflow-features.md](./sailflow-features.md) · [sailflow-portal-todo-push.md](./sailflow-portal-todo-push.md) · [PLAN.md](../PLAN.md)
 
@@ -12,14 +12,14 @@
 在 sleveen-admin 挂 Sail 能力时：
 
 1. **优先 `SailClientBuilder.UseXxx()`**，把开关、建表、Hook/Notifier、Drain 收进扩展。  
-2. **`SaiflowHostSetup` 组合根只保留链式清单**，避免 `Build()` 后大段 `if` + 手写 `useFlowHook`。  
+2. **`SailflowHostSetup` 组合根只保留链式清单**，避免 `Build()` 后大段 `if` + 手写 `useFlowHook`。  
 3. 引擎语义仍走 Gate / Hook / Notifier 三轨；本仓只做 Host 适配与主数据对接。
 
 ---
 
 ## 2. 现行组合根（摘录）
 
-`backend/saiflow/src/Hosting/SaiflowHostSetup.cs`：
+`backend/sailflow/src/Hosting/SailflowHostSetup.cs`：
 
 ```csharp
 var client = SailConfigBizExtensions.CreateBuilder(configuration)
@@ -69,7 +69,7 @@ client.UseSleveenOrgLookups(); // R3 Assignee Lookup 覆盖
 2. 实现 `SailClientBuilder.UseXxx(...)`；开关读 `Configuration/*.json` / `IOptions`，**扩展内判定**。  
 3. 需要 `SailClient` / 建表 → `SailFeaturePhase.PostBuild`；纯 Hook 无依赖 → `builder.UseFlowHook(...)`。  
 4. 需要 MS DI → 扩展参数传 `IServiceProvider`（与门户包一致）。  
-5. 在 `SaiflowHostSetup` **只加一行** `.UseXxx(…)`。  
+5. 在 `SailflowHostSetup` **只加一行** `.UseXxx(…)`。  
 6. 更新本文表格 + 必要时专题文档（如门户推送）。  
 
 **禁止：** 在 HostSetup 外层再写 `if (enabled) { new XxxNotifier; client.useTaskNotifier… }`。

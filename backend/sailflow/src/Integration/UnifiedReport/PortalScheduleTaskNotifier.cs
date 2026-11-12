@@ -6,7 +6,7 @@ using sailflow.engine.Client;
 using sailflow.engine.Hooks;
 using sailflow.msg.SideEffect;
 
-namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
+namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
 /// <summary>
 /// Reliable 待办推送：流程待办 → 集成平台统一日程（Created=add，Completed/Cancelled=update）。

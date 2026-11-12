@@ -1,6 +1,6 @@
 using mooSQL.data;
 
-namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
+namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
 /// <summary>待办推送集成平台流水（对齐 szkfpt primary_todo_portal_record）。</summary>
 [SooTable(Name = "sf_todo_portal_record", Caption = "待办推送集成平台记录", Type = DBTableType.Table)]

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using sailflow.engine.Hooks;
 
-namespace SleveenAdmin.Saiflow.Hooks;
+namespace SleveenAdmin.Sailflow.Hooks;
 
 /// <summary>
 /// 开发核验用：流程 Hook 回调时把 <see cref="FlowHookContext"/> 打到控制台。

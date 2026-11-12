@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\core\SleveenAdmin.Foundation\SleveenAdmin.Foundation.csproj" />
-    <ProjectReference Include="..\..\saiflow\SleveenAdmin.Saiflow.csproj" />
+    <ProjectReference Include="..\..\sailflow\SleveenAdmin.Sailflow.csproj" />
   </ItemGroup>
 
   <ItemGroup>

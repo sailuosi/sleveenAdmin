@@ -1,6 +1,6 @@
 using sailflow.hub.Form;
 
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>§C 办理台字段编辑性：统一 string mode，兼容旧 IsReadOnly/IsNotVisible。</summary>
 public sealed class SailFieldModeItem

@@ -2,7 +2,7 @@
 
 > 状态：规划稿（2026-10-31）；S0–S6 代码齐套，**待浏览器 UAT**  
 > 对照源：`bee-bpmn/nflow/n_flowable`（前端产品面）  
-> 落地宿主：`sleveen-admin`（`web/src/widgets/sailflow` + `backend/saiflow`）  
+> 落地宿主：`sleveen-admin`（`web/src/widgets/sailflow` + `backend/sailflow`）  
 > 引擎约束：**不得更换** `sailflow` 核心引擎（`core/pure` / SailClient）；仅做 Host 适配与前端复刻  
 > **现行能力说明（用户/接入/开发）：** [sailflow-features.md](./sailflow-features.md)  
 > 关联：[sailflow-menu-mount.md](./sailflow-menu-mount.md)、[biz-module-paradigm.md](./biz-module-paradigm.md)、[sailflow-assignee-candidate-design.md](./sailflow-assignee-candidate-design.md)（待办人配置）、sailflow《架构设计-项目依赖与分层》《特性设计-回调与事件》
@@ -20,7 +20,7 @@
 | # | 约束 | 说明 |
 |---|------|------|
 | C1 | **引擎不换** | 禁止把 `mooSQL.NFlow.Pure` / Activiti 形状引擎迁入替换 `sailflow.engine`；运行语义继续是 Slickflow/Sail 系：`Start/Run/Reject/SendBack/Withdraw/Jump/SignForward…` |
-| C2 | **Host 可加厚** | `backend/saiflow` 只做 HTTP 适配：补齐分页待办、任务视图、下一跳树、表单 CRUD/字段权、实例详情、Outbox 管理等；业务查询优先落 `sailflow.biz.query` |
+| C2 | **Host 可加厚** | `backend/sailflow` 只做 HTTP 适配：补齐分页待办、任务视图、下一跳树、表单 CRUD/字段权、实例详情、Outbox 管理等；业务查询优先落 `sailflow.biz.query` |
 | C3 | **前端可整包复刻 UX** | 交互与信息架构对齐 n_flowable（芋道 BPM 壳），但 API 契约改为 Sail 形状（`ResponseResult` / `FlowCommandContext` / `TaskViewEntity`），**不**照搬 `/bpm/*` 到引擎内 |
 | C4 | **设计器双轨** | **保留**现有 `widgets/sailflow` BPMN 设计器（Performers / AI / RuleTask / Variables / Multisign…）；n_flowable 的 Simple 设计器与表单设计器按需引入；**不**用芋道 BPMN 面板整体替换 Sail 设计器 |
 | C5 | **特色必保** | 规则集、AI 模型、知识库、AxConfig、Hook/Gate/Outbox、模板库、变量表——菜单与能力不得因复刻被删掉 |
@@ -62,7 +62,7 @@ Engine / 存储语义     ← 保持 sailflow；语义映射而非协议克隆
 | 前端包 | `pcweb/src/widgets/nflow` | `web/src/widgets/sailflow` |
 | 页面入口 | `Page/BPO_NFlow_*` | 现 `views/Sail*Page.vue`；复刻后建议 `views/{task,process,form,model}/` + Page 壳 |
 | API 客户端 | `api/*` + `bpmRequest`（`code===0`） | `api/*.ts` + `requestAPI6`（`ResponseResult`） |
-| Host | `HHNY.NET.NFlow` Controllers | `backend/saiflow/Controller/*` |
+| Host | `HHNY.NET.NFlow` Controllers | `backend/sailflow/Controller/*` |
 | 引擎 | `mooSQL.NFlow.Pure` | **`sailflow` 独立解决方案（禁止替换）** |
 
 ### 2.3 操作语义映射（办理条）
@@ -430,7 +430,7 @@ Host：
 - `sailflow/doc/sail/业务管道特性设计.md`
 - `sailflow/doc/sail/特性设计-回调与事件.md`
 - `sailflow/doc/sail/progress/2026-10-31-phase*.md`
-- `sleveen-admin/backend/saiflow/**`
+- `sleveen-admin/backend/sailflow/**`
 - `sleveen-admin/web/src/widgets/sailflow/**`
 - `sleveen-admin/doc/sailflow-menu-mount.md`
 

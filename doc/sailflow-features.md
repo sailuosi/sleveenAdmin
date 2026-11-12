@@ -1,7 +1,7 @@
 # Sailflow 特性说明（产品面）
 
 > 状态：**现行能力说明**（对照代码与菜单，2026-11-01）  
-> 宿主：`sleveen-admin`（`web/src/widgets/sailflow` + `backend/saiflow`）  
+> 宿主：`sleveen-admin`（`web/src/widgets/sailflow` + `backend/sailflow`）  
 > 引擎：独立解决方案 `sailflow`（`SailClient` / `core/pure`），**不**使用 NFlow Pure / Flowable  
 > 关联：[sailflow-menu-mount.md](./sailflow-menu-mount.md)（菜单挂载）· [sailflow-nflowable-feature-replication.md](./sailflow-nflowable-feature-replication.md)（复刻规划与进度）· [sailflow-assignee-candidate-design.md](./sailflow-assignee-candidate-design.md)（待办人配置）· [biz-module-paradigm.md](./biz-module-paradigm.md) · [sailflow-host-capability-pack.md](./sailflow-host-capability-pack.md)（Host 能力包）  
 > **引擎能力基线（演进对照）：** `sailflow/doc/sail/特性说明-引擎能力基线.md`  
@@ -130,7 +130,7 @@
 
 ```text
 UX / 页面          ← widgets/sailflow（可对齐 n_flowable 信息架构）
-Host API           ← backend/saiflow（ResponseResult / FlowCommandContext）
+Host API           ← backend/sailflow（ResponseResult / FlowCommandContext）
 Engine / 存储      ← sailflow（语义映射，禁止换引擎）
 组织 / 登录        ← sleveen 宿主（adapters；勿引入芋道系统域）
 ```
@@ -308,7 +308,7 @@ Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须
 | 待办人 / 候选人 | [sailflow-assignee-candidate-design.md](./sailflow-assignee-candidate-design.md) |
 | 办理按钮管理与能力对齐 | [sailflow-buttons-capability.md](./sailflow-buttons-capability.md) |
 | 前端包 | `web/src/widgets/sailflow/**` |
-| Host | `backend/saiflow/**` |
+| Host | `backend/sailflow/**` |
 | Host 能力包写法 | [sailflow-host-capability-pack.md](./sailflow-host-capability-pack.md) |
 | 引擎能力基线 | `sailflow/doc/sail/特性说明-引擎能力基线.md` |
 | 引擎宿主 UseXxx 实践 | `sailflow/doc/sail/最佳实践-宿主能力包UseXxx.md` |

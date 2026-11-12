@@ -3,7 +3,7 @@ using sailflow.engine.Entity;
 using sailflow.engine.Utility;
 using sailflow.engine.Xpdl;
 
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>精简版 InitNewBPMNFile（原 Graph.ProcessXmlBuilder 静态入口）。</summary>
 public static class ProcessXmlBuilder

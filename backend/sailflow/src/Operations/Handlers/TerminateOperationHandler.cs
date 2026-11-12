@@ -1,7 +1,7 @@
 using sailflow.engine.Result;
 using sailflow.engine.Service;
 
-namespace SleveenAdmin.Saiflow.Operations.Handlers;
+namespace SleveenAdmin.Sailflow.Operations.Handlers;
 
 public sealed class TerminateOperationHandler(IWorkflowService wf) : ISailOperationHandler
 {

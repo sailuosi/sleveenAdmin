@@ -1,7 +1,7 @@
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
 
-namespace SleveenAdmin.Saiflow.FormBiz;
+namespace SleveenAdmin.Sailflow.FormBiz;
 
 /// <summary>§H：流程终态 → 按 AppName(=FormCode) 调 Handler.OnFinish。</summary>
 public sealed class SailFormBizLifecycleHook : IFlowHook

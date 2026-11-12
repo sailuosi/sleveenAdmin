@@ -1,6 +1,6 @@
 using Microsoft.Net.Http.Headers;
 
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>multipart/form-data 解析辅助（对齐 sfdapi MultipartRequestHelper）。</summary>
 public static class MultipartRequestHelper

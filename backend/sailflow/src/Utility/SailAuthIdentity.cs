@@ -3,7 +3,7 @@ using sailflow.biz.query;
 using sailflow.engine.Common;
 using SleveenAdmin.Foundation.Auth;
 
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>
 /// 用 JWT Claims 覆盖流程操作人 / 「我的」查询过滤键，防客户端冒用 UserId。

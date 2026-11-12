@@ -4,9 +4,9 @@ using sailflow.assignee.Builtin;
 using sailflow.engine.Assignee;
 using sailflow.engine.Client;
 using sailflow.engine.Service;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>NodePolicy → Assignee Filter/Empty 共用装载与选型（R10）。</summary>
 internal static class NodePolicyAssigneeSupport

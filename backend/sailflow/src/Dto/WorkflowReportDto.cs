@@ -1,4 +1,4 @@
-namespace SleveenAdmin.Saiflow.Dto;
+namespace SleveenAdmin.Sailflow.Dto;
 
 /// <summary>流程报表总览（独立查询，不造第二引擎）。</summary>
 public class WorkflowReportOverviewDto

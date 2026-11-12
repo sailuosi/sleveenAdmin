@@ -5,7 +5,7 @@ using sailflow.assignee.Builtin;
 using sailflow.engine.Common;
 using SleveenAdmin.Foundation.Data;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// R3：覆盖内置 UnitMap —— 按宿主 <c>SysOrg</c>/<c>SysUser</c> 查人。

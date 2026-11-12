@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using sailflow.WebUtility;
-using SleveenAdmin.Saiflow.Entity;
-using SleveenAdmin.Saiflow.Service;
+using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.Service;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>流程分类目录；绑定写入 Process.AppType。</summary>
 [Authorize]

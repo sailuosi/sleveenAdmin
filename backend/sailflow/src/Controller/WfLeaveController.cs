@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using sailflow.engine.Result;
 using sailflow.WebUtility;
-using SleveenAdmin.Saiflow.Entity;
-using SleveenAdmin.Saiflow.FormBiz;
-using SleveenAdmin.Saiflow.Service;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.FormBiz;
+using SleveenAdmin.Sailflow.Service;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>请假样例：委托 §H LeaveFormBizHandler（FormCode=SailLeave）。</summary>
 [Authorize]

@@ -1,8 +1,8 @@
 using sailflow.engine.Entity;
 using sailflow.engine.Common;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Dto;
+namespace SleveenAdmin.Sailflow.Dto;
 
 /// <summary>办理工作台聚合（对标 n_flowable get-approval-detail，语义走 Sail）。</summary>
 public class ApprovalWorkbenchDto

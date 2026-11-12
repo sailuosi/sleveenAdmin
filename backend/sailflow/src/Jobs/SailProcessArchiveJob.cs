@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using sailflow.data.Hosting;
 using sailflow.engine.Client;
 
-namespace SleveenAdmin.Saiflow.Jobs;
+namespace SleveenAdmin.Sailflow.Jobs;
 
 /// <summary>Hangfire：按 DataLifecycleOptions 保留窗批量热→冷归档。</summary>
 public sealed class SailProcessArchiveJob

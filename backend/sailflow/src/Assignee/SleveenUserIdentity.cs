@@ -5,7 +5,7 @@ using sailflow.hub.Resource;
 using SleveenAdmin.Foundation.Data;
 using User = sailflow.hub.Resource.User;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>R3：把引擎/资源侧用户键对齐为宿主 <c>SysUser.Account</c>。</summary>
 public static class SleveenUserIdentity

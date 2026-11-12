@@ -1,7 +1,7 @@
 using sailflow.engine.Common;
 using sailflow.engine.Event;
 
-namespace SleveenAdmin.Saiflow.FormBiz;
+namespace SleveenAdmin.Sailflow.FormBiz;
 
 /// <summary>
 /// §H：一业务一类 Handler。只做业务单读写/状态；流转仍走引擎命令。

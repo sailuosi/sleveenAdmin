@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using sailflow.engine.Client;
 using sailflow.engine.Hosting;
 
-namespace SleveenAdmin.Saiflow.Hosting;
+namespace SleveenAdmin.Sailflow.Hosting;
 
 /// <summary>从配置绑定 <see cref="SailDataLifecycleOptions"/> 并挂到 Builder。</summary>
 public static class SailDataLifecycleHostExtensions

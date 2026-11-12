@@ -4,9 +4,9 @@ using sailflow.assignee.Hosting;
 using sailflow.assignee.Store;
 using sailflow.engine.Client;
 using SleveenAdmin.Foundation.Data;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>宿主侧办理人 Lookup 覆盖（R3）+ NodePolicy 空人/同人（R10 Filter/Empty）。</summary>
 public static class SleveenAssigneeSailExtensions

@@ -46,7 +46,7 @@
 | `sf:Actions` | 另轨 | BPMN 生命周期动作，**不是** UX 操作按钮 |
 
 前端权威列表：`web/src/widgets/sailflow/bpmn/buttonsCatalog.ts`  
-后端权威列表：`backend/saiflow/Utility/SailButtonsCatalog.cs`
+后端权威列表：`backend/sailflow/Utility/SailButtonsCatalog.cs`
 
 ---
 
@@ -123,8 +123,8 @@
 | `web/.../bpmn/provider/sfButtonsProvider.ts` | 属性面板 |
 | `web/.../components/runtime/SailOperationBar.vue` | 办理条 |
 | `web/.../views/process/SailProcessDetailPage.vue` | 下发 props |
-| `backend/saiflow/Utility/SailButtonsCatalog.cs` | 解析 + 默认 |
-| `backend/saiflow/Dto/ApprovalWorkbenchDto.cs` | `ButtonsSetting` |
+| `backend/sailflow/Utility/SailButtonsCatalog.cs` | 解析 + 默认 |
+| `backend/sailflow/Dto/ApprovalWorkbenchDto.cs` | `ButtonsSetting` |
 | `doc/sailflow-features.md` | 产品成熟度表 |
 
 ---

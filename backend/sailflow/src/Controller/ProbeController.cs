@@ -4,14 +4,14 @@ using mooSQL.data;
 using sailflow.biz.Bootstrap;
 using sailflow.data;
 using sailflow.engine.Client;
-using SleveenAdmin.Saiflow.Entity;
-using SleveenAdmin.Saiflow.Hosting;
-using SleveenAdmin.Saiflow.Integration.UnifiedReport;
-using SleveenAdmin.Saiflow.Service;
+using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.Hosting;
+using SleveenAdmin.Sailflow.Integration.UnifiedReport;
+using SleveenAdmin.Sailflow.Service;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
-/// <summary>探活 / InitDb；路由 api/sail/Probe。故意匿名，其余 Saiflow API 需登录。</summary>
+/// <summary>探活 / InitDb；路由 api/sail/Probe。故意匿名，其余 Sailflow API 需登录。</summary>
 [AllowAnonymous]
 [Route("api/sail/[controller]")]
 [ApiController]
@@ -36,7 +36,7 @@ public class ProbeController : ControllerBase
             {
                 ok = true,
                 scalar = one,
-                position = SaiflowDefaults.DbPosition,
+                position = SailflowDefaults.DbPosition,
                 dialect = db.dialect?.GetType().Name,
                 dbName = db.config?.name
             });
@@ -66,7 +66,7 @@ public class ProbeController : ControllerBase
                 ok = true,
                 seededRows = result.SeededRows,
                 progress = result.Progress,
-                position = SaiflowDefaults.DbPosition
+                position = SailflowDefaults.DbPosition
             });
         }
         catch (Exception ex)

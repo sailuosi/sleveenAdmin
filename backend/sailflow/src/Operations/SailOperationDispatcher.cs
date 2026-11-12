@@ -1,7 +1,7 @@
 using sailflow.engine.Result;
-using SleveenAdmin.Saiflow.FormBiz;
+using SleveenAdmin.Sailflow.FormBiz;
 
-namespace SleveenAdmin.Saiflow.Operations;
+namespace SleveenAdmin.Sailflow.Operations;
 
 /// <summary>按码表 ButtonId 路由到已注册 Handler；未注册禁止空壳执行。</summary>
 public sealed class SailOperationDispatcher

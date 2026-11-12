@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using sailflow.WebUtility;
-using SleveenAdmin.Saiflow.Dto;
-using SleveenAdmin.Saiflow.Service;
+using SleveenAdmin.Sailflow.Dto;
+using SleveenAdmin.Sailflow.Service;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>流程报表（只读聚合）。</summary>
 [Authorize]

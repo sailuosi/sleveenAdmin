@@ -14,21 +14,21 @@ using sailflow.engine.Service;
 using sailflow.hub.Hosting;
 using sailflow.hub.Hosting;
 using SleveenAdmin.Foundation.Data;
-using SleveenAdmin.Saiflow.Assignee;
-using SleveenAdmin.Saiflow.FormBiz;
-using SleveenAdmin.Saiflow.Hooks;
-using SleveenAdmin.Saiflow.Integration.UnifiedReport;
-using SleveenAdmin.Saiflow.Operations;
-using SleveenAdmin.Saiflow.Resource;
-using SleveenAdmin.Saiflow.SideEffects;
-using SleveenAdmin.Saiflow.Timeout;
+using SleveenAdmin.Sailflow.Assignee;
+using SleveenAdmin.Sailflow.FormBiz;
+using SleveenAdmin.Sailflow.Hooks;
+using SleveenAdmin.Sailflow.Integration.UnifiedReport;
+using SleveenAdmin.Sailflow.Operations;
+using SleveenAdmin.Sailflow.Resource;
+using SleveenAdmin.Sailflow.SideEffects;
+using SleveenAdmin.Sailflow.Timeout;
 using mooSQL.data;
 
-namespace SleveenAdmin.Saiflow.Hosting;
+namespace SleveenAdmin.Sailflow.Hosting;
 
-public static class SaiflowHostSetup
+public static class SailflowHostSetup
 {
-    public static IServiceCollection AddSaiflowHost(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddSailflowHost(this IServiceCollection services, IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -70,8 +70,8 @@ public static class SaiflowHostSetup
                 .ConfigureServices(s =>
                 {
                     s.UseDatabase(
-                        _ => DBCash.GetDBInstance(SaiflowDefaults.DbPosition),
-                        SaiflowDefaults.DbPosition);
+                        _ => DBCash.GetDBInstance(SailflowDefaults.DbPosition),
+                        SailflowDefaults.DbPosition);
                     s.UseBizLocalize();
                     // 不用引擎 UseResource（无组织人员表）；由 UseSleveenOrgResource 注入契约实现
                     s.UseForm();
@@ -105,7 +105,7 @@ public static class SaiflowHostSetup
         services.AddScoped<WorkflowQueryService>();
         services.AddScoped<IAiModelDataService, AiModelDataService>();
         // 本程序集 [Scoped] → GeneratedDiRegistration
-        services.AddSleveenAdminSaiflowServices();
+        services.AddSleveenAdminSailflowServices();
 
         services.AddSailFormBiz();
         services.AddSailOperationHandlers();

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
+namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
 /// <summary>统一用户中心 / 集成平台日程 HTTP 客户端（移植自 szkfpt UnifiedReportClient）。</summary>
 public sealed class UnifiedReportClient

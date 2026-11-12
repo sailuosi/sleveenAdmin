@@ -5,7 +5,7 @@ using sailflow.engine.Client;
 using sailflow.engine.Hosting;
 using sailflow.engine.Hooks;
 
-namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
+namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
 /// <summary>
 /// Reliable 待办推送能力包：按 <see cref="UnifiedReportOptions.Enabled"/> 启用 Outbox Drain + TaskNotifier。

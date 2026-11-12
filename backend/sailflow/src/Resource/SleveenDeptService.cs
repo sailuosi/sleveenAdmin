@@ -3,9 +3,9 @@ using System.Diagnostics;
 using mooSQL.data;
 using sailflow.hub.Resource;
 using SleveenAdmin.Foundation.Data;
-using SleveenAdmin.Saiflow.Assignee;
+using SleveenAdmin.Sailflow.Assignee;
 
-namespace SleveenAdmin.Saiflow.Resource;
+namespace SleveenAdmin.Sailflow.Resource;
 
 /// <summary>
 /// 宿主具化的 <see cref="IDeptService"/>（经 <c>UseSleveenOrgResource</c> 注入 Locator）：

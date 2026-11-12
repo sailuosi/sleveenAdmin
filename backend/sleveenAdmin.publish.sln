@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleveenAdmin.Business.publi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleveenAdmin.Web.Api.publish", "core\SleveenAdmin.Web.Api\SleveenAdmin.Web.Api.publish.csproj", "{7FE2EF35-9B16-4C11-9172-995F10646194}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleveenAdmin.Saiflow.publish", "saiflow\SleveenAdmin.Saiflow.publish.csproj", "{9D7A5DEA-1993-4791-94AE-3209A4471C2C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleveenAdmin.Sailflow.publish", "sailflow\SleveenAdmin.Sailflow.publish.csproj", "{9D7A5DEA-1993-4791-94AE-3209A4471C2C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleveenAdmin.Officeman.publish", "officeman\SleveenAdmin.Officeman.publish.csproj", "{FD3AF527-EB43-4E6F-9373-8F804AA19D0B}"
 EndProject

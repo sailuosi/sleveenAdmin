@@ -14,7 +14,7 @@
     <ProjectReference Include="..\SleveenAdmin.Foundation\SleveenAdmin.Foundation.publish.csproj" />
     <ProjectReference Include="..\SleveenAdmin.System\SleveenAdmin.System.publish.csproj" />
     <ProjectReference Include="..\SleveenAdmin.Business\SleveenAdmin.Business.publish.csproj" />
-    <ProjectReference Include="..\..\saiflow\SleveenAdmin.Saiflow.publish.csproj" />
+    <ProjectReference Include="..\..\sailflow\SleveenAdmin.Sailflow.publish.csproj" />
     <ProjectReference Include="..\..\officeman\SleveenAdmin.Officeman.publish.csproj" />
     <ProjectReference Include="..\..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
                       OutputItemType="Analyzer"

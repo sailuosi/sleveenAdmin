@@ -2,9 +2,9 @@ using mooSQL.data;
 using sailflow.data;
 using sailflow.engine.Client;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Saiflow.Entity;
+using SleveenAdmin.Sailflow.Entity;
 
-namespace SleveenAdmin.Saiflow.Service;
+namespace SleveenAdmin.Sailflow.Service;
 
 /// <summary>请假样例 CRUD + 状态回写。</summary>
 [Scoped]

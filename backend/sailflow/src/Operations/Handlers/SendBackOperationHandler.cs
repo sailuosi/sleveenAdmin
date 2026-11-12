@@ -1,7 +1,7 @@
 using sailflow.engine.Result;
 using sailflow.engine.Service;
 
-namespace SleveenAdmin.Saiflow.Operations.Handlers;
+namespace SleveenAdmin.Sailflow.Operations.Handlers;
 
 /// <summary>§J：退回前强校验目标 ActivityId（Workbench 已按 SendBackTarget 收窄，此处防直调 API）。</summary>
 public sealed class SendBackOperationHandler(IWorkflowService wf) : ISailOperationHandler

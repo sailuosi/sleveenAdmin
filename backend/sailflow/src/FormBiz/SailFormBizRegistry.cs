@@ -1,4 +1,4 @@
-namespace SleveenAdmin.Saiflow.FormBiz;
+namespace SleveenAdmin.Sailflow.FormBiz;
 
 /// <summary>§H：按 FormCode 路由到唯一业务 Handler。</summary>
 public sealed class SailFormBizRegistry

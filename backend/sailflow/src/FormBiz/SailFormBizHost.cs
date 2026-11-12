@@ -1,7 +1,7 @@
 using sailflow.engine.Result;
 using sailflow.engine.Service;
 
-namespace SleveenAdmin.Saiflow.FormBiz;
+namespace SleveenAdmin.Sailflow.FormBiz;
 
 public sealed class SubmitBizFormRequest
 {

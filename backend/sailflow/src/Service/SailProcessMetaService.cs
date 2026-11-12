@@ -3,11 +3,11 @@ using sailflow.engine.Entity;
 using sailflow.engine.Client;
 using sailflow.engine.Service;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Saiflow.Dto;
-using SleveenAdmin.Saiflow.Entity;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Dto;
+using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Service;
+namespace SleveenAdmin.Sailflow.Service;
 
 /// <summary>流程编辑：定义字段 + sf_process_meta 产品扩展。</summary>
 [Scoped]

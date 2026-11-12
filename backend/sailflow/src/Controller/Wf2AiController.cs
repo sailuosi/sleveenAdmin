@@ -8,7 +8,7 @@ using sailflow.AI.Implementation;
 using sailflow.AI.Service;
 using sailflow.WebUtility;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>
 /// 任务 2 T2-4b：AI 设计器 API（契约对齐前端 settingapi / axconfigapi / agentapi）。

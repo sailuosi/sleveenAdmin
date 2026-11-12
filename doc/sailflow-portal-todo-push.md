@@ -2,7 +2,7 @@
 
 > 对齐统一日程（`UnifiedReportClient` / `portal/schedule/*`），在 SleveenAdmin 宿主经引擎 **Task Notifier + AsyncOutbox** 推送。
 >
-> 实现代码均在 [`backend/saiflow/src/Integration/UnifiedReport/`](../backend/saiflow/src/Integration/UnifiedReport/)。  
+> 实现代码均在 [`backend/sailflow/src/Integration/UnifiedReport/`](../backend/sailflow/src/Integration/UnifiedReport/)。  
 > **注册写法：** 构建链 `.UsePortalScheduleTaskNotifier(sp)`（扩展内读 `Enabled`，连带 Drain）；见 [sailflow-host-capability-pack.md](./sailflow-host-capability-pack.md)。
 
 ## 架构

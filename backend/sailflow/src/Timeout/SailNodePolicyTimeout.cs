@@ -1,6 +1,6 @@
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Timeout;
+namespace SleveenAdmin.Sailflow.Timeout;
 
 /// <summary>§A：NodePolicy 超时时长换算与 Overdue 对齐。</summary>
 public static class SailNodePolicyTimeout

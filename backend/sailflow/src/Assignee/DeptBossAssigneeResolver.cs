@@ -5,7 +5,7 @@ using sailflow.engine.Common;
 using sailflow.engine.Service;
 using SleveenAdmin.Foundation.Data;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// 部门领导定范围 Type=<c>deptBoss</c>。Params.roleIds 优先；否则用宿主默认负责人角色袋。

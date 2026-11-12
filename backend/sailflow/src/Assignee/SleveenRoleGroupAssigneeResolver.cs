@@ -6,7 +6,7 @@ using sailflow.engine.Common;
 using sailflow.hub.Resource;
 using SleveenAdmin.Foundation.Data;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// R3：RoleGroup 优先按宿主权限主数据展开，再回落引擎资源表并对齐 Account。

@@ -28,7 +28,7 @@
 
 ### 后端
 
-- 解决方案：`Foundation` / `System` / `Business` / `Web.Api` + Tests；后续增厚 `backend/saiflow`（流程 Host，见现行 PLAN）
+- 解决方案：`Foundation` / `System` / `Business` / `Web.Api` + Tests；后续增厚 `backend/sailflow`（流程 Host，见现行 PLAN）
 - JWT + RefreshToken 轮换、验证码、按钮级 `PermissionAttribute`
 - 多租户、Hangfire（SQL Server）、公告/站内信、SignalR 在线用户
 - 文件 / 操作·访问日志 / 服务器监控 / Redis 键值

@@ -13,7 +13,7 @@
     <ProjectReference Include="..\SleveenAdmin.Foundation\SleveenAdmin.Foundation.csproj" />
     <ProjectReference Include="..\SleveenAdmin.System\SleveenAdmin.System.csproj" />
     <ProjectReference Include="..\SleveenAdmin.Business\SleveenAdmin.Business.csproj" />
-    <ProjectReference Include="..\..\saiflow\SleveenAdmin.Saiflow.csproj" />
+    <ProjectReference Include="..\..\sailflow\SleveenAdmin.Sailflow.csproj" />
     <ProjectReference Include="..\..\officeman\SleveenAdmin.Officeman.csproj" />
     <ProjectReference Include="..\..\..\..\hangfire.moo-sql\src\Hangfire.MooSql\Hangfire.MooSql.csproj" />
     <ProjectReference Include="..\..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"

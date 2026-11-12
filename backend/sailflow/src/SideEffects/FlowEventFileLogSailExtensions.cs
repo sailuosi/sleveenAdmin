@@ -4,7 +4,7 @@ using sailflow.engine.Hosting;
 using sailflow.engine.Hooks;
 using sailflow.msg.SideEffect;
 
-namespace SleveenAdmin.Saiflow.SideEffects;
+namespace SleveenAdmin.Sailflow.SideEffects;
 
 /// <summary>BestEffort 流程事件文件日志：能力包 UseXxx。</summary>
 public static class FlowEventFileLogSailExtensions

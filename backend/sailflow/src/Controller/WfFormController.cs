@@ -4,7 +4,7 @@ using sailflow.engine.Client;
 using sailflow.hub.Form;
 using sailflow.WebUtility;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>动态表单 CRUD（form-create conf/fields → FbForm）。</summary>
 [Authorize]

@@ -4,7 +4,7 @@ using sailflow.engine.Hosting;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
 
-namespace SleveenAdmin.Saiflow.Timeout;
+namespace SleveenAdmin.Sailflow.Timeout;
 
 public static class SailNodePolicyTimeoutHostingExtensions
 {

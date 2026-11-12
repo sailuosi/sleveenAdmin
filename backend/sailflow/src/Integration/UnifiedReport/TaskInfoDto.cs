@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
+namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
 /// <summary>集成平台统一日程待办报文（对齐 szkfpt TaskInfoVO）。</summary>
 public sealed class TaskInfoDto

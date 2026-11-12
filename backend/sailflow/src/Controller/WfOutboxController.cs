@@ -5,7 +5,7 @@ using sailflow.engine.Manager;
 using sailflow.engine.Client;
 using sailflow.WebUtility;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>Hook/Notify Outbox 治理（死信查询与重试）。</summary>
 [Authorize]

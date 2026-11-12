@@ -2,7 +2,7 @@
 
 **种子已内置：** 启动时 `DbInitializer.EnsureSailMenus` 会幂等写入本文菜单树（`SeedIds.MenuSail*`）。已有库重启 API 即可补录；也可仍在 **系统管理 → 菜单管理** 手工调整。
 
-前端页面在 `web/src/widgets/sailflow`，后端 API 在 `backend/saiflow`（`/api/sail/Probe`、`/api/Wf2Xml` 等）。
+前端页面在 `web/src/widgets/sailflow`，后端 API 在 `backend/sailflow`（`/api/sail/Probe`、`/api/Wf2Xml` 等）。
 
 现行能力与接入说明见 [sailflow-features.md](./sailflow-features.md)；复刻范围与阶段勾选见 [sailflow-nflowable-feature-replication.md](./sailflow-nflowable-feature-replication.md)。
 

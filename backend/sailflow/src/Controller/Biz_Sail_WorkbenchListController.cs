@@ -5,9 +5,9 @@ using sailflow.engine.Client;
 using sailflow.engine.Entity;
 using SleveenAdmin.Foundation.AspNet;
 using SleveenAdmin.Foundation.Models;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>
 /// Sail 办理台只读列表（待办/已办/流程实例/抄送）。无增删改。

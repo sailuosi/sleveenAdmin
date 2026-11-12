@@ -2,7 +2,7 @@ using mooSQL.data;
 using sailflow.engine.Client;
 using SleveenAdmin.Foundation.DI;
 
-namespace SleveenAdmin.Saiflow.Integration.UnifiedReport;
+namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
 /// <summary>集成平台推送流水。</summary>
 [Scoped]

@@ -1,4 +1,4 @@
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>§A：策略跳过/拒绝/超时专用办理人。可用真实系统账号覆盖 Active* 以摆脱魔法人。</summary>
 public static class SailPolicyConstants

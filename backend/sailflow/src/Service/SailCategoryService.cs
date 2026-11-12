@@ -4,9 +4,9 @@ using sailflow.engine.Entity;
 using sailflow.engine.Client;
 using sailflow.engine.Service;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Saiflow.Entity;
+using SleveenAdmin.Sailflow.Entity;
 
-namespace SleveenAdmin.Saiflow.Service;
+namespace SleveenAdmin.Sailflow.Service;
 
 /// <summary>流程分类目录；绑定落在 Process.AppType。</summary>
 [Scoped]

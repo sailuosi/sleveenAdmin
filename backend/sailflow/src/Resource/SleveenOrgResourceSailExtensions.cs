@@ -3,7 +3,7 @@ using sailflow.engine.Hosting;
 using sailflow.hub.Resource;
 using SleveenAdmin.Foundation.Data;
 
-namespace SleveenAdmin.Saiflow.Resource;
+namespace SleveenAdmin.Sailflow.Resource;
 
 /// <summary>
 /// 宿主组织人员能力包：具化 <see cref="IDeptService"/> / <see cref="IResourceService"/> 并注入 Locator。

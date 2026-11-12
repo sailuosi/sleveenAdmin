@@ -3,7 +3,7 @@ using System.Diagnostics;
 using mooSQL.data;
 using SleveenAdmin.Foundation.Data;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// 部门领导查找（供 Type=<c>deptBoss</c> 使用）：按负责人角色袋在发起人组织链上找人；

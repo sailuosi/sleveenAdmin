@@ -4,7 +4,7 @@ using sailflow.engine.Entity;
 using sailflow.engine.Service;
 using sailflow.WebUtility;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>
 /// 任务 2 T2-3：流程变量定义（契约对齐 sfdapi WfVariable；wf_variable）。

@@ -12,7 +12,7 @@
       },
       {
         "Position": 4,
-        "Name": "saiflow",
+        "Name": "sailflow",
         "DbType": "SQLite",
         "ConnectString": "Data Source=App_Data/sailflow.sqlite;Mode=ReadWriteCreate",
         "Version": "3.0",

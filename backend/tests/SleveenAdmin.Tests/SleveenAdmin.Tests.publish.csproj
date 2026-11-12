@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\core\SleveenAdmin.Foundation\SleveenAdmin.Foundation.publish.csproj" />
-    <ProjectReference Include="..\..\saiflow\SleveenAdmin.Saiflow.publish.csproj" />
+    <ProjectReference Include="..\..\sailflow\SleveenAdmin.Sailflow.publish.csproj" />
   </ItemGroup>
 
   <ItemGroup>

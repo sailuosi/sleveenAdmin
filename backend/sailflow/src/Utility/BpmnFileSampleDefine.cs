@@ -1,7 +1,7 @@
 using System.Xml;
 using sailflow.engine.Utility;
 
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>
 /// 任务 3 T3-3b：按模板名加载 samples/bpmn 并重生 process id/name/code（对齐 sfdapi BpmnFileSampleDefine）。

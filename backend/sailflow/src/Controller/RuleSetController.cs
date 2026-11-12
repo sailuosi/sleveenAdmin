@@ -7,7 +7,7 @@ using sailflow.engine.Common;
 using sailflow.engine.Service;
 using sailflow.WebUtility;
 
-namespace SleveenAdmin.Saiflow.Controller;
+namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>
 /// 规则集（契约对齐 RuleSet；wf_rule_set）。

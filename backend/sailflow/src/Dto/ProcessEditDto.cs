@@ -1,7 +1,7 @@
 using sailflow.engine.Entity;
-using SleveenAdmin.Saiflow.Entity;
+using SleveenAdmin.Sailflow.Entity;
 
-namespace SleveenAdmin.Saiflow.Dto;
+namespace SleveenAdmin.Sailflow.Dto;
 
 /// <summary>流程编辑聚合：定义行 + 产品元数据。</summary>
 public class ProcessEditBundle

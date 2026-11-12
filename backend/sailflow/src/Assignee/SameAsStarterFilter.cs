@@ -5,9 +5,9 @@ using sailflow.engine.Client;
 using sailflow.engine.Common;
 using sailflow.engine.Runtime;
 using sailflow.engine.Service;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// assignStartUserHandlerType：2=同人策略跳过；3=按 NodePolicy.assignStartResolveType 走主管道 Resolver 换人。

@@ -2,7 +2,7 @@ using sailflow.engine.Client;
 using sailflow.engine.Common;
 using sailflow.engine.Service;
 
-namespace SleveenAdmin.Saiflow.Utility;
+namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>从 Runner / 任务上下文加载当前节点 NodePolicy。</summary>
 public static class SailNodePolicyLoader

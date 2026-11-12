@@ -3,7 +3,7 @@ using sailflow.engine.Hosting;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
 
-namespace SleveenAdmin.Saiflow.Hooks;
+namespace SleveenAdmin.Sailflow.Hooks;
 
 /// <summary>开发用控制台调试 Hook（Builder / Collection / Client）。</summary>
 public static class SailDebugConsoleHookExtensions

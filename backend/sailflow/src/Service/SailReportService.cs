@@ -5,10 +5,10 @@ using sailflow.engine.Manager;
 using sailflow.engine.Client;
 using sailflow.engine.Common;
 using SleveenAdmin.Foundation.DI;
-using SleveenAdmin.Saiflow.Dto;
-using SleveenAdmin.Saiflow.Entity;
+using SleveenAdmin.Sailflow.Dto;
+using SleveenAdmin.Sailflow.Entity;
 
-namespace SleveenAdmin.Saiflow.Service;
+namespace SleveenAdmin.Sailflow.Service;
 
 /// <summary>流程报表聚合（只读查询）。</summary>
 [Scoped]

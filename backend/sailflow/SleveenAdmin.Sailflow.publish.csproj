@@ -6,8 +6,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>SleveenAdmin.Saiflow</RootNamespace>
-    <AssemblyName>SleveenAdmin.Saiflow</AssemblyName>
+    <RootNamespace>SleveenAdmin.Sailflow</RootNamespace>
+    <AssemblyName>SleveenAdmin.Sailflow</AssemblyName>
     <Description>Sailflow host thin layer for SleveenAdmin (controllers + DI)</Description>
   </PropertyGroup>
 
@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="sailflow.biz" Version="$(SaiflowBizPackageVersion)" />
+    <PackageReference Include="sailflow.biz" Version="$(SailflowBizPackageVersion)" />
     <ProjectReference Include="..\core\SleveenAdmin.Foundation\SleveenAdmin.Foundation.publish.csproj" />
     <ProjectReference Include="..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
                       OutputItemType="Analyzer"

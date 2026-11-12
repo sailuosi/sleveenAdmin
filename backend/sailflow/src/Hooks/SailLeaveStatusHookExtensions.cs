@@ -2,9 +2,9 @@ using sailflow.engine.Client;
 using sailflow.engine.Hosting;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
-using SleveenAdmin.Saiflow.Service;
+using SleveenAdmin.Sailflow.Service;
 
-namespace SleveenAdmin.Saiflow.Hooks;
+namespace SleveenAdmin.Sailflow.Hooks;
 
 /// <summary>请假样例 Status Hook：建表 + 完成/驳回/关闭回写。</summary>
 public static class SailLeaveStatusHookExtensions

@@ -1,8 +1,8 @@
 using sailflow.assignee;
 using sailflow.engine.Common;
-using SleveenAdmin.Saiflow.Utility;
+using SleveenAdmin.Sailflow.Utility;
 
-namespace SleveenAdmin.Saiflow.Assignee;
+namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
 /// 策略自动通过意图（R10）：只打 AutoApprove 锚点，不落占位办理人。
