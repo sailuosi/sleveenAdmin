@@ -28,7 +28,7 @@ public static class SailNodePolicyTimeoutHostingExtensions
             Order = 195,
             PostBuild = (client, _) =>
             {
-                client.useFlowHook(new SailNodePolicyTimeoutStampHook(client), o =>
+                client.addHook(new SailNodePolicyTimeoutStampHook(client), o =>
                 {
                     o.Match = HookMatch.All;
                     o.Mode = HookMode.Sync;

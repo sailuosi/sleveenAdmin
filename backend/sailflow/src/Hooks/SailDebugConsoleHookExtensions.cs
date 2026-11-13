@@ -37,20 +37,20 @@ public static class SailDebugConsoleHookExtensions
     public static SailClientBuilder UseDebugConsoleHook(this SailClientBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        return builder.UseFlowHook(new SailDebugConsoleHook(), ConfigureDebugOptions);
+        return builder.AddHook(new SailDebugConsoleHook(), ConfigureDebugOptions);
     }
 
     /// <summary>Collection 管道注册（可放在 <c>ConfigureServices</c>）。</summary>
     public static ISailCollection UseDebugConsoleHook(this ISailCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        return services.UseFlowHook(new SailDebugConsoleHook(), ConfigureDebugOptions);
+        return services.AddHook(new SailDebugConsoleHook(), ConfigureDebugOptions);
     }
 
-    /// <summary>已构建 Client 上补挂（与引擎 <c>useFlowHook</c> 对齐）。</summary>
+    /// <summary>已构建 Client 上补挂（与引擎 <c>addHook</c> 对齐）。</summary>
     public static SailClient useDebugConsoleHook(this SailClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
-        return client.useFlowHook(new SailDebugConsoleHook(), ConfigureDebugOptions);
+        return client.addHook(new SailDebugConsoleHook(), ConfigureDebugOptions);
     }
 }

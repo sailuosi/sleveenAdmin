@@ -263,7 +263,7 @@ Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须
 1. **启动参数**：业务单号 → `AppInstanceId`；可选 `AppName` / `ProcessId`|`ProcessCode`+`Version`；动态表单常把 formId 放 `AppInstanceCode`（与发起页约定一致）。  
 2. **条件变量**：写入 `FlowCommandContext.Conditions`（及引擎约定的业务变量），供网关与表单字段同步策略使用。  
 3. **下一办理人**：`NextActivityPerformers` + 可选 `GroupId`/`GroupRole`；设计期可用 ConfigPair 解析（见待办人文档）。  
-4. **状态回写**：优先 **Sync Hook / Outbox**；挂载用 **`builder.UseLeaveStatusHook()`** 一类能力包，勿在组合根手写 `useFlowHook`（见 [sailflow-host-capability-pack.md](./sailflow-host-capability-pack.md)）。  
+4. **状态回写**：优先 **Sync Hook / Outbox**；挂载用 **`builder.UseLeaveStatusHook()`** 一类能力包，勿在组合根手写 `addHook`（见 [sailflow-host-capability-pack.md](./sailflow-host-capability-pack.md)）。  
 5. **组织数据**：经 `adapters` 与现有 HR/用户 API，避免在 Host 复制一套组织服务。  
 6. **表结构**：产品表（抄送、分类、请假、表单元数据）由 Probe/init-db 与 Host 维护，**不**改 pure 调度内核。  
 7. **新 Host 能力**：一项一个 `UseXxx`，开关/建表/Drain 内聚；组合根只链式声明（引擎文：[最佳实践-宿主能力包UseXxx.md](../../sailflow/doc/sail/最佳实践-宿主能力包UseXxx.md)）。

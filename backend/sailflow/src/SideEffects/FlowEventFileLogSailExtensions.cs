@@ -30,7 +30,7 @@ public static class FlowEventFileLogSailExtensions
         if (!opts.Enabled)
             return builder;
 
-        return builder.UseFlowHook(
+        return builder.AddHook(
             new FlowEventFileLogHook(opts.Directory, opts.FilePrefix, opts.Channel),
             BestEffortHookRegistration.Configure(HookMatch.All, opts.Order, opts.Events ?? DefaultEvents));
     }
@@ -45,7 +45,7 @@ public static class FlowEventFileLogSailExtensions
         if (!opts.Enabled)
             return services;
 
-        return services.UseFlowHook(
+        return services.AddHook(
             new FlowEventFileLogHook(opts.Directory, opts.FilePrefix, opts.Channel),
             BestEffortHookRegistration.Configure(HookMatch.All, opts.Order, opts.Events ?? DefaultEvents));
     }

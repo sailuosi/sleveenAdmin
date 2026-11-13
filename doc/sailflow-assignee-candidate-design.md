@@ -246,7 +246,7 @@ F3 Resolver 注册（定范围 1–9 算人）
 
 ### 4.0.1 Client 办理人核心契约（两大关键时刻）
 
-> **已决议方向**：办理人相关最硬的两段逻辑，必须落在 **`SailClient` 下的办理人核心契约**（与现有 `useFlowGate` / Hook 注册风格对齐），而不是散落在 Host 控制器或各业务项目里改引擎私有方法。
+> **已决议方向**：办理人相关最硬的两段逻辑，必须落在 **`SailClient` 下的办理人核心契约**（与现有 `addGate` / Hook 注册风格对齐），而不是散落在 Host 控制器或各业务项目里改引擎私有方法。
 
 引擎在用户任务生命周期里只保证调用这两点；**「怎么找人」「能不能走」** 全部由契约实现 + 节点上的 **配置对** 驱动。
 
@@ -605,7 +605,7 @@ SailClient
 
 | 区域 | 路径 |
 |------|------|
-| Client 注册风格（参照） | `sailflow/.../Client/SlickClient.cs` → `useFlowGate` / `useFlowHook` |
+| Client 注册风格（参照） | `sailflow/.../Client/SlickClient.cs` → `addGate` / `addHook` |
 | 设计器参与者 | `web/src/widgets/sailflow/bpmn/provider/sfPerformersProvider.ts` |
 | Performer 描述 | `.../bpmn/descriptors/performers.json` |
 | 选人对话框 | `.../components/PerformerPickerDialog.vue` |

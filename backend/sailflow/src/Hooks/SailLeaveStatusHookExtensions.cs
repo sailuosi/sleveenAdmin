@@ -42,7 +42,7 @@ public static class SailLeaveStatusHookExtensions
         var leave = new SailLeaveService(client);
         try { leave.EnsureTable(); } catch { /* Probe/init-db 可再补 */ }
 
-        client.useFlowHook(new SailLeaveStatusHook(leave), o =>
+        client.addHook(new SailLeaveStatusHook(leave), o =>
         {
             o.Match = HookMatch.All;
             o.Mode = HookMode.Sync;

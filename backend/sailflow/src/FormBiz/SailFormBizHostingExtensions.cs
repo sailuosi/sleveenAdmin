@@ -50,7 +50,7 @@ public static class SailFormBizHostingExtensions
             new DynamicFormBizHandler()
         ];
 
-        client.useFlowHook(new SailFormBizLifecycleHook(handlers), o =>
+        client.addHook(new SailFormBizLifecycleHook(handlers), o =>
         {
             o.Match = HookMatch.All;
             o.Mode = HookMode.Sync;

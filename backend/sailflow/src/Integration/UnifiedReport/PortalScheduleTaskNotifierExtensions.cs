@@ -15,7 +15,7 @@ public static class PortalScheduleTaskNotifierExtensions
     const string FeatureName = "sleveen.portal.schedule.notifier";
 
     /// <summary>
-    /// 构建期注册 Reliable 档。未启用时 no-op；启用时挂 Outbox Drain，PostBuild 建表 + <c>useTaskNotifier</c>。
+    /// 构建期注册 Reliable 档。未启用时 no-op；启用时挂 Outbox Drain，PostBuild 建表 + <c>addNotifier</c>。
     /// </summary>
     public static SailClientBuilder UsePortalScheduleTaskNotifier(
         this SailClientBuilder builder,
@@ -67,7 +67,7 @@ public static class PortalScheduleTaskNotifierExtensions
             records,
             services.GetRequiredService<ILogger<PortalScheduleTaskNotifier>>());
 
-        client.useTaskNotifier(notifier, o =>
+        client.addNotifier(notifier, o =>
         {
             o.Match = HookMatch.All;
             o.Mode = HookMode.AsyncOutbox;
