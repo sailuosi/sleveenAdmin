@@ -4,6 +4,7 @@ using sailflow.engine.Hosting;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
 using SleveenAdmin.Sailflow.FormBiz.Handlers;
+using SleveenAdmin.Sailflow.Hosting;
 using SleveenAdmin.Sailflow.Service;
 
 namespace SleveenAdmin.Sailflow.FormBiz;
@@ -42,7 +43,7 @@ public static class SailFormBizHostingExtensions
     static void RegisterHook(SailClient client)
     {
         var leaveSvc = new SailLeaveService(client);
-        try { leaveSvc.EnsureTable(); } catch { /* Probe 可再补 */ }
+        try { SailHostSchemaInitializer.EnsureHostTables(client); } catch { /* Probe 可再补 */ }
 
         ISailFormBizHandler[] handlers =
         [

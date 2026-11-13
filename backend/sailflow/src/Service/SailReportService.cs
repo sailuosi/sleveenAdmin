@@ -7,6 +7,7 @@ using sailflow.engine.Common;
 using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Sailflow.Dto;
 using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.Hosting;
 
 namespace SleveenAdmin.Sailflow.Service;
 
@@ -82,7 +83,7 @@ public class SailReportService
 
         try
         {
-            kit.useDBInit().autoMode().createTable<SailLeaveEntity>();
+            SailHostSchemaInitializer.EnsureHostTables(_sail);
             var leaveClip = kit.useClip();
             leaveClip.from<SailLeaveEntity>(out var lv);
             leaveClip.where(() => lv.Status, SailLeaveStatus.Running);

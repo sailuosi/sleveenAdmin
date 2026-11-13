@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using sailflow.engine.Client;
 using sailflow.engine.Hosting;
 using sailflow.engine.Hooks;
+using SleveenAdmin.Sailflow.Hosting;
 
 namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
@@ -58,7 +59,7 @@ public static class PortalScheduleTaskNotifierExtensions
     static void RegisterNotifier(SailClient client, IServiceProvider services)
     {
         var records = new SailTodoPortalRecordService(client);
-        try { records.EnsureTable(); } catch { /* Probe/init-db 可再补 */ }
+        try { SailHostSchemaInitializer.EnsureHostTables(client); } catch { /* Probe/init-db 可再补 */ }
 
         var notifier = new PortalScheduleTaskNotifier(
             client,

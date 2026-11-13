@@ -5,6 +5,7 @@ using sailflow.engine.Client;
 using sailflow.engine.Service;
 using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.Hosting;
 
 namespace SleveenAdmin.Sailflow.Service;
 
@@ -21,10 +22,7 @@ public class SailCategoryService
         _wf = wf ?? throw new ArgumentNullException(nameof(wf));
     }
 
-    public void EnsureTable()
-    {
-        _sail.UseRunSQL().useDBInit().autoMode().createTable<SailProcessCategoryEntity>();
-    }
+    public void EnsureTable() => SailHostSchemaInitializer.EnsureHostTables(_sail);
 
     public List<SailProcessCategoryEntity> List()
     {

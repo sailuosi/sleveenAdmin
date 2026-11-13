@@ -2,6 +2,7 @@ using sailflow.engine.Client;
 using sailflow.engine.Hosting;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
+using SleveenAdmin.Sailflow.Hosting;
 using SleveenAdmin.Sailflow.Service;
 
 namespace SleveenAdmin.Sailflow.Hooks;
@@ -40,7 +41,7 @@ public static class SailLeaveStatusHookExtensions
     static void Register(SailClient client)
     {
         var leave = new SailLeaveService(client);
-        try { leave.EnsureTable(); } catch { /* Probe/init-db 可再补 */ }
+        try { SailHostSchemaInitializer.EnsureHostTables(client); } catch { /* Probe/init-db 可再补 */ }
 
         client.addHook(new SailLeaveStatusHook(leave), o =>
         {

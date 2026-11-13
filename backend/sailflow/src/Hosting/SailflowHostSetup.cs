@@ -42,7 +42,7 @@ public static class SailflowHostSetup
         });
         services.AddSingleton<UnifiedReportClient>();
 
-        // SailClient.Build 会跑 UseSchema，依赖 DBCash；须等 AddMooSql 的 DBInsCash 工厂先 Bind。
+        // DBCash 经 AddMooSql 绑定；建表由宿主 PostBuild（SailHostSchemaInitializer），不在 sailflow 包内。
         services.AddSingleton(sp =>
         {
             _ = sp.GetRequiredService<DBInsCash>();
@@ -75,15 +75,19 @@ public static class SailflowHostSetup
                     s.UseBizLocalize();
                     // 不用引擎 UseResource（无组织人员表）；由 UseSleveenOrgResource 注入契约实现
                     s.UseForm();
-                    s.UseSchema(o =>
-                    {
-                        o.Seed = true;
-                        o.IncludeAi = true;
-                    });
                     s.UseBizAI(o =>
                     {
                         o.RegisterExecutor = true;
-                        o.EnsureTables = true;
+                        o.EnsureTables = false;
+                    });
+                    s.AddFeature(new SailFeatureDescriptor
+                    {
+                        Name = "Sleveen.Sailflow.Schema",
+                        Phase = SailFeaturePhase.PostBuild,
+                        Order = 900,
+                        DependsOn = new[] { SailFeatureNames.Database },
+                        PostBuild = (c, _) => SailHostSchemaInitializer.InitDb(
+                            c, seed: true, includeAi: true, registerAiExecutor: false)
                     });
                 })
                 .Build();

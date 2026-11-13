@@ -1,6 +1,7 @@
 using mooSQL.data;
 using sailflow.engine.Client;
 using SleveenAdmin.Foundation.DI;
+using SleveenAdmin.Sailflow.Hosting;
 
 namespace SleveenAdmin.Sailflow.Integration.UnifiedReport;
 
@@ -14,10 +15,7 @@ public sealed class SailTodoPortalRecordService
     public SailTodoPortalRecordService(SailClient sail) =>
         _sail = sail ?? throw new ArgumentNullException(nameof(sail));
 
-    public void EnsureTable()
-    {
-        _sail.UseRunSQL().useDBInit().autoMode().createTable<SailTodoPortalRecordEntity>();
-    }
+    public void EnsureTable() => SailHostSchemaInitializer.EnsureHostTables(_sail);
 
     public void Insert(
         string? taskId,

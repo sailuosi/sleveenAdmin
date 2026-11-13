@@ -1,13 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using mooSQL.data;
-using sailflow.biz.Bootstrap;
-using sailflow.data;
 using sailflow.engine.Client;
-using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Hosting;
-using SleveenAdmin.Sailflow.Integration.UnifiedReport;
-using SleveenAdmin.Sailflow.Service;
 
 namespace SleveenAdmin.Sailflow.Controller;
 
@@ -54,13 +48,8 @@ public class ProbeController : ControllerBase
     {
         try
         {
-            // 含 FbForm / FbFormFieldActivityEdit（见 SailSchemaInitializer）
-            var result = SailSchemaInitializer.InitDb(_client, seed);
-            // 请假样例 / 流程分类 / 流程编辑元数据 / 集成平台推送流水
-            new SailLeaveService(_client).EnsureTable();
-            new SailTodoPortalRecordService(_client).EnsureTable();
-            _client.UseRunSQL().useDBInit().autoMode().createTable<SailProcessCategoryEntity>();
-            _client.UseRunSQL().useDBInit().autoMode().createTable<SailProcessMetaEntity>();
+            // 建表仅在宿主业务侧（不在 sailflow 包内）
+            var result = SailHostSchemaInitializer.InitDb(_client, seed);
             return Ok(new
             {
                 ok = true,

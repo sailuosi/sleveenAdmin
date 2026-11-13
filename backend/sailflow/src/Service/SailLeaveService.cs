@@ -3,6 +3,7 @@ using sailflow.data;
 using sailflow.engine.Client;
 using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.Hosting;
 
 namespace SleveenAdmin.Sailflow.Service;
 
@@ -15,10 +16,7 @@ public class SailLeaveService
     public SailLeaveService(SailClient sail) =>
         _sail = sail ?? throw new ArgumentNullException(nameof(sail));
 
-    public void EnsureTable()
-    {
-        _sail.UseRunSQL().useDBInit().autoMode().createTable<SailLeaveEntity>();
-    }
+    public void EnsureTable() => SailHostSchemaInitializer.EnsureHostTables(_sail);
 
     public SailLeaveEntity Insert(SailLeaveEntity row)
     {
