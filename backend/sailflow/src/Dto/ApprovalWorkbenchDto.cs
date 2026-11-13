@@ -1,4 +1,4 @@
-using sailflow.engine.Entity;
+﻿using sailflow.engine.Entity;
 using sailflow.engine.Common;
 using SleveenAdmin.Sailflow.Utility;
 
@@ -9,7 +9,7 @@ public class ApprovalWorkbenchDto
 {
     public TaskViewEntity? Task { get; set; }
     public ProcessInstanceEntity? ProcessInstance { get; set; }
-    public List<NodeView> NextNodes { get; set; } = new();
+    public List<NextActivityNodeDto> NextNodes { get; set; } = new();
     /// <summary>可退回节点（S3）。</summary>
     public List<NodeView> PreviousNodes { get; set; } = new();
     public List<ActivityInstanceEntity> ActivityInstances { get; set; } = new();

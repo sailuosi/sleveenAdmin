@@ -31,6 +31,22 @@
           "type": "String"
         }
       ]
+    },
+    {
+      "name": "CandidateSelector",
+      "superClass": ["Element"],
+      "properties": [
+        {
+          "name": "type",
+          "isAttr": true,
+          "type": "String"
+        },
+        {
+          "name": "params",
+          "isAttr": true,
+          "type": "String"
+        }
+      ]
     }
   ]
 }

@@ -110,6 +110,24 @@ function isSelected(id: string) {
   return props.state.selection.includes(id);
 }
 
+function edgeClass(el: DiagramElement): string {
+  if (el.type.includes('MessageFlow')) return 'is-message';
+  if (el.type.includes('Association')) return 'is-association';
+  return 'is-sequence';
+}
+
+/** sequence / message 用箭头；association 开口；选中换色 marker */
+function edgeMarker(el: DiagramElement): string {
+  const selected = isSelected(el.id);
+  if (el.type.includes('MessageFlow')) {
+    return selected ? 'url(#vb-arrow-message-selected)' : 'url(#vb-arrow-message)';
+  }
+  if (el.type.includes('Association')) {
+    return 'url(#vb-arrow-association)';
+  }
+  return selected ? 'url(#vb-arrow-sequence-selected)' : 'url(#vb-arrow-sequence)';
+}
+
 function clientToSvg(event: MouseEvent): Point {
   const svg = svgRef.value;
   if (!svg) return { x: event.clientX, y: event.clientY };
@@ -464,7 +482,17 @@ function worldToHost(x: number, y: number): Point {
   return { x: screen.x - rect.left, y: screen.y - rect.top };
 }
 
-defineExpose({ worldToHost, svgRef });
+/** SVG 客户区像素，供 fitViewport 按真实画布算缩放 */
+function getClientSize(): { width: number; height: number } {
+  const svg = svgRef.value;
+  if (!svg) return { width: 0, height: 0 };
+  return {
+    width: svg.clientWidth || svg.getBoundingClientRect().width || 0,
+    height: svg.clientHeight || svg.getBoundingClientRect().height || 0,
+  };
+}
+
+defineExpose({ worldToHost, getClientSize, svgRef });
 </script>
 
 <template>
@@ -488,21 +516,114 @@ defineExpose({ worldToHost, svgRef });
       @pointerup="onPointerUp"
       @pointercancel="onPointerUp"
     >
+      <defs>
+        <!-- sequenceFlow 实心三角箭头 -->
+        <marker
+          id="vb-arrow-sequence"
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth="10"
+          markerHeight="10"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path d="M 0 1.5 L 10 6 L 0 10.5 Z" fill="#334e68" />
+        </marker>
+        <marker
+          id="vb-arrow-sequence-selected"
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth="10"
+          markerHeight="10"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path d="M 0 1.5 L 10 6 L 0 10.5 Z" fill="#0b6bcb" />
+        </marker>
+        <!-- messageFlow 空心三角 -->
+        <marker
+          id="vb-arrow-message"
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth="10"
+          markerHeight="10"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 0 1.5 L 10 6 L 0 10.5 Z"
+            fill="#fff"
+            stroke="#334e68"
+            stroke-width="1.2"
+          />
+        </marker>
+        <marker
+          id="vb-arrow-message-selected"
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth="10"
+          markerHeight="10"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 0 1.5 L 10 6 L 0 10.5 Z"
+            fill="#fff"
+            stroke="#0b6bcb"
+            stroke-width="1.2"
+          />
+        </marker>
+        <!-- association 开口箭头 -->
+        <marker
+          id="vb-arrow-association"
+          viewBox="0 0 12 12"
+          refX="10"
+          refY="6"
+          markerWidth="10"
+          markerHeight="10"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path
+            d="M 1 2 L 10 6 L 1 10"
+            fill="none"
+            stroke="#627d98"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </marker>
+      </defs>
       <g class="vb-edges">
-        <path
+        <g
           v-for="el in edges"
           :key="el.id"
-          class="vb-edge"
-          :class="{ 'is-selected': isSelected(el.id) }"
-          :d="pathFor(el)"
+          class="vb-edge-group"
           @click.stop="emit('select', el.id, $event.ctrlKey || $event.metaKey)"
           @dblclick.stop="onEdgeDblClick(el, $event)"
-        />
+        >
+          <!-- 宽透明描边扩大可点范围；可见线保持细 -->
+          <path class="vb-edge-hit" :d="pathFor(el)" />
+          <path
+            class="vb-edge"
+            :class="[
+              edgeClass(el),
+              { 'is-selected': isSelected(el.id) },
+            ]"
+            :d="pathFor(el)"
+            :marker-end="edgeMarker(el)"
+          />
+        </g>
       </g>
       <path
         v-if="connectPreviewPath"
         class="vb-connect-preview"
         :d="connectPreviewPath"
+        marker-end="url(#vb-arrow-sequence)"
       />
       <g class="vb-shapes">
         <g

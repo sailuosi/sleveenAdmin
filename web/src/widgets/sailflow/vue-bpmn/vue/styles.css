@@ -121,16 +121,45 @@
   stroke-width: 5;
 }
 
+.vb-edge-group {
+  cursor: pointer;
+}
+
+/* 不可见热区：约 14px 宽，便于选中细线 */
+.vb-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: stroke;
+}
+
 .vb-edge {
   fill: none;
   stroke: #334e68;
   stroke-width: 2;
-  pointer-events: stroke;
+  pointer-events: none;
+}
+
+.vb-edge.is-message {
+  stroke-dasharray: 8 4;
+}
+
+.vb-edge.is-association {
+  stroke: #627d98;
+  stroke-dasharray: 2 4;
+  stroke-width: 1.5;
 }
 
 .vb-edge.is-selected {
   stroke: #0b6bcb;
   stroke-width: 3;
+}
+
+.vb-edge.is-association.is-selected {
+  stroke: #0b6bcb;
+  stroke-width: 2;
 }
 
 .vb-label {

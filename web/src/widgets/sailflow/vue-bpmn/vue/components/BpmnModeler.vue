@@ -32,6 +32,7 @@ import {
   lassoSelectIds,
   paletteEntryByKey,
   panViewbox,
+  resolveDockedWaypoint,
   selectAllIds,
   snapAlignAxis,
   spaceFromDrag,
@@ -90,7 +91,10 @@ const editingId = ref<string | null>(null);
 const searchOpen = ref(false);
 const searchQuery = ref('');
 const overlays = ref<Record<string, { html: string; position: { top?: number; right?: number; bottom?: number; left?: number } }>>({});
-const canvasRef = ref<{ worldToHost: (x: number, y: number) => Point } | null>(null);
+const canvasRef = ref<{
+  worldToHost: (x: number, y: number) => Point;
+  getClientSize?: () => { width: number; height: number };
+} | null>(null);
 
 function mapPoint(x: number, y: number): Point {
   return canvasRef.value?.worldToHost(x, y) ?? { x, y };
@@ -391,7 +395,12 @@ function zoom(delta: number) {
 }
 
 function zoomFit() {
-  store.replaceState(fitViewport(store.getState()));
+  const size = canvasRef.value?.getClientSize?.();
+  const viewport =
+    size && size.width >= 40 && size.height >= 40
+      ? { width: size.width, height: size.height }
+      : undefined;
+  store.replaceState(fitViewport(store.getState(), { viewport, padding: 48, maxScale: 1 }));
 }
 
 function alignSelection(mode: AlignMode) {
@@ -559,7 +568,9 @@ function onBendpointMove(connectionId: string, index: number, point: Point) {
   const base = bendpointBase.value;
   const el = base.elements[connectionId];
   if (!el?.waypoints) return;
-  const waypoints = el.waypoints.map((p, i) => (i === index ? { ...point } : { ...p }));
+  // 首/尾投影到源/目标节点边缘；中间折点自由
+  const docked = resolveDockedWaypoint(base, connectionId, index, point);
+  const waypoints = el.waypoints.map((p, i) => (i === index ? { ...docked } : { ...p }));
   store.replaceState(cloneSnapshot(base));
   createUpdateWaypointsCommand({ connectionId, waypoints }).execute(commandCtx());
 }
@@ -572,7 +583,8 @@ function onBendpointCommit(connectionId: string, index: number, point: Point) {
     bendpointBase.value = null;
     return;
   }
-  const waypoints = el.waypoints.map((p, i) => (i === index ? { ...point } : { ...p }));
+  const docked = resolveDockedWaypoint(base, connectionId, index, point);
+  const waypoints = el.waypoints.map((p, i) => (i === index ? { ...docked } : { ...p }));
   store.replaceState(cloneSnapshot(base));
   store.commandStack.execute(
     createUpdateWaypointsCommand({ connectionId, waypoints }),

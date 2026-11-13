@@ -1,4 +1,5 @@
 import type { Command, CommandContext, DiagramElement, Point } from '../types.js';
+import { projectPointOntoShape } from '../docking.js';
 import { isConnection } from '../xml/elementKind.js';
 
 export interface MoveElementsPayload {
@@ -58,16 +59,24 @@ export function createMoveElementsCommand(payload: MoveElementsPayload): Command
           elements[el.id] = moveElement(el, payload.delta);
           continue;
         }
-        const wps = [...(el.waypoints ?? [])];
-        if (moveSource && wps[0]) {
-          wps[0] = { x: wps[0].x + payload.delta.x, y: wps[0].y + payload.delta.y };
+        const wps = [...(el.waypoints ?? [])].map((p) => ({ ...p }));
+        // 单端移动：按下一折点方向重新贴边，避免端点悬空或钻进图形
+        if (moveSource && sourceRef && wps[0]) {
+          const host = elements[sourceRef];
+          const toward = wps[1] ?? {
+            x: wps[0].x + payload.delta.x,
+            y: wps[0].y + payload.delta.y,
+          };
+          if (host) wps[0] = projectPointOntoShape(host, toward);
         }
-        if (moveTarget && wps.length) {
+        if (moveTarget && targetRef && wps.length) {
           const last = wps.length - 1;
-          wps[last] = {
+          const host = elements[targetRef];
+          const toward = wps[last - 1] ?? {
             x: wps[last]!.x + payload.delta.x,
             y: wps[last]!.y + payload.delta.y,
           };
+          if (host) wps[last] = projectPointOntoShape(host, toward);
         }
         elements[el.id] = { ...el, waypoints: wps };
       }

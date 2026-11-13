@@ -74,26 +74,17 @@
               </el-radio-group>
             </el-form-item>
             <el-form-item v-if="nextActivityId" label="下一办理人" :required="needsManualPick">
-              <el-select
+              <SailCandidatePicker
                 v-model="nextUserIds"
-                multiple
-                filterable
-                clearable
-                collapse-tags
-                collapse-tags-tooltip
-                :placeholder="needsManualPick ? '必选：请指定下一办理人' : '可选：覆盖默认候选人'"
-                style="width: 100%"
-              >
-                <el-option
-                  v-for="u in candidateUsers"
-                  :key="userKey(u)"
-                  :label="userLabel(u)"
-                  :value="userKey(u)"
-                />
-              </el-select>
-              <div v-if="needsManualPick && !candidateUsers.length" class="sf-create-hint">
-                暂无候选人，请刷新或检查人员主数据
-              </div>
+                :required="needsManualPick"
+                :selector-type="selectedSelectorType"
+                :selector-params="selectedSelectorParams"
+                :candidate-mode="selectedCandidateMode"
+                :inline-users="roleTreeUsers"
+                :candidate-filter="selectedCandidateFilter"
+                :query-context="candidateQueryContext"
+                @users-change="onPickerUsers"
+              />
             </el-form-item>
             <el-form-item v-if="nextUserIds.length" label="组别/身份">
               <div class="sf-create-group-row">
@@ -144,10 +135,10 @@ import { getProcessEdit } from '@sail/api/processEdit';
 import { getForm, getFormList } from '@sail/api/form';
 import { getNextActivityRoleUserTree, startProcess } from '@sail/api/runtime';
 import { useSailCurrentUser } from '@sail/adapters/currentUser';
-import { loadHostCandidateUsers, type HostCandidateUser } from '@sail/adapters/hostUsers';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
 import { formValuesToConditions } from '@sail/utils/formCreate';
 import SailFormRender from '@sail/components/runtime/SailFormRender.vue';
+import SailCandidatePicker from '@sail/components/runtime/SailCandidatePicker.vue';
 
 defineOptions({ name: 'SailProcessCreatePage' });
 
@@ -180,28 +171,66 @@ const startUnitId = ref('');
 const startUnitCode = ref('');
 const startUnitName = ref('');
 const groupRoleOptions = ['Organizer', 'Leader', 'DeputyLeader', 'Member'] as const;
-const hostUsers = ref<HostCandidateUser[]>([]);
+const pickerUsers = ref<Record<string, unknown>[]>([]);
 
 const selectedNextNode = computed(() =>
   nextNodes.value.find(n => nodeId(n) === nextActivityId.value)
 );
-/** 下一节点角色树展开的候选人（无则多为 ApproverPick/StarterPick） */
+/** 接口预载 Users（≤100 / bound） */
 const roleTreeUsers = computed(() => {
   const n = selectedNextNode.value;
   if (!n) return [] as Record<string, unknown>[];
   const users = (pickField<unknown[]>(n, 'Users', 'users') || []) as Record<string, unknown>[];
-  return Array.isArray(users) ? users : [];
+  return Array.isArray(users) ? users.filter(u => !!userKey(u)) : [];
+});
+const selectedCandidateMode = computed(() =>
+  String(pickField(selectedNextNode.value || {}, 'CandidateMode', 'candidateMode') || '')
+);
+const selectedSelectorType = computed(() =>
+  String(
+    pickField(selectedNextNode.value || {}, 'CandidateSelectorType', 'candidateSelectorType') || ''
+  )
+);
+const selectedSelectorParams = computed(() =>
+  String(
+    pickField(
+      selectedNextNode.value || {},
+      'CandidateSelectorParams',
+      'candidateSelectorParams'
+    ) || ''
+  )
+);
+const selectedCandidateFilter = computed(() => {
+  const n = selectedNextNode.value;
+  if (!n) return null;
+  return (pickField(n, 'CandidateFilter', 'candidateFilter') || null) as {
+    RoleIds?: string[];
+    roleIds?: string[];
+  } | null;
+});
+const candidateQueryContext = computed(() => {
+  if (!selected.value) return null;
+  return {
+    ProcessId: String(pickField(selected.value, 'ProcessId', 'processId') || ''),
+    Version: String(pickField(selected.value, 'Version', 'version') || '1'),
+    ActivityId: nextActivityId.value
+  };
+});
+/** anyselect/search 必须显式选人；无 Mode 时兼容旧接口（Users 空） */
+const needsManualPick = computed(() => {
+  if (!nextActivityId.value) return false;
+  const m = selectedCandidateMode.value.toLowerCase();
+  if (m === 'anyselect' || m === 'search') return true;
+  if (!m) return roleTreeUsers.value.length === 0;
+  return false;
 });
 const candidateUsers = computed(() => {
-  const raw = roleTreeUsers.value.length
-    ? roleTreeUsers.value
-    : // R3/ApproverPick：无角色树候选人时用宿主 SysUser.Account
-      (hostUsers.value as unknown as Record<string, unknown>[]);
-  // 空 value 会让 el-select multiple 选不中 / 触发异常更新
+  const raw = pickerUsers.value.length ? pickerUsers.value : roleTreeUsers.value;
   return raw.filter(u => !!userKey(u));
 });
-/** 无角色候选人时必须显式选人，否则引擎 R4 拒绝且不再默认塞发起人 */
-const needsManualPick = computed(() => !!nextActivityId.value && roleTreeUsers.value.length === 0);
+function onPickerUsers(list: Record<string, unknown>[]) {
+  pickerUsers.value = list || [];
+}
 
 watch(nextActivityId, () => {
   nextUserIds.value = [];
@@ -360,12 +389,7 @@ async function refreshAll() {
   loadingList.value = true;
   err.value = '';
   try {
-    const [, , users] = await Promise.all([
-      loadProcesses(),
-      loadForms(),
-      loadHostCandidateUsers()
-    ]);
-    hostUsers.value = users;
+    await Promise.all([loadProcesses(), loadForms()]);
   } catch (e: unknown) {
     err.value = e instanceof Error ? e.message : String(e);
   } finally {

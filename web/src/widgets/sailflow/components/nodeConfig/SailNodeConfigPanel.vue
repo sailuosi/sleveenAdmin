@@ -103,6 +103,41 @@
           />
         </el-card>
 
+        <!-- 3b 运行时选人器 -->
+        <el-card shadow="never" class="sf-node-config__card">
+          <template #header><span class="sf-node-config__h">运行时 · 选人器</span></template>
+          <el-form-item label="选择器 Type">
+            <el-select
+              v-model="model.candidateSelectorType"
+              filterable
+              clearable
+              placeholder="空=按 CandidateMode 推断"
+              style="width: 100%"
+            >
+              <el-option
+                v-for="o in candidateSelectorTypes"
+                :key="o.value"
+                :label="o.label"
+                :value="o.value"
+              />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="Params JSON">
+            <el-input
+              v-model="model.candidateSelectorParams"
+              type="textarea"
+              :rows="2"
+              placeholder='例：{"pageSize":100} 或 {"roleIds":["r1"]}'
+            />
+          </el-form-item>
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            title="与定范围正交：HostUserSearch=远程搜人；InlineList=用预载 Users；RoleUserSearch=角色内搜索。人数&gt;100 时接口不再回传全员。"
+          />
+        </el-card>
+
         <!-- 4 办理模式 -->
         <el-card shadow="never" class="sf-node-config__card">
           <template #header><span class="sf-node-config__h">待办人 · 办理模式</span></template>
@@ -511,6 +546,7 @@ import {
   buttonDesignerGroup
 } from '@sail/bpmn/buttonsCatalog';
 import {
+  CANDIDATE_SELECTOR_OPTIONS,
   LEAVE_TYPE_OPTIONS,
   RESOLVE_TYPE_OPTIONS
 } from '@sail/bpmn/assignee/types';
@@ -535,6 +571,7 @@ const emit = defineEmits<{
 
 const resolveTypes = RESOLVE_TYPE_OPTIONS;
 const leaveTypes = LEAVE_TYPE_OPTIONS;
+const candidateSelectorTypes = CANDIDATE_SELECTOR_OPTIONS;
 const fieldModeOptions = SAIL_FIELD_MODE_OPTIONS;
 
 const handleButtons = computed(() =>

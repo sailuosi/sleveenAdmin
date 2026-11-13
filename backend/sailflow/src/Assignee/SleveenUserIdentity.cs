@@ -1,8 +1,9 @@
-using System.Data;
+﻿using System.Data;
 using mooSQL.data;
 using sailflow.engine.Common;
 using sailflow.hub.Resource;
 using SleveenAdmin.Foundation.Data;
+using SleveenAdmin.Sailflow.Dto;
 using User = sailflow.hub.Resource.User;
 
 namespace SleveenAdmin.Sailflow.Assignee;
@@ -75,36 +76,148 @@ public static class SleveenUserIdentity
         }
     }
 
+    /// <summary>预载 Users 上限；超额改 search 并清空列表。</summary>
+    public const int MaxInlineCandidateUsers = 100;
+
     /// <summary>
-    /// 下一跳预览补候选人：先 Account 重映射；仍空则按角色走宿主 RoleGroup 展开；
-    /// 再空（典型 ApproverPick）则填入宿主 SysUser 列表，避免办理页选人下拉空白。
+    /// 对齐 Account + 角色展开；不再全表回填。
+    /// 写出 CandidateMode / Count / Filter / 默认 Selector。
     /// </summary>
     public static void EnrichNodeCandidateUsers(NodeView? node)
     {
         if (node == null) return;
-        RemapUsers(node.Users);
-        if (node.Users is { Count: > 0 }) return;
+        var dto = NextActivityNodeDto.FromNodeView(node);
+        EnrichNextActivityNode(dto);
+        node.Users = dto.Users;
+    }
 
-        var roleIds = node.Roles?
+    /// <summary>用 BPMN sf:CandidateSelector 覆盖推断出的选人器（若有配置）。</summary>
+    public static void ApplyCandidateSelectorOverride(NextActivityNodeDto dto, string? type, string? parms)
+    {
+        if (dto == null) return;
+        if (!string.IsNullOrWhiteSpace(type))
+            dto.CandidateSelectorType = type.Trim();
+        if (!string.IsNullOrWhiteSpace(parms))
+            dto.CandidateSelectorParams = parms.Trim();
+        if (string.Equals(dto.CandidateSelectorType, "HostUserSearch", StringComparison.OrdinalIgnoreCase)
+            && dto.CandidateMode == "bound"
+            && (dto.Users == null || dto.Users.Count == 0))
+        {
+            dto.CandidateMode = "anyselect";
+        }
+    }
+
+    public static NextActivityNodeDto EnrichNextActivityNode(NextActivityNodeDto dto)
+    {
+        var roleIds = dto.Roles?
             .Where(r => r != null && !string.IsNullOrWhiteSpace(r.Id))
             .Select(r => r.Id!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray() ?? Array.Empty<string>();
-        if (roleIds.Length > 0)
+
+        RemapUsers(dto.Users);
+
+        IList<User>? users = dto.Users;
+        if (users == null || users.Count == 0)
         {
-            var fromRoles = new SleveenRoleGroupAssigneeResolver().PreviewUsersByRoleIds(roleIds);
-            if (fromRoles.Count > 0)
+            if (roleIds.Length > 0)
             {
-                node.Users = fromRoles;
-                return;
+                var fromRoles = new SleveenRoleGroupAssigneeResolver().PreviewUsersByRoleIds(roleIds);
+                if (fromRoles.Count > 0)
+                    users = fromRoles;
             }
         }
 
-        var accounts = LoadActiveAccounts();
-        if (accounts.Count == 0) return;
-        node.Users = accounts
+        if (users is { Count: > 0 })
+        {
+            dto.CandidateCount = users.Count;
+            dto.CandidateFilter = roleIds.Length > 0
+                ? new CandidateFilterDto { RoleIds = roleIds, ReceiverType = (int)dto.ReceiverType }
+                : null;
+            if (users.Count > MaxInlineCandidateUsers)
+            {
+                dto.CandidateMode = "search";
+                dto.Users = new List<User>();
+                dto.CandidateSelectorType = string.IsNullOrWhiteSpace(dto.CandidateSelectorType)
+                    ? "RoleUserSearch"
+                    : dto.CandidateSelectorType;
+                if (string.IsNullOrWhiteSpace(dto.CandidateSelectorParams) && roleIds.Length > 0)
+                    dto.CandidateSelectorParams = "{\"roleIds\":" + ToJsonArray(roleIds) + "}";
+            }
+            else
+            {
+                dto.CandidateMode = "bound";
+                dto.Users = users;
+                dto.CandidateSelectorType = string.IsNullOrWhiteSpace(dto.CandidateSelectorType)
+                    ? "InlineList"
+                    : dto.CandidateSelectorType;
+            }
+            return dto;
+        }
+
+        // 空名单：ApproverPick / 未配角色 → anyselect，禁止全员塞入
+        dto.Users = new List<User>();
+        dto.CandidateCount = 0;
+        dto.CandidateMode = "anyselect";
+        dto.CandidateFilter = roleIds.Length > 0
+            ? new CandidateFilterDto { RoleIds = roleIds, ReceiverType = (int)dto.ReceiverType }
+            : null;
+        dto.CandidateSelectorType = string.IsNullOrWhiteSpace(dto.CandidateSelectorType)
+            ? "HostUserSearch"
+            : dto.CandidateSelectorType;
+        if (string.IsNullOrWhiteSpace(dto.CandidateSelectorParams))
+            dto.CandidateSelectorParams = "{\"pageSize\":100}";
+        return dto;
+    }
+
+    static string ToJsonArray(string[] items)
+    {
+        var parts = items.Select(x => "\"" + (x ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"");
+        return "[" + string.Join(",", parts) + "]";
+    }
+
+    /// <summary>按关键字分页查宿主启用账号（Account/RealName）。</summary>
+    public static (List<User> Users, int Total) QueryHostUsers(string? keyword, int page, int pageSize)
+    {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : Math.Min(pageSize, MaxInlineCandidateUsers);
+        var all = LoadActiveAccounts()
             .Select(kv => new User { UserId = kv.Key, UserName = kv.Value })
             .ToList();
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var kw = keyword.Trim();
+            all = all
+                .Where(u =>
+                    (u.UserId?.Contains(kw, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.UserName?.Contains(kw, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+        }
+        var total = all.Count;
+        var slice = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return (slice, total);
+    }
+
+    /// <summary>角色范围内关键字分页。</summary>
+    public static (List<User> Users, int Total) QueryRoleUsers(string[]? roleIds, string? keyword, int page, int pageSize)
+    {
+        page = page < 1 ? 1 : page;
+        pageSize = pageSize < 1 ? 20 : Math.Min(pageSize, MaxInlineCandidateUsers);
+        var list = roleIds is { Length: > 0 }
+            ? new SleveenRoleGroupAssigneeResolver().PreviewUsersByRoleIds(roleIds).ToList()
+            : new List<User>();
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var kw = keyword.Trim();
+            list = list
+                .Where(u =>
+                    (u.UserId?.Contains(kw, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (u.UserName?.Contains(kw, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+        }
+        var total = list.Count;
+        var slice = list.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        return (slice, total);
     }
 
     public static PerformerList RemapPerformers(PerformerList? list)

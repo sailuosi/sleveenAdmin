@@ -64,6 +64,8 @@
             </vclist>
             <ImportProcessDialog ref="importDialogRef" @imported="getlist" />
             <TemplateGalleryDialog ref="templateDialogRef" @created="getlist" />
+            <SailProcessEditDialog ref="editDialogRef" @saved="getlist" />
+            <SailDesignerVueDialog ref="designerVueDialogRef" @saved="getlist" />
         </template>
     </flexpan>
 </template>
@@ -79,6 +81,8 @@ import useListEditor from "@/uiext/gene/hook/listeditor.js"
 import { pickField } from '@sail/utils/sailResult'
 import ImportProcessDialog from '@sail/components/ImportProcessDialog.vue'
 import TemplateGalleryDialog from '@sail/components/TemplateGalleryDialog.vue'
+import SailProcessEditDialog from '@sail/components/SailProcessEditDialog.vue'
+import SailDesignerVueDialog from '@sail/components/SailDesignerVueDialog.vue'
 
 const props = defineProps({
     page: null, api: null, bus: null, height: null,
@@ -98,6 +102,8 @@ const queryParams = ref({ pageSize: props.pageSize, pageNum: 1 })
 const queryRowCondtions = ref([])
 const importDialogRef = ref(null)
 const templateDialogRef = ref(null)
+const editDialogRef = ref(null)
+const designerVueDialogRef = ref(null)
 
 const listpara = computed(() => ({
     pageSize: queryParams.value.pageSize,
@@ -126,17 +132,14 @@ const getlist = () => {
 }
 
 function onBtnAddClick() {
-    router.push({ path: '/sail/process-edit', query: { type: 'create' } })
+    editDialogRef.value?.open({ type: 'create' })
 }
 
 function goEdit(row) {
-    router.push({
-        path: '/sail/process-edit',
-        query: {
-            type: 'update',
-            processId: String(field(row, 'ProcessId', 'processId')),
-            version: String(field(row, 'Version', 'version') || '1')
-        }
+    editDialogRef.value?.open({
+        type: 'update',
+        processId: String(field(row, 'ProcessId', 'processId')),
+        version: String(field(row, 'Version', 'version') || '1')
     })
 }
 
@@ -162,12 +165,9 @@ function goDesigner(row) {
 }
 
 function goDesignerVue(row) {
-    router.push({
-        path: '/sail/designer-vue',
-        query: {
-            processId: String(field(row, 'ProcessId', 'processId')),
-            version: String(field(row, 'Version', 'version') || '1')
-        }
+    designerVueDialogRef.value?.open({
+        processId: String(field(row, 'ProcessId', 'processId')),
+        version: String(field(row, 'Version', 'version') || '1')
     })
 }
 

@@ -25,12 +25,29 @@ public static class ProcessXmlBuilder
         return fileEntity;
     }
 
+    /// <summary>
+    /// BPMN/XML NCName：首字符须为字母或下划线。Guid.ToString() 常以数字开头，
+    /// 直接作 process@id 会导致 bpmn-js「no process or collaboration to display」。
+    /// </summary>
+    public static string ToBpmnElementId(string? processId)
+    {
+        var id = string.IsNullOrWhiteSpace(processId) ? "Process_1" : processId.Trim();
+        var c0 = id[0];
+        if (c0 is (>= 'A' and <= 'Z') or (>= 'a' and <= 'z') or '_')
+            return id;
+        return "Process_" + id;
+    }
+
+    /// <summary>新建流程主键：保证同时可作为 BPMN process@id（NCName）。</summary>
+    public static string NewProcessId() => "Process_" + Guid.NewGuid().ToString("N");
+
     public static string GenerateXmlContentWithStartNode(
         string processId,
         string processName,
         string processCode,
         string version)
     {
+        var bpmnId = ToBpmnElementId(processId);
         var xmlDoc = CreateDocumentRoot();
         var root = xmlDoc.DocumentElement!;
 
@@ -39,7 +56,7 @@ public static class ProcessXmlBuilder
             "process",
             ProcessNamespaceDefine.m_namespace_uri_bpmn);
         root.AppendChild(processNode);
-        processNode.SetAttribute("id", processId);
+        processNode.SetAttribute("id", bpmnId);
         processNode.SetAttribute("name", processName);
         processNode.SetAttribute("isExecutable", "true");
         processNode.SetAttribute("code", ProcessNamespaceDefine.m_namespace_uri_sf, processCode);
@@ -60,7 +77,7 @@ public static class ProcessXmlBuilder
         var planeNode = xmlDoc.CreateElement("bpmndi", "BPMNPlane", ProcessNamespaceDefine.m_namespace_uri_bpmndi);
         diagramNode.AppendChild(planeNode);
         planeNode.SetAttribute("id", "BPMNPlane_1");
-        planeNode.SetAttribute("bpmnElement", processId);
+        planeNode.SetAttribute("bpmnElement", bpmnId);
 
         var shapeNode = xmlDoc.CreateElement("bpmndi", "BPMNShape", ProcessNamespaceDefine.m_namespace_uri_bpmndi);
         planeNode.AppendChild(shapeNode);

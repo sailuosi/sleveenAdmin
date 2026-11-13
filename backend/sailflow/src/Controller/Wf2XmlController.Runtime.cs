@@ -409,21 +409,61 @@ public partial class Wf2XmlController
 
     /// <summary>POST api/Wf2Xml/GetNextActivityRoleUserTree</summary>
     [HttpPost]
-    public ResponseResult<List<NodeView>> GetNextActivityRoleUserTree([FromBody] FlowCommandContext runner)
+    public ResponseResult<List<NextActivityNodeDto>> GetNextActivityRoleUserTree([FromBody] FlowCommandContext runner)
     {
         try
         {
             SailAuthIdentity.BindRunner(User, runner);
             var list = _workflowService.GetNextActivityRoleUserTree(runner, runner?.Conditions)?.ToList()
                        ?? new List<NodeView>();
-            // R3：候选用户对齐 Account；ApproverPick/角色空展开时补宿主候选人
-            foreach (var node in list)
-                SleveenUserIdentity.EnrichNodeCandidateUsers(node);
-            return ResponseResult<List<NodeView>>.Success(list);
+            // R3：对齐 Account；Users≤100；空名单 → anyselect（不再全表回填）
+            var dtoList = list
+                .Select(n => SleveenUserIdentity.EnrichNextActivityNode(NextActivityNodeDto.FromNodeView(n)))
+                .ToList();
+            ApplyCandidateSelectorsFromProcess(runner?.ProcessId, runner?.Version, dtoList);
+            return ResponseResult<List<NextActivityNodeDto>>.Success(dtoList);
         }
         catch (Exception ex)
         {
-            return ResponseResult<List<NodeView>>.Error(ex.Message);
+            return ResponseResult<List<NextActivityNodeDto>>.Error(ex.Message);
+        }
+    }
+
+    /// <summary>POST api/Wf2Xml/QueryNextActivityCandidates · 选人分页（与下一节点树拆分）</summary>
+    [HttpPost]
+    public ResponseResult<QueryNextActivityCandidatesResult> QueryNextActivityCandidates(
+        [FromBody] QueryNextActivityCandidatesRequest req)
+    {
+        try
+        {
+            req ??= new QueryNextActivityCandidatesRequest();
+            var page = req.Page < 1 ? 1 : req.Page;
+            var pageSize = req.PageSize < 1 ? 100 : Math.Min(req.PageSize, SleveenUserIdentity.MaxInlineCandidateUsers);
+            var mode = (req.CandidateMode ?? "").Trim().ToLowerInvariant();
+            var selector = (req.CandidateSelectorType ?? "").Trim();
+            var roleIds = req.RoleIds ?? Array.Empty<string>();
+
+            List<sailflow.hub.Resource.User> users;
+            int total;
+            var useRole = string.Equals(selector, "RoleUserSearch", StringComparison.OrdinalIgnoreCase)
+                          || mode == "search"
+                          || (mode == "bound" && roleIds.Length > 0 && string.Equals(selector, "RoleUserSearch", StringComparison.OrdinalIgnoreCase));
+            if (useRole && roleIds.Length > 0)
+                (users, total) = SleveenUserIdentity.QueryRoleUsers(roleIds, req.Keyword, page, pageSize);
+            else
+                (users, total) = SleveenUserIdentity.QueryHostUsers(req.Keyword, page, pageSize);
+
+            return ResponseResult<QueryNextActivityCandidatesResult>.Success(new QueryNextActivityCandidatesResult
+            {
+                Users = users,
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            });
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult<QueryNextActivityCandidatesResult>.Error(ex.Message);
         }
     }
 
@@ -508,14 +548,16 @@ public partial class Wf2XmlController
                 };
                 try
                 {
-                    dto.NextNodes = _workflowService.GetNextActivityRoleUserTree(runner, runner.Conditions)?.ToList()
-                                    ?? new List<NodeView>();
-                    foreach (var node in dto.NextNodes)
-                        SleveenUserIdentity.EnrichNodeCandidateUsers(node);
+                    var rawNext = _workflowService.GetNextActivityRoleUserTree(runner, runner.Conditions)?.ToList()
+                                  ?? new List<NodeView>();
+                    dto.NextNodes = rawNext
+                        .Select(n => SleveenUserIdentity.EnrichNextActivityNode(NextActivityNodeDto.FromNodeView(n)))
+                        .ToList();
+                    ApplyCandidateSelectorsFromProcess(task.ProcessId, task.Version, dto.NextNodes);
                 }
                 catch
                 {
-                    dto.NextNodes = new List<NodeView>();
+                    dto.NextNodes = new List<NextActivityNodeDto>();
                 }
 
                 try
@@ -769,6 +811,34 @@ public partial class Wf2XmlController
             }
             default:
                 return nodes;
+        }
+    }
+
+    /// <summary>从流程 BPMN 读取 sf:CandidateSelector，覆盖节点选人器元数据。</summary>
+    private void ApplyCandidateSelectorsFromProcess(
+        string? processId,
+        string? version,
+        List<NextActivityNodeDto> nodes)
+    {
+        if (nodes == null || nodes.Count == 0 || string.IsNullOrWhiteSpace(processId))
+            return;
+        try
+        {
+            var ver = string.IsNullOrWhiteSpace(version) ? "1" : version;
+            var file = _workflowService.GetProcessFile(processId, ver);
+            var xml = file?.XmlContent;
+            if (string.IsNullOrWhiteSpace(xml)) return;
+            foreach (var n in nodes)
+            {
+                if (string.IsNullOrWhiteSpace(n.ActivityId)) continue;
+                var (type, parms) = SailCandidateSelectorCatalog.ReadFromXml(xml, n.ActivityId);
+                if (type != null || parms != null)
+                    SleveenUserIdentity.ApplyCandidateSelectorOverride(n, type, parms);
+            }
+        }
+        catch
+        {
+            /* 无文件或解析失败时保留推断默认 */
         }
     }
 

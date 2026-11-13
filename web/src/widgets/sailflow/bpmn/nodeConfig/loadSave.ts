@@ -101,6 +101,7 @@ export function loadNodeConfig(element: unknown): SailNodeConfigModel {
     isSequential?: unknown;
   };
   const resolve = getExtension(bo, 'sf:AssigneeResolve');
+  const candSel = getExtension(bo, 'sf:CandidateSelector');
   const leave = getExtension(bo, 'sf:LeaveJudge');
   const ms = getExtension(bo, 'sf:MultiSignDetail');
   const buttons = getExtension(bo, 'sf:ButtonsSetting');
@@ -150,6 +151,8 @@ export function loadNodeConfig(element: unknown): SailNodeConfigModel {
     loopCardinality: str(bo.loopCardinality),
     assigneeResolveType: str(resolve?.type),
     assigneeResolveParams: str(resolve?.params),
+    candidateSelectorType: str(candSel?.type),
+    candidateSelectorParams: str(candSel?.params),
     leaveJudgeType: str(leave?.type),
     leaveJudgeParams: str(leave?.params),
     multiSign: {
@@ -218,6 +221,10 @@ export function saveNodeConfig(
   const resolve = ensureChildExtension(bo, 'sf:AssigneeResolve', moddle);
   resolve.type = model.assigneeResolveType;
   resolve.params = model.assigneeResolveParams;
+
+  const candSel = ensureChildExtension(bo, 'sf:CandidateSelector', moddle);
+  candSel.type = model.candidateSelectorType;
+  candSel.params = model.candidateSelectorParams;
 
   const leave = ensureChildExtension(bo, 'sf:LeaveJudge', moddle);
   leave.type = model.leaveJudgeType;

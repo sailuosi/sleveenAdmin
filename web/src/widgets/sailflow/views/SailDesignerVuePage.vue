@@ -1,12 +1,12 @@
 <template>
-  <div class="sf-designer-page">
+  <div class="sf-designer-page" :class="{ 'sf-designer-page--embedded': embedded }">
     <header class="sf-designer-page__bar">
       <div class="sf-designer-page__meta">
         <div class="sf-designer-page__title">Sailflow 设计器 · Vue</div>
         <div v-if="metaLabel" class="sf-designer-page__sub">{{ metaLabel }}</div>
       </div>
       <div class="sf-designer-page__actions">
-        <el-button text @click="goBack">返回</el-button>
+        <el-button v-if="showBack" text @click="goBack">{{ embedded ? '关闭' : '返回' }}</el-button>
         <el-button :loading="loading" @click="createNew">新建</el-button>
         <el-button :loading="validating" :disabled="!ready" @click="validate">校验</el-button>
         <el-button :disabled="!ready" @click="openRepair">修复</el-button>
@@ -73,12 +73,14 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { NextLoading } from '/@/utils/loading';
 import { BpmnModeler } from '@vue-bpmn/vue';
 import { EMPTY_BPMN_XML } from '@sail/bpmn/createModeler';
 import { setDesignerProcessMeta } from '@sail/bpmn/ui/designerContext';
 import { downloadSvg, downloadText } from '@sail/bpmn/utils/download';
 import { clearVariableCache } from '@sail/bpmn/variable/wfVariableCache';
 import { sanitizeBpmnXml } from '@sail/bpmn/utils/sanitizeBpmnXml';
+import { ensureValidBpmnProcessIds } from '@sail/bpmn/utils/ensureValidBpmnProcessIds';
 import { confirmStaleSubBindingsOnSave } from '@sail/bpmn/utils/confirmStaleSubBindingsOnSave';
 import { initNewBpmnFile, queryProcessFile, saveProcessFile, validateProcess } from '@sail/api/process';
 import type { ProcessDesignerEngine, DesignerAlignDir } from '@sail/designer/engine';
@@ -109,6 +111,25 @@ import { designerEvents } from '@sail/bpmn/ui/designerEvents';
 import { parseValidateProcessResponse } from '@sail/api/processValidate';
 
 defineOptions({ name: 'SailDesignerVuePage' });
+
+const props = withDefaults(
+  defineProps<{
+    embedded?: boolean;
+    /** 嵌入流程编辑步骤时隐藏返回/关闭 */
+    showBack?: boolean;
+    /** 嵌入弹窗时优先于 route.query */
+    editProcessId?: string;
+    editVersion?: string;
+  }>(),
+  {
+    embedded: false,
+    showBack: true,
+    editProcessId: undefined,
+    editVersion: undefined,
+  },
+);
+
+const emit = defineEmits<{ close: []; saved: [] }>();
 
 type ProcessFileMeta = {
   ProcessId?: string;
@@ -146,7 +167,20 @@ const statusOk = ref(false);
 const loadBlocked = ref(false);
 const ready = ref(false);
 const selectionIds = ref<string[]>([]);
-const isEmbed = computed(() => String(route.query.embed || '') === '1');
+const embedded = computed(() => !!props.embedded);
+const isEmbed = computed(
+  () => embedded.value || String(route.query.embed || '') === '1',
+);
+
+function resolveProcessId() {
+  if (embedded.value) return String(props.editProcessId || '').trim();
+  return String(route.query.processId ?? '').trim();
+}
+
+function resolveVersion() {
+  if (embedded.value) return String(props.editVersion || '1');
+  return String(route.query.version ?? '1');
+}
 
 let detachDefaults: (() => void) | null = null;
 const changeListeners = new Set<() => void>();
@@ -204,6 +238,10 @@ const metaLabel = computed(() => {
 });
 
 function goBack() {
+  if (embedded.value) {
+    emit('close');
+    return;
+  }
   if (window.history.length > 1) router.back();
   else router.push('/sail/processes');
 }
@@ -311,11 +349,16 @@ function onConfigure(elementId: string) {
 async function importXml(xml: string) {
   if (!modelerRef.value) return;
   clearVariableCache();
-  const result = await modelerRef.value.importXML(normalizeSfNamespace(xml));
+  // Guid 作 process@id（数字开头）非法 NCName → bpmn-js 报 no process or collaboration
+  const fixed = ensureValidBpmnProcessIds(xml);
+  const result = await modelerRef.value.importXML(normalizeSfNamespace(fixed.xml));
   // 与事件监听双保险：导入成功即可保存（避免点号事件监听失败导致一直禁用）
   ready.value = true;
   await nextTick();
-  modelerRef.value.zoomFit();
+  // 等布局出真实 SVG 尺寸后再 fit，避免 clientWidth=0 时退回内容包围盒放大
+  requestAnimationFrame(() => {
+    modelerRef.value?.zoomFit();
+  });
   return result?.warnings || [];
 }
 
@@ -332,8 +375,8 @@ async function onToolbarImportXml(xml: string) {
 }
 
 async function loadFromQuery() {
-  const processId = String(route.query.processId ?? '');
-  const version = String(route.query.version ?? '1');
+  const processId = resolveProcessId();
+  const version = resolveVersion();
   if (!processId) {
     await createNew();
     return;
@@ -415,11 +458,11 @@ async function createNew() {
   }
 }
 
-async function save() {
-  if (!modelerRef.value) return;
+async function save(): Promise<boolean> {
+  if (!modelerRef.value) return false;
   if (loadBlocked.value) {
     ElMessage.error('当前流程图未能正确打开，已禁止保存，以免覆盖库中定义');
-    return;
+    return false;
   }
   saving.value = true;
   statusMsg.value = '';
@@ -430,26 +473,26 @@ async function save() {
     const { xml: cleaned, removedDi } = sanitizeBpmnXml(normalized);
     const xml = cleaned;
     if (!(await confirmStaleSubBindingsOnSave(xml))) {
-      return;
+      return false;
     }
     const base = fileMeta.value ?? {};
-    const processId = metaProcessId(base) || String(route.query.processId ?? '');
+    const processId = metaProcessId(base) || resolveProcessId();
     if (!processId) {
       ElMessage.warning('无 ProcessId，请先「新建」或从列表打开');
-      return;
+      return false;
     }
     const processName = String(
       base.ProcessName ?? (base as Record<string, unknown>).processName ?? '',
     ).trim();
     if (!processName) {
       ElMessage.warning('流程名称为空，无法保存');
-      return;
+      return false;
     }
     const payload = {
       ProcessId: processId,
       ProcessName: processName,
       ProcessCode: base.ProcessCode ?? (base as Record<string, unknown>).processCode,
-      Version: String(base.Version ?? (base as Record<string, unknown>).version ?? route.query.version ?? '1'),
+      Version: String(base.Version ?? (base as Record<string, unknown>).version ?? resolveVersion()),
       Status: (base.Status ?? (base as Record<string, unknown>).status ?? 1) as number,
       XmlContent: xml,
     };
@@ -471,12 +514,14 @@ async function save() {
       ? `保存成功（已去掉 ${removedDi.length} 个无元素 DI）`
       : '保存成功';
     ElMessage.success(statusMsg.value);
+    if (embedded.value) emit('saved');
     if (isEmbed.value && window.parent && window.parent !== window) {
       window.parent.postMessage(
         { type: 'sail-designer-saved', processId, version: payload.Version },
         '*',
       );
     }
+    return true;
   } catch (e: unknown) {
     statusOk.value = false;
     statusMsg.value = e instanceof Error ? e.message : String(e);
@@ -487,10 +532,13 @@ async function save() {
         '*',
       );
     }
+    return false;
   } finally {
     saving.value = false;
   }
 }
+
+defineExpose({ save });
 
 function openRepair() {
   if (!modelerRef.value) return;
@@ -516,7 +564,7 @@ async function validate() {
     const { xml } = await modelerRef.value.exportXML();
     const base = fileMeta.value ?? {};
     const data = await validateProcess({
-      ProcessId: metaProcessId(base) || String(route.query.processId ?? '') || undefined,
+      ProcessId: metaProcessId(base) || resolveProcessId() || undefined,
       ProcessName: base.ProcessName ?? (base as Record<string, unknown>).processName,
       ProcessCode: base.ProcessCode ?? (base as Record<string, unknown>).processCode,
       Version: String(base.Version ?? (base as Record<string, unknown>).version ?? '1'),
@@ -570,6 +618,8 @@ function onParentMessage(ev: MessageEvent) {
 }
 
 onMounted(async () => {
+  // 顶层路由不经主布局时需自行关掉全局 NextLoading；弹窗嵌入则跳过
+  if (!embedded.value) NextLoading.done();
   await nextTick();
   engineApi.value = buildEngine();
   const store = modelerRef.value?.getStore();
@@ -594,6 +644,10 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color-page, #f5f7fa);
+}
+.sf-designer-page--embedded {
+  height: 100%;
+  min-height: 0;
 }
 .sf-designer-page__bar {
   flex: 0 0 auto;

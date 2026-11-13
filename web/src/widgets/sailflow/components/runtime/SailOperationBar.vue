@@ -44,21 +44,17 @@
                 :label="needsManualPick ? '下一办理人（必选）' : '下一办理人'"
                 :required="needsManualPick"
               >
-                <el-select
+                <SailCandidatePicker
                   v-model="selectedUserIds"
-                  multiple
-                  filterable
-                  clearable
-                  :placeholder="needsManualPick ? '请选择下一办理人' : '可选'"
-                  style="width: 100%"
-                >
-                  <el-option
-                    v-for="u in candidateUsers"
-                    :key="userKey(u)"
-                    :label="userLabel(u)"
-                    :value="userKey(u)"
-                  />
-                </el-select>
+                  :required="needsManualPick"
+                  :selector-type="selectedSelectorType"
+                  :selector-params="selectedSelectorParams"
+                  :candidate-mode="selectedCandidateMode"
+                  :inline-users="roleTreeUsers"
+                  :candidate-filter="selectedCandidateFilter"
+                  :query-context="candidateQueryContext"
+                  @users-change="onApprovePickerUsers"
+                />
               </el-form-item>
               <el-collapse v-if="selectedNeedsPerformer && selectedUserIds.length" class="sf-op-pop__adv">
                 <el-collapse-item title="高级：组别 / 单位" name="adv">
@@ -395,6 +391,7 @@ import {
   mergeButtonsSetting,
   type SailButtonSetting
 } from '@sail/bpmn/buttonsCatalog';
+import SailCandidatePicker from '@sail/components/runtime/SailCandidatePicker.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -519,20 +516,56 @@ const roleTreeUsers = computed(() => {
   const n = selectedNode.value;
   if (!n) return [] as Record<string, unknown>[];
   const users = (pickField<unknown[]>(n, 'Users', 'users') || []) as Record<string, unknown>[];
-  return Array.isArray(users) ? users : [];
+  return Array.isArray(users) ? users.filter(u => !!userKey(u)) : [];
 });
+const approvePickerUsers = ref<Record<string, unknown>[]>([]);
+const selectedCandidateMode = computed(() =>
+  String(pickField(selectedNode.value || {}, 'CandidateMode', 'candidateMode') || '')
+);
+const selectedSelectorType = computed(() =>
+  String(
+    pickField(selectedNode.value || {}, 'CandidateSelectorType', 'candidateSelectorType') || ''
+  )
+);
+const selectedSelectorParams = computed(() =>
+  String(
+    pickField(
+      selectedNode.value || {},
+      'CandidateSelectorParams',
+      'candidateSelectorParams'
+    ) || ''
+  )
+);
+const selectedCandidateFilter = computed(() => {
+  const n = selectedNode.value;
+  if (!n) return null;
+  return (pickField(n, 'CandidateFilter', 'candidateFilter') || null) as {
+    RoleIds?: string[];
+    roleIds?: string[];
+  } | null;
+});
+const candidateQueryContext = computed(() => ({
+  ProcessId: String(pickField(props.task, 'ProcessId', 'processId') || ''),
+  Version: String(pickField(props.task, 'Version', 'version') || '1'),
+  ActivityId: selectedActivityId.value,
+  TaskId: String(pickField(props.task, 'TaskId', 'taskId') || '')
+}));
+function onApprovePickerUsers(list: Record<string, unknown>[]) {
+  approvePickerUsers.value = list || [];
+}
 const candidateUsers = computed(() => {
+  if (approvePickerUsers.value.length) return approvePickerUsers.value;
   if (roleTreeUsers.value.length) return roleTreeUsers.value;
-  // R3/ApproverPick：节点无角色候选人时回落宿主用户（Account）
   return allUsers.value as unknown as Record<string, unknown>[];
 });
-// 结束/网关/服务等无候选人节点不得要求选人（原先空 Users → 误判必选）
-const needsManualPick = computed(
-  () =>
-    !!selectedActivityId.value &&
-    selectedNeedsPerformer.value &&
-    roleTreeUsers.value.length === 0
-);
+// 结束/网关等不需选人；anyselect/search 必选；无 Mode 时兼容旧接口
+const needsManualPick = computed(() => {
+  if (!selectedActivityId.value || !selectedNeedsPerformer.value) return false;
+  const m = selectedCandidateMode.value.toLowerCase();
+  if (m === 'anyselect' || m === 'search') return true;
+  if (!m) return roleTreeUsers.value.length === 0;
+  return false;
+});
 
 const sendBackNode = computed(() =>
   previousNodes.value.find(n => nodeId(n) === sendBackActivityId.value)

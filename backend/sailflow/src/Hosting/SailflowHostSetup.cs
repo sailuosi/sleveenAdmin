@@ -92,6 +92,9 @@ public static class SailflowHostSetup
                 })
                 .Build();
 
+            // 临时：Sync Hook（含 sail.nodepolicy.timeout.stamp）默认 2s 过紧，放大到 20s
+            client.CapabilityOptions.SyncHookTimeoutMs = 20_000;
+
             // R3：UnitMap→Org/User；RoleGroup→VisitorBag/Duty；JobRelative→maps|访客袋；Account 身份键
             client.UseSleveenOrgLookups(configuration);
             // §A：NodePolicy 空人/同人（同人=3 → assignStartResolveType 走管道，如 deptBoss）

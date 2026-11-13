@@ -68,7 +68,8 @@ public class SailProcessMetaService
 
         if (string.IsNullOrWhiteSpace(req.ProcessId))
         {
-            var processId = Guid.NewGuid().ToString();
+            // ProcessId 须为合法 BPMN NCName（不可数字开头），否则设计器 import 失败
+            var processId = ProcessXmlBuilder.NewProcessId();
             var fileEntity = new ProcessFileEntity
             {
                 ProcessId = processId,

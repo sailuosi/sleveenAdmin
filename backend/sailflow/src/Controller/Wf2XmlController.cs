@@ -128,7 +128,9 @@ public partial class Wf2XmlController : ControllerBase
             }
 
             if (string.IsNullOrEmpty(fileEntity.ProcessId))
-                fileEntity.ProcessId = Guid.NewGuid().ToString();
+                fileEntity.ProcessId = ProcessXmlBuilder.NewProcessId();
+            else
+                fileEntity.ProcessId = ProcessXmlBuilder.ToBpmnElementId(fileEntity.ProcessId);
             if (string.IsNullOrEmpty(fileEntity.Version))
                 fileEntity.Version = "1";
 

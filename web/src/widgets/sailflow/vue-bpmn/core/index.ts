@@ -79,6 +79,14 @@ export { panViewbox, zoomViewbox, fitViewport } from './viewbox.js';
 export { alignElements, distributeElements } from './align.js';
 export type { AlignMode } from './align.js';
 export { snapDelta, snapAlignAxis } from './snap.js';
+export {
+  projectPointOntoShape,
+  resolveDockedWaypoint,
+  dockAnchorsBetween,
+  projectOntoRect,
+  projectOntoCircle,
+  projectOntoDiamond,
+} from './docking.js';
 export { findElements } from './search.js';
 export { drilldown, drillup } from './drilldown.js';
 export { eventMarker, isNonInterrupting } from './markers.js';

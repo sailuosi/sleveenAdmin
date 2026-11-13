@@ -13,6 +13,7 @@ namespace SleveenAdmin.Sailflow.Timeout;
 /// <summary>
 /// §A：可办时刻按 NodePolicy 写入待办 <c>ActivatedDateTime</c> / <c>OverdueDateTime</c>
 ///（及对应活动实例 Overdue；与 Boundaries 取更严）。
+/// Sync 时必须用 <see cref="FlowHookContext.Kit"/> 同事务，禁止另开连接。
 /// </summary>
 public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
 {
@@ -41,16 +42,19 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
         }
     }
 
+    /// <summary>优先用流转事务 kit；无 kit（如 Outbox 回放）再开连接。</summary>
+    SQLBuilder ResolveKit(FlowHookContext ctx) => ctx.Kit ?? sail.UseRunSQL();
+
     void StampOnActivity(FlowHookContext ctx)
     {
         if (string.IsNullOrWhiteSpace(ctx.ActivityInstanceId) || string.IsNullOrWhiteSpace(ctx.ActivityId))
             return;
 
-        var policy = LoadPolicy(ctx.ProcessId, ctx.ProcessInstanceId, ctx.ActivityId);
+        var kit = ResolveKit(ctx);
+        var policy = LoadPolicy(kit, ctx);
         if (policy == null || !policy.TimeoutHandlerEnable)
             return;
 
-        var kit = sail.UseRunSQL();
         var inst = kit.useRepo<ActivityInstanceEntity, string>().GetById(ctx.ActivityInstanceId);
         if (inst == null) return;
 
@@ -75,7 +79,7 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
         if (string.IsNullOrWhiteSpace(ctx.TaskId))
             return;
 
-        var kit = sail.UseRunSQL();
+        var kit = ResolveKit(ctx);
         var task = kit.useRepo<TaskEntity, string>().GetById(ctx.TaskId);
         if (task == null || string.IsNullOrWhiteSpace(task.ActivityInstanceId))
             return;
@@ -85,9 +89,7 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
         if (inst.ActivityState != (short)ActivityStateEnum.Ready)
             return; // 未可办：Activated/Due 保持 null
 
-        var activityId = string.IsNullOrWhiteSpace(ctx.ActivityId) ? task.ActivityId : ctx.ActivityId;
-        var processId = string.IsNullOrWhiteSpace(ctx.ProcessId) ? task.ProcessId : ctx.ProcessId;
-        var policy = LoadPolicy(processId!, task.ProcessInstanceId, activityId!);
+        var policy = LoadPolicy(kit, ctx, task.ProcessInstanceId, task.ActivityId, task.ProcessId);
         if (policy == null || !policy.TimeoutHandlerEnable)
             return;
 
@@ -102,14 +104,31 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
         ApplyActivityOverdue(kit, inst, due.Value);
     }
 
-    SailNodePolicyDto? LoadPolicy(string processId, string? processInstanceId, string activityId)
+    SailNodePolicyDto? LoadPolicy(
+        SQLBuilder kit,
+        FlowHookContext ctx,
+        string? processInstanceId = null,
+        string? activityId = null,
+        string? processId = null)
     {
-        var wf = new WorkflowService(sail);
-        var pi = !string.IsNullOrWhiteSpace(processInstanceId)
-            ? wf.GetProcessInstance(processInstanceId)
-            : null;
-        var version = string.IsNullOrWhiteSpace(pi?.Version) ? "1" : pi!.Version;
-        var file = wf.GetProcessFile(processId, version);
+        processId ??= ctx.ProcessId;
+        activityId ??= ctx.ActivityId;
+        processInstanceId ??= ctx.ProcessInstanceId;
+        if (string.IsNullOrWhiteSpace(processId) || string.IsNullOrWhiteSpace(activityId))
+            return null;
+
+        var version = ctx.Version;
+        if (string.IsNullOrWhiteSpace(version) && !string.IsNullOrWhiteSpace(processInstanceId))
+        {
+            // 同事务读未提交的流程实例，禁止另开连接
+            var pi = kit.useRepo<ProcessInstanceEntity, string>().GetById(processInstanceId);
+            version = pi?.Version;
+        }
+        if (string.IsNullOrWhiteSpace(version))
+            version = "1";
+
+        // 流程定义文件已提交，可用独立连接
+        var file = new WorkflowService(sail).GetProcessFile(processId, version);
         return SailNodePolicyCatalog.ParseForActivity(file?.XmlContent, activityId);
     }
 

@@ -106,6 +106,28 @@ export function getNextActivityRoleUserTree(data: FlowCommandContextPayload) {
   });
 }
 
+export type QueryNextActivityCandidatesPayload = {
+  ProcessId?: string;
+  Version?: string;
+  ActivityId?: string;
+  TaskId?: string;
+  Keyword?: string;
+  Page?: number;
+  PageSize?: number;
+  RoleIds?: string[];
+  CandidateMode?: string;
+  CandidateSelectorType?: string;
+};
+
+/** POST api/Wf2Xml/QueryNextActivityCandidates · 选人分页（与下一节点树拆分） */
+export function queryNextActivityCandidates(data: QueryNextActivityCandidatesPayload) {
+  return request({
+    url: '/api/Wf2Xml/QueryNextActivityCandidates',
+    method: 'post',
+    data
+  });
+}
+
 /** POST api/Wf2Xml/GetPreviousActivityTree */
 export function getPreviousActivityTree(data: FlowCommandContextPayload) {
   return request({

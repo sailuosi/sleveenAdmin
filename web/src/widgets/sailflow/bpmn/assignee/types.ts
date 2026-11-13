@@ -24,6 +24,13 @@ export const LEAVE_TYPE_OPTIONS: SelectOpt[] = [
   { label: 'Captain', value: 'Captain' }
 ];
 
+/** 运行时选人器（与 AssigneeResolve 正交） */
+export const CANDIDATE_SELECTOR_OPTIONS: SelectOpt[] = [
+  { label: 'HostUserSearch（宿主远程搜索）', value: 'HostUserSearch' },
+  { label: 'InlineList（预载名单）', value: 'InlineList' },
+  { label: 'RoleUserSearch（角色内搜索）', value: 'RoleUserSearch' }
+];
+
 export function parseParamsJson(raw: string | undefined | null): Record<string, unknown> {
   if (!raw?.trim()) return {};
   try {

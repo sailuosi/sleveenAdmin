@@ -1,20 +1,11 @@
-import type { Command, CommandContext, DiagramElement, DiagramSnapshot, Point } from '../types.js';
+import type { Command, CommandContext, DiagramElement, DiagramSnapshot } from '../types.js';
 import { nextId } from '../ids.js';
 import { canConnect } from '../rules/canConnect.js';
+import { dockAnchorsBetween } from '../docking.js';
 
 export interface ConnectElementsPayload {
   sourceId: string;
   targetId: string;
-}
-
-function anchor(el: DiagramElement, side: 'right' | 'left' | 'center'): Point {
-  const x =
-    side === 'right'
-      ? el.di.x + el.di.width
-      : side === 'left'
-        ? el.di.x
-        : el.di.x + el.di.width / 2;
-  return { x, y: el.di.y + el.di.height / 2 };
 }
 
 function findExisting(
@@ -58,7 +49,7 @@ export function buildConnection(
         ? 'Association'
         : 'Flow';
   const id = nextId(state, prefix);
-  const waypoints = [anchor(source, 'right'), anchor(target, 'left')];
+  const waypoints = [...dockAnchorsBetween(source, target)];
 
   const connection: DiagramElement = {
     id,

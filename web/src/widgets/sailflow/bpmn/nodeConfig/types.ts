@@ -78,6 +78,9 @@ export type SailNodeConfigModel = {
   /** 待办人定范围 */
   assigneeResolveType: string;
   assigneeResolveParams: string;
+  /** 运行时选人器（sf:CandidateSelector） */
+  candidateSelectorType: string;
+  candidateSelectorParams: string;
   /** 办理模式 */
   leaveJudgeType: string;
   leaveJudgeParams: string;
