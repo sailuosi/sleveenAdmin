@@ -80,7 +80,7 @@ public static class SailHostSchemaInitializer
             .createTable<HookOutboxEntity>()
             .createTable<FormEntity>()
             .createTable<FieldActivityEditEntity>()
-            .createTable<SailProcessCopyEntity>();
+            .createTable<SailProcessCopytoEntity>();
 
         EnsureHotPathIndexes(kit);
         EnsureTaskDetailsView(kit);
@@ -94,25 +94,25 @@ public static class SailHostSchemaInitializer
     {
         ArgumentNullException.ThrowIfNull(kit);
 
-        TryCreateIndex(kit, "IX_wf_task_pi", "wf_task", "process_instance_id");
+        TryCreateIndex(kit, "IX_wf_task_pi", "wf_task", "tk_proc_instance_id");
         TryCreateIndex(kit, "IX_wf_task_assignee_state", "wf_task",
-            "assigned_user_id", "task_state", "process_instance_id");
+            "tk_asgn_user_id", "tk_task_state", "tk_proc_instance_id");
         TryCreateIndex(kit, "IX_wf_task_state_created", "wf_task",
-            "task_state", "created_datetime");
+            "tk_task_state", "tk_crt_time");
         TryCreateIndex(kit, "IX_wf_task_state_overdue", "wf_task",
-            "task_state", "overdue_datetime");
-        TryCreateIndex(kit, "IX_wf_ai_pi_state", "wf_activity_instance",
-            "process_instance_id", "activity_state");
-        TryCreateIndex(kit, "IX_wf_pi_state_created", "wf_process_instance",
-            "process_state", "created_datetime");
-        TryCreateIndex(kit, "IX_wf_pi_creator_state", "wf_process_instance",
-            "created_user_id", "process_state", "created_datetime");
-        TryCreateIndex(kit, "IX_wf_pv_pi_name", "wf_process_variable",
-            "process_instance_id", "name");
-        TryCreateIndex(kit, "IX_wf_ti_pi", "wf_transition_instance",
-            "process_instance_id");
+            "tk_task_state", "tk_overdue_time");
+        TryCreateIndex(kit, "IX_wf_ai_pi_state", "wf_act_instance",
+            "ai_proc_instance_id", "ai_activity_state");
+        TryCreateIndex(kit, "IX_wf_pi_state_created", "wf_proc_instance",
+            "pi_process_state", "pi_crt_time");
+        TryCreateIndex(kit, "IX_wf_pi_creator_state", "wf_proc_instance",
+            "pi_crt_user_id", "pi_process_state", "pi_crt_time");
+        TryCreateIndex(kit, "IX_wf_pv_pi_name", "wf_proc_variable",
+            "pv_proc_instance_id", "pv_name");
+        TryCreateIndex(kit, "IX_wf_ti_pi", "wf_tran_instance",
+            "ti_proc_instance_id");
         TryCreateIndex(kit, "IX_wf_hook_outbox_status", "wf_hook_outbox",
-            "status", "next_retry_at");
+            "ho_status", "ho_nxt_retry_at");
     }
 
     static void TryCreateIndex(SQLBuilder kit, string name, string table, params string[] columns)
@@ -162,7 +162,7 @@ public static class SailHostSchemaInitializer
     {
         ArgumentNullException.ThrowIfNull(kit);
 
-        const string viewName = "vw_wf_task_details";
+        const string viewName = "vw_wf_task_detail";
         var ddl = kit.useDDL();
         try
         {
@@ -189,18 +189,19 @@ public static class SailHostSchemaInitializer
             .LeftJoin<ActivityInstanceEntity>(out var mai)
             .on(() => ai.MainActivityInstanceId == mai.ActivityInstanceId);
 
+        // 投影列名须与 TaskViewEntity SooColumn 一致（带表前缀后不可再混用 t./ai./pi. 同名列）。
         clip.select(() => new
         {
             t.TaskId,
-            t.AppName,
-            t.AppInstanceId,
-            ai.AppInstanceCode,
+            t.BizChannel,
+            t.BizPK,
+            pi.BizCode,
             t.ProcessInstanceId,
-            t.ProcessId,
+            pi.ProcessId,
             pi.Version,
             t.ActivityId,
             t.ActivityInstanceId,
-            t.ActivityName,
+            ai.ActivityName,
             ai.ActivityCode,
             ai.ActivityType,
             ai.WorkItemType,
@@ -233,7 +234,7 @@ public static class SailHostSchemaInitializer
             t.RecordStatusInvalid,
             pi.ProcessState
         });
-        clip.select("mai.activity_state AS main_activity_state");
+        clip.select("mai.ai_activity_state AS ai_mn_activity_state");
     }
 
     public static int EnsureMinimalSeed(SQLBuilder kit)

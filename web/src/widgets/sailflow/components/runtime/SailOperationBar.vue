@@ -141,8 +141,8 @@
         >
           {{ btnLabel('Transfer') }}
         </el-button>
-        <el-button v-if="btnOn('Copy')" plain :loading="loading" @click="copyVisible = true">
-          {{ btnLabel('Copy') }}
+        <el-button v-if="btnOn('Copyto')" plain :loading="loading" @click="copytoVisible = true">
+          {{ btnLabel('Copyto') }}
         </el-button>
         <el-button v-if="btnOn('Revise')" plain :loading="loading" @click="onRevise">
           {{ btnLabel('Revise') }}
@@ -342,11 +342,11 @@
     </el-dialog>
 
     <!-- 抄送 -->
-    <el-dialog v-model="copyVisible" title="抄送" width="480px" destroy-on-close>
+    <el-dialog v-model="copytoVisible" title="抄送" width="480px" destroy-on-close>
       <el-form label-width="90px">
         <el-form-item label="抄送人" required>
           <el-select
-            v-model="copyUserIds"
+            v-model="copytoUserIds"
             multiple
             filterable
             style="width: 100%"
@@ -361,12 +361,12 @@
           </el-select>
         </el-form-item>
         <el-form-item label="原因">
-          <el-input v-model="copyReason" type="textarea" :rows="2" />
+          <el-input v-model="copytoReason" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="copyVisible = false">取消</el-button>
-        <el-button type="primary" :loading="loading" @click="onCopy">确认抄送</el-button>
+        <el-button @click="copytoVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="onCopyto">确认抄送</el-button>
       </template>
     </el-dialog>
   </div>
@@ -377,7 +377,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   buttonsOperation,
-  createProcessCopy,
+  createProcessCopyto,
   getTaskActivityList,
   type FlowCommandContextPayload
 } from '@sail/api/runtime';
@@ -457,9 +457,9 @@ const signUserIds = ref<string[]>([]);
 const transferVisible = ref(false);
 const transferUserIds = ref<string[]>([]);
 const transferComment = ref('');
-const copyVisible = ref(false);
-const copyUserIds = ref<string[]>([]);
-const copyReason = ref('');
+const copytoVisible = ref(false);
+const copytoUserIds = ref<string[]>([]);
+const copytoReason = ref('');
 const jumpVisible = ref(false);
 const jumpActivityId = ref('');
 const jumpUserIds = ref<string[]>([]);
@@ -840,8 +840,8 @@ async function onTransfer() {
   }
 }
 
-async function onCopy() {
-  if (!copyUserIds.value.length) {
+async function onCopyto() {
+  if (!copytoUserIds.value.length) {
     ElMessage.warning('请选择抄送人');
     return;
   }
@@ -849,8 +849,8 @@ async function onCopy() {
   try {
     const t = props.task;
     const pi = props.processInstance;
-    const data = await createProcessCopy({
-      Targets: copyUserIds.value.map(uid => {
+    const data = await createProcessCopyto({
+      Targets: copytoUserIds.value.map(uid => {
         const u = allUsers.value.find(x => userKey(x) === uid);
         return { UserId: uid, UserName: u ? userLabel(u) : uid };
       }),
@@ -867,14 +867,14 @@ async function onCopy() {
       StartUserId: String(pickField(pi || {}, 'CreatedUserId', 'createdUserId') || ''),
       CreatorId: userId.value,
       CreatorName: userName.value,
-      Reason: copyReason.value || comment.value
+      Reason: copytoReason.value || comment.value
     });
     if ((data?.Status ?? data?.status) === -1) {
       ElMessage.error(data?.Message || data?.message || '抄送失败');
       return;
     }
     ElMessage.success('已抄送');
-    copyVisible.value = false;
+    copytoVisible.value = false;
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : String(e));
   } finally {

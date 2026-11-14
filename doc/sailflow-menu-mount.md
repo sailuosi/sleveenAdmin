@@ -61,7 +61,7 @@
 |------|-------------|-----------|----------------|------|------|------|
 | 我的待办 | `sail_task_todo` | `/sail/task-todo` | `widgets/sailflow/views/task/SailTaskTodoPage.vue` | 2 | 1 | 否 |
 | 我的已办 | `sail_task_done` | `/sail/task-done` | `widgets/sailflow/views/task/SailTaskDonePage.vue` | 2 | 2 | 否 |
-| 抄送我的 | `sail_task_copy` | `/sail/task-copy` | `widgets/sailflow/views/task/SailTaskCopyPage.vue` | 2 | 3 | 否 |
+| 抄送我的 | `sail_task_copyto` | `/sail/task-copyto` | `widgets/sailflow/views/task/SailTaskCopytoPage.vue` | 2 | 3 | 否 |
 | 发起流程 | `sail_process_create` | `/sail/process-create` | `widgets/sailflow/views/process/SailProcessCreatePage.vue` | 2 | 4 | 否 |
 | 我的流程 | `sail_process_my` | `/sail/process-my` | `widgets/sailflow/views/process/SailProcessMyPage.vue` | 2 | 5 | 否 |
 | 任务管理 | `sail_task_manager` | `/sail/task-manager` | `widgets/sailflow/views/task/SailTaskManagerPage.vue` | 2 | 6 | 否 |

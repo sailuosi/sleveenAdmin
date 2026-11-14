@@ -37,7 +37,7 @@ public sealed class SailFormBizHost(
             UserName = req.UserName ?? "",
             ProcessId = req.ProcessId!,
             Version = string.IsNullOrWhiteSpace(req.Version) ? "1" : req.Version!,
-            AppName = req.FormCode.Trim(),
+            BizChannel = req.FormCode.Trim(),
             PayloadJson = req.PayloadJson
         };
 
@@ -55,15 +55,15 @@ public sealed class SailFormBizHost(
         return (ctx, exec);
     }
 
-    public void NotifyAfterOperation(string? appName, string buttonId, SailFormBizContext? seed = null)
+    public void NotifyAfterOperation(string? BizChannel, string buttonId, SailFormBizContext? seed = null)
     {
-        var handler = registry.TryGet(appName);
+        var handler = registry.TryGet(BizChannel);
         if (handler == null) return;
 
         var ctx = seed ?? new SailFormBizContext
         {
             FormCode = handler.FormCode,
-            AppName = appName ?? handler.FormCode,
+            BizChannel = BizChannel ?? handler.FormCode,
             ButtonId = buttonId
         };
         ctx.ButtonId = buttonId;

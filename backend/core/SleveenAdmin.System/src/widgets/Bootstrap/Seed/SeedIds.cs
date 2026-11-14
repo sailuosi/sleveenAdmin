@@ -73,7 +73,7 @@ public static class SeedIds
 
     public static readonly Guid MenuSailTaskTodoId = Guid.Parse("00000000-0000-0000-0000-000000000081");
     public static readonly Guid MenuSailTaskDoneId = Guid.Parse("00000000-0000-0000-0000-000000000082");
-    public static readonly Guid MenuSailTaskCopyId = Guid.Parse("00000000-0000-0000-0000-000000000083");
+    public static readonly Guid MenuSailTaskCopytoId = Guid.Parse("00000000-0000-0000-0000-000000000083");
     public static readonly Guid MenuSailProcessCreateId = Guid.Parse("00000000-0000-0000-0000-000000000084");
     public static readonly Guid MenuSailProcessMyId = Guid.Parse("00000000-0000-0000-0000-000000000085");
     public static readonly Guid MenuSailTaskManagerId = Guid.Parse("00000000-0000-0000-0000-000000000086");

@@ -6,7 +6,7 @@ using sailflow.engine.Service;
 namespace SleveenAdmin.Sailflow.Utility;
 
 /// <summary>
-/// 动态表单 Conditions ↔ 流程运行变量（wf_process_variable）。
+/// 动态表单 Conditions ↔ 流程运行变量（wf_proc_variable）。
 /// 引擎 Start/Run 只用 Conditions 做路由，不会自动落库；Host 负责持久化与回填。
 /// </summary>
 public static class SailProcessVariableHelper
@@ -43,7 +43,7 @@ public static class SailProcessVariableHelper
                 if (exist != null && !string.IsNullOrWhiteSpace(exist.ProcessVariableId))
                 {
                     exist.Value = kv.Value;
-                    exist.AppInstanceId = runner.AppInstanceId ?? exist.AppInstanceId;
+                    exist.BizPK = runner.BizPK ?? exist.BizPK;
                     exist.ProcessId = runner.ProcessId ?? exist.ProcessId;
                     exist.UpdatedDateTime = DateTime.UtcNow;
                     wf.SaveProcessVariable(exist);
@@ -53,7 +53,7 @@ public static class SailProcessVariableHelper
                     wf.SaveProcessVariable(new ProcessVariableEntity
                     {
                         VariableScope = ProcessVariableScopeEnum.Process.ToString(),
-                        AppInstanceId = runner.AppInstanceId,
+                        BizPK = runner.BizPK,
                         ProcessId = runner.ProcessId,
                         ProcessInstanceId = processInstanceId,
                         Name = kv.Key,

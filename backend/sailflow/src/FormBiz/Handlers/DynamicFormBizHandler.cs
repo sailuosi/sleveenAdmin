@@ -1,7 +1,7 @@
 namespace SleveenAdmin.Sailflow.FormBiz.Handlers;
 
 /// <summary>
-/// §H 低代码默认 Handler：不落专用业务表；AppInstanceId 用 GUID，条件来自 Payload。
+/// §H 低代码默认 Handler：不落专用业务表；BizPK 用 GUID，条件来自 Payload。
 /// </summary>
 public sealed class DynamicFormBizHandler : SailFormBizHandlerBase
 {
@@ -16,9 +16,9 @@ public sealed class DynamicFormBizHandler : SailFormBizHandlerBase
 
     public override void OnSubmit(SailFormBizContext ctx)
     {
-        ctx.AppName = FormCode;
-        if (string.IsNullOrWhiteSpace(ctx.AppInstanceId))
-            ctx.AppInstanceId = Guid.NewGuid().ToString("N");
+        ctx.BizChannel = FormCode;
+        if (string.IsNullOrWhiteSpace(ctx.BizPK))
+            ctx.BizPK = Guid.NewGuid().ToString("N");
         ctx.Data = ctx.PayloadJson;
     }
 

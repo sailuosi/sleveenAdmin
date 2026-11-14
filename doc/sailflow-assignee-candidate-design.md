@@ -519,7 +519,7 @@ SailClient
 | **R2** | 单轨定型 | 定型期**收掉双轨**，不背历史债。运行时只走 Assignee 管道；缺配置不得回落 Definition/旧会签。 |
 | **R3** | 主数据与用户身份键 | 在 **sleveen-admin** 接组织/人员（如 `SysUser`/Org）；覆盖或继承 Lookup。sailflow 不吸收宿主用户表。**`AssignedUserId` / `Performer.UserId` = 用户编码（如登录账号 `Account`）**，选人/派发/待办过滤同一套；不默认存 `Id` GUID 或人事工号。 |
 | **R4** | 缺配置 | 运行时**禁止暗默认** → **拒绝** + ReasonCode。设计预埋见 **R6**（写入 BPMN 后运行时只认落盘配置）。显式 `Fallback`/`onEmpty` 除外。 |
-| **R5** | 三线分离 | 待办人 ConfigPair ≠ 通知（Task Notifier / 回调与事件）≠ 抄送（独立通道 + 自有事件 / 现 Host 表 `sf_process_instance_copy`）。设计器勿混面板。 |
+| **R5** | 三线分离 | 待办人 ConfigPair ≠ 通知（Task Notifier / 回调与事件）≠ 抄送（独立通道 + 自有事件 / 现 Host 表 `sf_proc_copyto`）。设计器勿混面板。 |
 | **R6** | 设计默认 | **流程设计能力**。发布前 Resolve+Leave 非空。预埋可覆盖。出厂默认：Resolve=**`ApproverPick`（发送人自选）**，Leave=**`Collaborate`**。勿与 `StarterPick`（发起人自选）混淆。设计器新增 UserTask / 模板种子写入；项目可改默认（如改 Race）。 |
 | **R7** | 组间完成 | 组间不仅 And/Or，还可按 **已完成组数量/比例**（`groupCompleteCount` / `groupCompleteRate`）；默认 And。组内仍用 `completeCount`/`completeRate`。 |
 | **R8** | 队长细则 | **关卡必办、组员可办、关卡办完可发送**；`gateRoles` 默认 Leader 可配；组员有待办但不能单独使组完成。 |

@@ -538,12 +538,12 @@ public partial class Wf2XmlController
                 var runner = new FlowCommandContext
                 {
                     TaskId = task.TaskId,
-                    AppInstanceId = task.AppInstanceId,
+                    BizPK = task.BizPK,
                     ProcessId = task.ProcessId,
                     Version = task.Version,
                     UserId = task.AssignedUserId,
                     UserName = task.AssignedUserName,
-                    AppName = task.AppName,
+                    BizChannel = task.BizChannel,
                     Conditions = query.Conditions ?? new Dictionary<string, string>()
                 };
                 try
@@ -572,7 +572,7 @@ public partial class Wf2XmlController
 
                 dto.ReadyActivities = _queryService.GetRunningActivityInstance(new TaskQuery
                 {
-                    AppInstanceId = task.AppInstanceId,
+                    BizPK = task.BizPK,
                     ProcessId = task.ProcessId,
                     Version = task.Version
                 })?.ToList() ?? new List<ActivityInstanceEntity>();
@@ -624,8 +624,8 @@ public partial class Wf2XmlController
                 }
             }
 
-            // 表单：显式 FormId → 实例 AppInstanceCode（发起写入的 formId，Guid/数字均可）
-            // → 流程 meta.FormId 回落。FbForm.Id 已是 Guid，禁止再用 int.TryParse 拦截。
+            // 表单：显式 FormId → 实例 BizCode（发起写入的 formId，Guid/数字均可）
+            // → 流程 meta.FormId 回落。fm_form.ff_id 已是 Guid，禁止再用 int.TryParse 拦截。
             var formId = ResolveWorkbenchFormId(query.FormId, dto, task);
 
             IList<FieldActivityEdit>? formEdits = null;
@@ -758,7 +758,7 @@ public partial class Wf2XmlController
     }
 
     /// <summary>
-    /// 办理表单 Id：query → AppInstanceCode（Guid/旧数字）→ sf_process_meta.FormId。
+    /// 办理表单 Id：query → BizCode（Guid/旧数字）→ sf_process_meta.FormId。
     /// </summary>
     private string? ResolveWorkbenchFormId(
         string? queryFormId,
@@ -768,7 +768,7 @@ public partial class Wf2XmlController
         if (!string.IsNullOrWhiteSpace(queryFormId))
             return queryFormId.Trim();
 
-        var code = dto.ProcessInstance?.AppInstanceCode?.Trim();
+        var code = dto.ProcessInstance?.BizCode?.Trim();
         if (!string.IsNullOrWhiteSpace(code))
             return code;
 

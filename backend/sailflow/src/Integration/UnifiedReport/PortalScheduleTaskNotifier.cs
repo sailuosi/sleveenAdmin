@@ -81,10 +81,10 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
         }
 
         var activityName = task?.ActivityName ?? ctx.ActivityCode ?? "";
-        var appName = string.IsNullOrWhiteSpace(ctx.AppName) ? _options.AppName : ctx.AppName;
+        var channel = string.IsNullOrWhiteSpace(ctx.BizChannel) ? _options.BizChannel : ctx.BizChannel;
         var title = string.IsNullOrWhiteSpace(activityName)
-            ? appName
-            : $"{appName}-{activityName}";
+            ? channel
+            : $"{channel}-{activityName}";
 
         var createCode = task?.CreatedUserId ?? ctx.AssignedUserId ?? "";
         var createName = task?.CreatedUserName ?? "";
@@ -95,7 +95,7 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
         var dto = new TaskInfoDto
         {
             AppId = _options.AppId,
-            AppName = string.IsNullOrWhiteSpace(_options.AppName) ? appName : _options.AppName,
+            AppName = string.IsNullOrWhiteSpace(_options.BizChannel) ? channel : _options.BizChannel,
             AppScheduleId = ctx.TaskId ?? "",
             Name = title,
             ActivityName = activityName,

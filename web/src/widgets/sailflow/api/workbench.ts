@@ -1,4 +1,4 @@
-/** Sail 办理台只读列表：biz/sailworkbench/{todo|done|process|copy}/qlist */
+/** Sail 办理台只读列表：biz/sailworkbench/{todo|done|process|copyto}/qlist */
 import request from '@/utils/requestAPI6.js';
 
 const base = '/biz/sailworkbench';
@@ -33,6 +33,6 @@ export function querySailProcessList(para?: SailWorkbenchQuery) {
 }
 
 /** 抄送我的 */
-export function querySailCopyList(para?: SailWorkbenchQuery) {
-  return qlist('copy', para);
+export function querySailCopytoList(para?: SailWorkbenchQuery) {
+  return qlist('copyto', para);
 }

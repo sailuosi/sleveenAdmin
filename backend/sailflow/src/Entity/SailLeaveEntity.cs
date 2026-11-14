@@ -51,5 +51,5 @@ public static class SailLeaveStatus
     public const int Rejected = 3;
     public const int Closed = 4;
 
-    public const string AppName = "SailLeave";
+    public const string BizChannel = "SailLeave";
 }

@@ -21,16 +21,16 @@ public sealed class SailLeaveStatusHook : IFlowHook
 
     public void Handle(FlowHookContext ctx)
     {
-        if (!string.Equals(ctx.AppName, SailLeaveStatus.AppName, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(ctx.BizChannel, SailLeaveStatus.BizChannel, StringComparison.OrdinalIgnoreCase))
             return;
-        if (string.IsNullOrWhiteSpace(ctx.AppInstanceId))
+        if (string.IsNullOrWhiteSpace(ctx.BizPK))
             return;
 
         _handler.OnFinish(new FormBiz.SailFormBizContext
         {
-            FormCode = SailLeaveStatus.AppName,
-            AppName = ctx.AppName,
-            AppInstanceId = ctx.AppInstanceId,
+            FormCode = SailLeaveStatus.BizChannel,
+            BizChannel = ctx.BizChannel,
+            BizPK = ctx.BizPK,
             FinishEvent = ctx.EventType
         });
     }

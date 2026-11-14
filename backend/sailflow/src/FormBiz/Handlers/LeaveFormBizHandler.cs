@@ -10,7 +10,7 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
 {
     static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
-    public override string FormCode => SailLeaveStatus.AppName;
+    public override string FormCode => SailLeaveStatus.BizChannel;
 
     public override void OnInit(SailFormBizContext ctx)
     {
@@ -26,12 +26,12 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
     public override void OnQuery(SailFormBizContext ctx)
     {
         leave.EnsureTable();
-        if (string.IsNullOrWhiteSpace(ctx.AppInstanceId))
+        if (string.IsNullOrWhiteSpace(ctx.BizPK))
         {
-            ctx.Error = "AppInstanceId required";
+            ctx.Error = "BizPK required";
             return;
         }
-        ctx.Data = leave.Get(ctx.AppInstanceId);
+        ctx.Data = leave.Get(ctx.BizPK);
         if (ctx.Data == null)
             ctx.Error = "not found";
     }
@@ -60,8 +60,8 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
         };
         row = leave.Insert(row);
 
-        ctx.AppName = FormCode;
-        ctx.AppInstanceId = row.Id;
+        ctx.BizChannel = FormCode;
+        ctx.BizPK = row.Id;
         ctx.Conditions["days"] = row.Days.ToString("0.##");
         ctx.Data = row;
     }
@@ -77,7 +77,7 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
 
     public override void OnFinish(SailFormBizContext ctx)
     {
-        if (string.IsNullOrWhiteSpace(ctx.AppInstanceId)) return;
+        if (string.IsNullOrWhiteSpace(ctx.BizPK)) return;
         var status = ctx.FinishEvent switch
         {
             EventFireTypeEnum.OnProcessCompleted => SailLeaveStatus.Approved,
@@ -86,7 +86,7 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
             _ => 0
         };
         if (status <= 0) return;
-        leave.ApplyStatusByAppInstance(ctx.AppInstanceId, status);
+        leave.ApplyStatusByBizPK(ctx.BizPK, status);
     }
 
     static LeaveSubmitPayload ParsePayload(string? json)

@@ -54,7 +54,7 @@ const typeEntry = makeSelectOnNested({
 const configUuidEntry = makeTextOnNested({
   id: 'sf-ai-config-uuid',
   label: 'Config UUID',
-  description: '对应 ai_activity_config / 模型配置',
+  description: '对应 ai_act_config / 模型配置',
   collectionType: 'sf:AiServices',
   listProp: 'aiServices',
   itemType: 'sf:AiService',

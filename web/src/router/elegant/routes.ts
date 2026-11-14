@@ -322,10 +322,10 @@ export const routes: AutoRouterRoute[
       component: '_widgets_sailflow_views_SailTemplateGalleryPage',
     },
     {
-      name: '_widgets_sailflow_views_task_SailTaskCopyPage',
-      path: '/widgets/sailflow/views/task/SailTaskCopyPage',
+      name: '_widgets_sailflow_views_task_SailTaskCopytoPage',
+      path: '/widgets/sailflow/views/task/SailTaskCopytoPage',
       layout: 'base',
-      component: '_widgets_sailflow_views_task_SailTaskCopyPage',
+      component: '_widgets_sailflow_views_task_SailTaskCopytoPage',
     },
     {
       name: '_widgets_sailflow_views_task_SailTaskDonePage',

@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>SleveenAdmin.Sailflow</RootNamespace>
     <AssemblyName>SleveenAdmin.Sailflow</AssemblyName>
-    <Description>Sailflow host thin layer for SleveenAdmin (controllers + DI)</Description>
+    <Description>Sailflow host thin layer for SleveenAdmin (controllers + DI); engine via local NuGet sailflow.biz</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,8 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\sailflow\src\biz\host\sailflow.biz.csproj" />
-    <ProjectReference Include="..\..\..\sailflow\src\core\ext\form\sailflow.form.csproj" />
+    <PackageReference Include="sailflow.biz" Version="$(SailflowBizPackageVersion)" />
     <ProjectReference Include="..\core\SleveenAdmin.Foundation\SleveenAdmin.Foundation.csproj" />
     <ProjectReference Include="..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
                       OutputItemType="Analyzer"

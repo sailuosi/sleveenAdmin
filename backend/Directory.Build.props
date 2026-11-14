@@ -1,8 +1,8 @@
 <Project>
-  <!-- Package versions for *.publish.csproj (dev *.csproj unchanged). -->
+  <!-- Local NuGet package versions (backend/nuget.config → local-packages/). -->
   <PropertyGroup>
     <MooSqlExtPackageVersion>8.2.1.10</MooSqlExtPackageVersion>
-    <SailflowBizPackageVersion>0.1.0</SailflowBizPackageVersion>
+    <SailflowBizPackageVersion>0.1.2</SailflowBizPackageVersion>
     <HangfireMooSqlPackageVersion>0.1.0</HangfireMooSqlPackageVersion>
   </PropertyGroup>
 

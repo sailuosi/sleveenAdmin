@@ -77,7 +77,7 @@ declare module "vue-router/auto-routes" {
     "_widgets_sailflow_views_SailKnowledgeBasePage": RouteRecordInfo<"_widgets_sailflow_views_SailKnowledgeBasePage", "/widgets/sailflow/views/SailKnowledgeBasePage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_SailRuleSetPage": RouteRecordInfo<"_widgets_sailflow_views_SailRuleSetPage", "/widgets/sailflow/views/SailRuleSetPage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_SailTemplateGalleryPage": RouteRecordInfo<"_widgets_sailflow_views_SailTemplateGalleryPage", "/widgets/sailflow/views/SailTemplateGalleryPage", Record<never, never>, Record<never, never>>;
-    "_widgets_sailflow_views_task_SailTaskCopyPage": RouteRecordInfo<"_widgets_sailflow_views_task_SailTaskCopyPage", "/widgets/sailflow/views/task/SailTaskCopyPage", Record<never, never>, Record<never, never>>;
+    "_widgets_sailflow_views_task_SailTaskCopytoPage": RouteRecordInfo<"_widgets_sailflow_views_task_SailTaskCopytoPage", "/widgets/sailflow/views/task/SailTaskCopytoPage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_task_SailTaskDonePage": RouteRecordInfo<"_widgets_sailflow_views_task_SailTaskDonePage", "/widgets/sailflow/views/task/SailTaskDonePage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_task_SailTaskManagerPage": RouteRecordInfo<"_widgets_sailflow_views_task_SailTaskManagerPage", "/widgets/sailflow/views/task/SailTaskManagerPage", Record<never, never>, Record<never, never>>;
     "_widgets_sailflow_views_task_SailTaskTodoPage": RouteRecordInfo<"_widgets_sailflow_views_task_SailTaskTodoPage", "/widgets/sailflow/views/task/SailTaskTodoPage", Record<never, never>, Record<never, never>>;

@@ -18,8 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- 联调本地 mooSQL 源码（含 AutoKey / KeyGenerator）；发布时可改回 NuGet -->
-    <ProjectReference Include="..\..\..\..\moo-sqlm\mooSQL2024\ext\mooSQL.Ext.csproj" />
+    <PackageReference Include="mooSQL.Ext" Version="$(MooSqlExtPackageVersion)" />
     <ProjectReference Include="..\..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />

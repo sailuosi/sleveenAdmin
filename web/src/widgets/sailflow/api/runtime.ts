@@ -302,19 +302,19 @@ export function getTaskActivityList(data: { ProcessId?: string; Version?: string
   });
 }
 
-/** POST api/WfCopy/Create */
-export function createProcessCopy(data: Record<string, unknown>) {
+/** POST api/WfCopyto/Create */
+export function createProcessCopyto(data: Record<string, unknown>) {
   return request({
-    url: '/api/WfCopy/Create',
+    url: '/api/WfCopyto/Create',
     method: 'post',
     data
   });
 }
 
-/** POST api/WfCopy/MyPage */
-export function queryMyCopyPage(data: { UserId?: string; PageIndex?: number; PageSize?: number }) {
+/** POST api/WfCopyto/MyPage */
+export function queryMyCopytoPage(data: { UserId?: string; PageIndex?: number; PageSize?: number }) {
   return request({
-    url: '/api/WfCopy/MyPage',
+    url: '/api/WfCopyto/MyPage',
     method: 'post',
     data
   });

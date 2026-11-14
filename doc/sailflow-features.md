@@ -38,7 +38,7 @@
 | 能力 | 成熟度 | 说明 |
 |------|--------|------|
 | 我的待办 / 已办 | 可用 | 分页列表，跳转详情带 `taskId` |
-| 抄送我的 | 可用 | 产品表 `sf_process_instance_copy`；办理条可抄送 |
+| 抄送我的 | 可用 | 产品表 `sf_proc_copyto`；办理条可抄送 |
 | 发起流程 | 可用 | 选定义 → 可选动态表单 → `StartProcess` |
 | 我的流程 | 可用 | 按创建人分页实例 |
 | 流程详情 / 办理台 | 可用 | `GetApprovalWorkbench` 聚合；表单 + 操作条 + 引用跳转 + 打印 |
@@ -47,7 +47,7 @@
 | 下一跳选人 / 选支路 | 可用 | `GetNextActivityRoleUserTree`；可选 GroupId / GroupRole |
 | 退回 / 撤回 / 重发 / 关闭 | 可用 | 退回依赖上一跳树；关闭偏管理 |
 | 加签 | 可用 | `SignForwardProcess`，对齐会签扩展 |
-| 抄送 | 可用 | Host 产品表独立通道（`sf_process_instance_copy`）；**勿**与待办人 ConfigPair / Notifier 混用 |
+| 抄送 | 可用 | Host 产品表独立通道（`sf_proc_copyto`）；**勿**与待办人 ConfigPair / Notifier 混用 |
 | 跳转 | 可用 | `JumpProcess` + `GetTaskActivityList`；详情办理条「跳转」选目标节点与办理人 |
 | 修订 / 反转 | 可用（默认可关） | `ReviseProcess` / `ReverseProcess`；设计器按钮默认关闭 |
 | 办理按钮设置 | 可用 | 节点 `sf:ButtonsSetting`；Workbench 下发；办理条 enable+显示名；见 [sailflow-buttons-capability.md](./sailflow-buttons-capability.md) |
@@ -79,7 +79,7 @@
 
 | 能力 | 成熟度 | 说明 |
 |------|--------|------|
-| 表单列表 CRUD | 可用 | `WfForm` / `FbForm` |
+| 表单列表 CRUD | 可用 | `WfForm` / `fm_form` |
 | form-create 设计器 | 可用 | `/sail/form-editor`；`installSailflow` 注册 |
 | 发起 / 办理嵌入运行 | 可用 | `SailFormRender`；`AppInstanceCode` 可绑 formId |
 | 字段活动权限 / 编辑性 | 可用 | §C：`FieldModes` 四码；NodePolicy 优先；见 [sailflow-field-modes.md](./sailflow-field-modes.md) |
@@ -185,7 +185,7 @@ Engine / 存储      ← sailflow（语义映射，禁止换引擎）
 
 | 域 | Controller | 典型能力 |
 |----|------------|----------|
-| 抄送 | `WfCopy` | `Create` `MyPage` |
+| 抄送 | `WfCopyto` | `Create` `MyPage` |
 | Outbox | `WfOutbox` | `Query` · `ResetDead*` |
 | 分类 | `WfCategory` | CRUD + 与 AppType 绑定 |
 | 报表 | `WfReport` | `Overview` |

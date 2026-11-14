@@ -19,12 +19,12 @@ namespace SleveenAdmin.Sailflow.Controller;
 public class BizSailWorkbenchListController : ControllerBase
 {
     private readonly WorkflowQueryService _query;
-    private readonly SailCopyService _copy;
+    private readonly SailCopytoService _copyto;
 
     public BizSailWorkbenchListController(WorkflowQueryService query, SailClient sail)
     {
         _query = query;
-        _copy = new SailCopyService(sail);
+        _copyto = new SailCopytoService(sail);
     }
 
     /// <summary>待办 Ready：mine=true 为我的待办；mine=false 为任务管理（全量）。</summary>
@@ -36,7 +36,7 @@ public class BizSailWorkbenchListController : ControllerBase
         var size = input.ResolvePageSize();
         var query = new TaskQuery
         {
-            AppName = string.IsNullOrWhiteSpace(input.Keyword) ? null : input.Keyword.Trim(),
+            BizChannel = string.IsNullOrWhiteSpace(input.Keyword) ? null : input.Keyword.Trim(),
             PageIndex = page,
             PageSize = size
         };
@@ -57,7 +57,7 @@ public class BizSailWorkbenchListController : ControllerBase
         var size = input.ResolvePageSize();
         var query = new TaskQuery
         {
-            AppName = string.IsNullOrWhiteSpace(input.Keyword) ? null : input.Keyword.Trim(),
+            BizChannel = string.IsNullOrWhiteSpace(input.Keyword) ? null : input.Keyword.Trim(),
             EndedUserId = SailAuthIdentity.RequireAccount(User),
             PageIndex = page,
             PageSize = size
@@ -77,7 +77,7 @@ public class BizSailWorkbenchListController : ControllerBase
         var size = input.ResolvePageSize();
         var query = new ProcessInstanceQuery
         {
-            AppName = string.IsNullOrWhiteSpace(input.Keyword) ? null : input.Keyword.Trim(),
+            BizChannel = string.IsNullOrWhiteSpace(input.Keyword) ? null : input.Keyword.Trim(),
             ProcessState = input.ProcessState,
             PageIndex = page,
             PageSize = size
@@ -91,15 +91,15 @@ public class BizSailWorkbenchListController : ControllerBase
     }
 
     /// <summary>抄送我的。</summary>
-    [HttpPost("copy/qlist")]
-    public IActionResult CopyQList([FromBody] SailWorkbenchQueryInput? input)
+    [HttpPost("copyto/qlist")]
+    public IActionResult CopytoQList([FromBody] SailWorkbenchQueryInput? input)
     {
         input ??= new SailWorkbenchQueryInput();
         var page = input.ResolvePage();
         var size = input.ResolvePageSize();
         var userId = SailAuthIdentity.RequireAccount(User);
-        var (items, total) = _copy.QueryMyPage(userId, page, size);
-        return Ok(PagedResult<SailProcessCopyEntity>.Create(items.ToList(), page, size, total));
+        var (items, total) = _copyto.QueryMyPage(userId, page, size);
+        return Ok(PagedResult<SailProcessCopytoEntity>.Create(items.ToList(), page, size, total));
     }
 }
 

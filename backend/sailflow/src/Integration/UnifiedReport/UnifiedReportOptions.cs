@@ -28,7 +28,19 @@ public sealed class UnifiedReportOptions
 
     public string AppCode { get; set; } = "";
 
-    public string AppName { get; set; } = "";
+    /// <summary>业务通道（推送报文 appName 取值来源之一）。配置键优先 <c>BizChannel</c>；亦兼容旧键 <c>AppName</c>。</summary>
+    public string BizChannel { get; set; } = "";
+
+    /// <summary>旧配置键兼容：绑定后写入 <see cref="BizChannel"/>（若 BizChannel 仍空）。</summary>
+    public string AppName
+    {
+        get => BizChannel;
+        set
+        {
+            if (!string.IsNullOrWhiteSpace(value) && string.IsNullOrWhiteSpace(BizChannel))
+                BizChannel = value;
+        }
+    }
 
     /// <summary>前端 hash 根，如 <c>http://host/#/</c>。</summary>
     public string PcUrlBase { get; set; } = "";

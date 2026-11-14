@@ -49,19 +49,19 @@ public sealed class SailOperationDispatcher
             return fail;
         }
         var result = await handler.ExecuteAsync(ctx, ct);
-        // §H：办理成功后按 AppName 回调业务 Handler（同意/退回/取消）
+        // §H：办理成功后按 BizChannel 回调业务 Handler（同意/退回/取消）
         if (result.Status == WfExecutedStatus.Success && _formBiz != null)
         {
             try
             {
                 _formBiz.NotifyAfterOperation(
-                    ctx.Runner?.AppName,
+                    ctx.Runner?.BizChannel,
                     ctx.ButtonId,
                     new SailFormBizContext
                     {
-                        FormCode = ctx.Runner?.AppName ?? "",
-                        AppName = ctx.Runner?.AppName ?? "",
-                        AppInstanceId = ctx.Runner?.AppInstanceId ?? "",
+                        FormCode = ctx.Runner?.BizChannel ?? "",
+                        BizChannel = ctx.Runner?.BizChannel ?? "",
+                        BizPK = ctx.Runner?.BizPK ?? "",
                         UserId = ctx.Runner?.UserId ?? "",
                         UserName = ctx.Runner?.UserName ?? "",
                         ButtonId = ctx.ButtonId

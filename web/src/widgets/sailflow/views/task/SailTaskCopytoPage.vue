@@ -44,9 +44,9 @@ import formcard from '@/ui/panels/formcard.vue';
 import flexpan from '@/ui/common/flexpan.vue';
 import vclist from '@/ui/common/vclist/vclist.vue';
 import vccol from '@/ui/common/vclist/vccol.vue';
-import { querySailCopyList } from '@sail/api/workbench';
+import { querySailCopytoList } from '@sail/api/workbench';
 
-defineOptions({ name: 'SailTaskCopyPage' });
+defineOptions({ name: 'SailTaskCopytoPage' });
 
 const router = useRouter();
 const loading = ref(false);
@@ -56,7 +56,7 @@ const queryParams = ref({ pageSize: 20, pageNum: 1 });
 
 const getlist = () => {
   loading.value = true;
-  querySailCopyList({
+  querySailCopytoList({
     pageNum: queryParams.value.pageNum,
     pageSize: queryParams.value.pageSize,
     mine: true

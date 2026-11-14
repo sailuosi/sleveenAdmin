@@ -350,15 +350,15 @@ const builtinRoutes: CustomRoute[] = [
     ]
   },
   {
-    name: 'sail-task-copy',
-    path: '/sail/task-copy',
+    name: 'sail-task-copyto',
+    path: '/sail/task-copyto',
     component: () => import('@/layouts/base-layout/index.vue'),
     meta: { title: '抄送我的', constant: false },
     children: [
       {
-        name: 'sail-task-copy-page',
+        name: 'sail-task-copyto-page',
         path: '',
-        component: () => import('@sail/views/task/SailTaskCopyPage.vue'),
+        component: () => import('@sail/views/task/SailTaskCopytoPage.vue'),
         meta: { title: '抄送我的', constant: false }
       }
     ]

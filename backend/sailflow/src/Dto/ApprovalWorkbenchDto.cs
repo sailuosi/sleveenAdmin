@@ -16,7 +16,7 @@ public class ApprovalWorkbenchDto
     public List<ActivityInstanceEntity> ReadyActivities { get; set; } = new();
     /// <summary>表单 conf（S2 form-create）。</summary>
     public object? FormConf { get; set; }
-    /// <summary>表单运行时值（来自 wf_process_variable 流程作用域）。</summary>
+    /// <summary>表单运行时值（来自 wf_proc_variable 流程作用域）。</summary>
     public Dictionary<string, string> FormValues { get; set; } = new();
     /// <summary>
     /// 字段权限列表（§C）：含 Mode + 兼容 IsReadOnly/IsNotVisible。
@@ -51,7 +51,7 @@ public class ApprovalWorkbenchQuery
     public string? ProcessInstanceId { get; set; }
     /// <summary>
     /// 显式表单 Id（Guid 字符串；兼容旧数字 Id）。
-    /// 缺省：实例 AppInstanceCode（发起写入）→ 再回落 sf_process_meta.FormId。
+    /// 缺省：实例 BizCode（发起写入）→ 再回落 sf_process_meta.FormId。
     /// </summary>
     public string? FormId { get; set; }
     public IDictionary<string, string>? Conditions { get; set; }

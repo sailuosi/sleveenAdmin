@@ -6,7 +6,7 @@ using sailflow.WebUtility;
 
 namespace SleveenAdmin.Sailflow.Controller;
 
-/// <summary>动态表单 CRUD（form-create conf/fields → FbForm）。</summary>
+/// <summary>动态表单 CRUD（form-create conf/fields → fm_form）。</summary>
 [Authorize]
 [Route("api/[controller]/[action]/{id?}")]
 [ApiController]

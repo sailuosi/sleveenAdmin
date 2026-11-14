@@ -14,6 +14,7 @@ public sealed class TaskInfoDto
     [JsonProperty("appId", NullValueHandling = NullValueHandling.Ignore)]
     public string? AppId { get; set; }
 
+    /// <summary>门户报文固定键 <c>appName</c>（外部契约，勿改 JSON 名）。值通常取流程 BizChannel / 配置默认。</summary>
     [JsonProperty("appName", NullValueHandling = NullValueHandling.Ignore)]
     public string? AppName { get; set; }
 

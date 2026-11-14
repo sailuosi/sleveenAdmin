@@ -72,7 +72,7 @@ public class WfLeaveController : ControllerBase
             SailAuthIdentity.BindCreator(User, out var account, out var displayName);
             var (ctx, exec) = await _bizHost.SubmitAndStartAsync(new SubmitBizFormRequest
             {
-                FormCode = SailLeaveStatus.AppName,
+                FormCode = SailLeaveStatus.BizChannel,
                 ProcessId = req.ProcessId,
                 Version = req.Version,
                 UserId = account,
@@ -92,7 +92,7 @@ public class WfLeaveController : ControllerBase
             if (exec == null || exec.Status != WfExecutedStatus.Success)
                 return ResponseResult<SailLeaveEntity>.Error(exec?.Message ?? "StartProcess failed");
 
-            var row = ctx.Data as SailLeaveEntity ?? _leave.Get(ctx.AppInstanceId);
+            var row = ctx.Data as SailLeaveEntity ?? _leave.Get(ctx.BizPK);
             if (row == null)
                 return ResponseResult<SailLeaveEntity>.Error("leave row missing after submit");
 

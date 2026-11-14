@@ -83,7 +83,7 @@ n_flowable 按钮 → Sail Host（已有或待补）：
 | 关闭 | — | `CloseProcess` | 进按钮码表 |
 | 修订 / 反转 | — | `ReviseProcess` / `ReverseProcess` | 默认关闭；节点可开 |
 | 取消实例 | `cancel-by-*` | `CloseProcess` / `DeleteInstance`（慎用） | 产品语义单独定义 |
-| 抄送 | `copy` | 产品表新建（引擎无内置抄送箱） | 对齐 n_flowable 产品表思路 |
+| 抄送 | `copyto` | 产品表新建（引擎无内置抄送箱） | 对齐 n_flowable 产品表思路 |
 | **节点按钮设置** | `buttonsSetting` | `sf:ButtonsSetting` + Workbench | 见 [sailflow-buttons-capability.md](./sailflow-buttons-capability.md) |
 | 发起 | `process-instance/create` | `StartProcess` | |
 | 待办分页 | `todo-page` | 待补：`GetReadyTasks` 分页包装 | 引擎 `WorkflowQueryService` 已有 |
@@ -454,8 +454,8 @@ Host：
 - Query：`WorkflowQueryService.QueryTasksPaged` / `QueryProcessInstancesPaged`；`ProcessInstanceQuery` 增 `CreatedUserId`/`ProcessState`
 - FE：`api/runtime.ts`、`SailTaskTodo/DonePage`、`SailProcessCreate/My/DetailPage`、`SailOperationBar`
 - 路由：`/sail/task-todo|task-done|process-create|process-my|process-detail`
-- **S2：** `IFormService` Save/Get/Delete；`WfFormController`；`FbForm` 经 Probe/init-db 建表；`/sail/forms`、`/sail/form-editor`；发起绑表单（AppInstanceCode=formId）；Workbench 回传 FormConf
-- **S3：** 操作条退回/加签/抄送/撤回/重发/关闭；Workbench 回传 PreviousNodes；`sf_process_instance_copy` + `WfCopyController`；`/sail/task-copy|task-manager|process-manager`
+- **S2：** `IFormService` Save/Get/Delete；`WfFormController`；`fm_form` 经 Probe/init-db 建表；`/sail/forms`、`/sail/form-editor`；发起绑表单（AppInstanceCode=formId）；Workbench 回传 FormConf
+- **S3：** 操作条退回/加签/抄送/撤回/重发/关闭；Workbench 回传 PreviousNodes；`sf_proc_copyto` + `WfCopytoController`；`/sail/task-copyto|task-manager|process-manager`
 - **S4：** `UpdateProcessUsingState` / `UpgradeProcess` / `DeleteProcess*`；流程列表启用停用/升级/删除
 - **S5：** `WfOutboxController` + `/sail/outbox`；`Save/DeleteKnowledgeBaseDocument` + 知识库页增删
 - **S5 齐套：** 办理详情规则/AI 只读关联；`/sail/templates`；`/sail/leave` + `sf_demo_leave` + Sync Hook 回写 Status

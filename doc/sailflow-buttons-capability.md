@@ -25,7 +25,7 @@
 | `SendBack` | 退回 | 是 | `SendBackProcess` | 待办办理 | 退回 |
 | `SignForward` | 加签 | 是 | `SignForwardProcess` | 待办办理 | 加签 |
 | `Transfer` | 转办 | 是 | `TransferProcess` | 待办办理 | 转办（本节点交人、不流转） |
-| `Copy` | 抄送 | 是 | `WfCopy/Create`（产品表） | 待办办理 | 抄送 |
+| `Copyto` | 抄送 | 是 | `WfCopyto/Create`（产品表） | 待办办理 | 抄送 |
 | `Withdraw` | 撤回 | 是 | `WithdrawProcess` | 已办 | 撤回（部分） |
 | `Resend` | 重发 | 是 | `ResendProcess` | 已办 | Sail 特色 |
 | `Jump` | 跳转 | 是 | `JumpProcess` + `GetTaskActivityList` | 管理 | Sail 管理 |

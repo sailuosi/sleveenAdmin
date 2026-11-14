@@ -359,8 +359,8 @@ public sealed class SailNodePolicyJobWorker(
             UserName = userName,
             ProcessId = task.ProcessId,
             Version = version,
-            AppName = task.AppName,
-            AppInstanceId = task.AppInstanceId,
+            BizChannel = task.BizChannel,
+            BizPK = task.BizPK,
             TaskId = task.TaskId
         };
     }

@@ -12,7 +12,7 @@ namespace SleveenAdmin.Sailflow.Controller;
 
 /// <summary>
 /// 任务 2 T2-4b：AI 设计器 API（契约对齐前端 settingapi / axconfigapi / agentapi）。
-/// Agent* 与 Model* 同源（ai_model_provider）；AxConfig → ai_activity_config。
+/// Agent* 与 Model* 同源（ai_model_provider）；AxConfig → ai_act_config。
 /// 路由：api/Wf2Ai/{Action}
 /// </summary>
 [Authorize]
@@ -183,7 +183,7 @@ public class Wf2AiController : ControllerBase
 
     #endregion
 
-    #region AxConfig（ai_activity_config）
+    #region AxConfig（ai_act_config）
 
     /// <summary>GET api/Wf2Ai/GetAxConfig?processId=&amp;version=&amp;activityId=</summary>
     [HttpGet]

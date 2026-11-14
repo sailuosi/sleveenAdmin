@@ -77,7 +77,7 @@ declare module "@elegant-router/types" {
     "_widgets_sailflow_views_SailKnowledgeBasePage": "/widgets/sailflow/views/SailKnowledgeBasePage";
     "_widgets_sailflow_views_SailRuleSetPage": "/widgets/sailflow/views/SailRuleSetPage";
     "_widgets_sailflow_views_SailTemplateGalleryPage": "/widgets/sailflow/views/SailTemplateGalleryPage";
-    "_widgets_sailflow_views_task_SailTaskCopyPage": "/widgets/sailflow/views/task/SailTaskCopyPage";
+    "_widgets_sailflow_views_task_SailTaskCopytoPage": "/widgets/sailflow/views/task/SailTaskCopytoPage";
     "_widgets_sailflow_views_task_SailTaskDonePage": "/widgets/sailflow/views/task/SailTaskDonePage";
     "_widgets_sailflow_views_task_SailTaskManagerPage": "/widgets/sailflow/views/task/SailTaskManagerPage";
     "_widgets_sailflow_views_task_SailTaskTodoPage": "/widgets/sailflow/views/task/SailTaskTodoPage";

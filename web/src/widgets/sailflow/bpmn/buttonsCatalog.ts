@@ -61,12 +61,12 @@ export const SAIL_BUTTON_CATALOG: SailButtonDef[] = [
     note: '个人办结+本节点交人，不流转'
   },
   {
-    id: 'Copy',
+    id: 'Copyto',
     displayName: '抄送',
-    engine: 'WfCopy/Create',
+    engine: 'WfCopyto/Create',
     contexts: ['handle'],
     defaultEnable: true,
-    note: 'Host 产品表，非引擎内置'
+    note: 'Host 产品表，非引擎内置；抄送=copyto，禁止裸 Copy'
   },
   {
     id: 'Withdraw',

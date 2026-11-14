@@ -48,10 +48,10 @@ public class SailLeaveService
         return clip.select(t).queryList().Take(Math.Max(1, limit)).ToList();
     }
 
-    public int ApplyStatusByAppInstance(string appInstanceId, int status)
+    public int ApplyStatusByBizPK(string bizPK, int status)
     {
-        if (string.IsNullOrWhiteSpace(appInstanceId)) return 0;
-        var row = Get(appInstanceId);
+        if (string.IsNullOrWhiteSpace(bizPK)) return 0;
+        var row = Get(bizPK);
         if (row == null) return 0;
         if (row.Status == status) return 0;
         row.Status = status;

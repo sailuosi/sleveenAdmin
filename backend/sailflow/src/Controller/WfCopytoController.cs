@@ -7,23 +7,23 @@ using SleveenAdmin.Sailflow.Utility;
 
 namespace SleveenAdmin.Sailflow.Controller;
 
-/// <summary>流程抄送（产品表 sf_process_instance_copy）。</summary>
+/// <summary>流程抄送（产品表 sf_proc_copyto）。抄送语义用 copyto，禁止裸 copy。</summary>
 [Authorize]
 [Route("api/[controller]/[action]/{id?}")]
 [ApiController]
-public class WfCopyController : ControllerBase
+public class WfCopytoController : ControllerBase
 {
-    private readonly SailCopyService _copy;
+    private readonly SailCopytoService _copyto;
 
-    public WfCopyController(SailClient sail) => _copy = new SailCopyService(sail);
+    public WfCopytoController(SailClient sail) => _copyto = new SailCopytoService(sail);
 
-    public class CopyCreateRequest
+    public class CopytoCreateRequest
     {
-        public List<CopyTarget>? Targets { get; set; }
+        public List<CopytoTarget>? Targets { get; set; }
         public string? ProcessInstanceId { get; set; }
         public string? ProcessId { get; set; }
         public string? ProcessName { get; set; }
-        public string? AppInstanceId { get; set; }
+        public string? BizPK { get; set; }
         public string? TaskId { get; set; }
         public string? TaskName { get; set; }
         public string? StartUserId { get; set; }
@@ -32,22 +32,22 @@ public class WfCopyController : ControllerBase
         public string? Reason { get; set; }
     }
 
-    public class CopyTarget
+    public class CopytoTarget
     {
         public string? UserId { get; set; }
         public string? UserName { get; set; }
     }
 
-    public class CopyQuery
+    public class CopytoQuery
     {
         public string? UserId { get; set; }
         public int PageIndex { get; set; } = 1;
         public int PageSize { get; set; } = 20;
     }
 
-    /// <summary>POST api/WfCopy/Create</summary>
+    /// <summary>POST api/WfCopyto/Create</summary>
     [HttpPost]
-    public ResponseResult Create([FromBody] CopyCreateRequest req)
+    public ResponseResult Create([FromBody] CopytoCreateRequest req)
     {
         try
         {
@@ -58,16 +58,16 @@ public class WfCopyController : ControllerBase
             var now = DateTime.Now;
             var rows = req.Targets
                 .Where(t => !string.IsNullOrWhiteSpace(t.UserId))
-                .Select(t => new SailProcessCopyEntity
+                .Select(t => new SailProcessCopytoEntity
                 {
-                    ProcessCopyId = Guid.NewGuid().ToString("N"),
+                    ProcessCopytoId = Guid.NewGuid().ToString("N"),
                     UserId = t.UserId!,
                     UserName = t.UserName ?? t.UserId!,
                     StartUserId = req.StartUserId ?? "",
                     ProcessInstanceId = req.ProcessInstanceId ?? "",
                     ProcessId = req.ProcessId ?? "",
                     ProcessName = req.ProcessName ?? "",
-                    AppInstanceId = req.AppInstanceId ?? "",
+                    BizPK = req.BizPK ?? "",
                     TaskId = req.TaskId ?? "",
                     TaskName = req.TaskName ?? "",
                     CreatorId = creatorId,
@@ -75,7 +75,7 @@ public class WfCopyController : ControllerBase
                     Reason = req.Reason ?? "",
                     CreateTime = now
                 });
-            var n = _copy.CreateMany(rows);
+            var n = _copyto.CreateMany(rows);
             return ResponseResult.Success($"created {n}");
         }
         catch (Exception ex)
@@ -84,22 +84,22 @@ public class WfCopyController : ControllerBase
         }
     }
 
-    /// <summary>POST api/WfCopy/MyPage</summary>
+    /// <summary>POST api/WfCopyto/MyPage</summary>
     [HttpPost]
-    public ResponseResult<List<SailProcessCopyEntity>> MyPage([FromBody] CopyQuery query)
+    public ResponseResult<List<SailProcessCopytoEntity>> MyPage([FromBody] CopytoQuery query)
     {
         try
         {
-            query ??= new CopyQuery();
+            query ??= new CopytoQuery();
             query.UserId = SailAuthIdentity.RequireAccount(User);
-            var (items, total) = _copy.QueryMyPage(query.UserId, query.PageIndex, query.PageSize);
-            var result = ResponseResult<List<SailProcessCopyEntity>>.Success(items.ToList());
+            var (items, total) = _copyto.QueryMyPage(query.UserId, query.PageIndex, query.PageSize);
+            var result = ResponseResult<List<SailProcessCopytoEntity>>.Success(items.ToList());
             result.TotalRowsCount = total;
             return result;
         }
         catch (Exception ex)
         {
-            return ResponseResult<List<SailProcessCopyEntity>>.Error(ex.Message);
+            return ResponseResult<List<SailProcessCopytoEntity>>.Error(ex.Message);
         }
     }
 }

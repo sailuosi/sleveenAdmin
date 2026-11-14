@@ -26,7 +26,7 @@ public class WfBizFormController(SailFormBizHost bizHost) : ControllerBase
     public class BizFormQueryBody
     {
         public string? FormCode { get; set; }
-        public string? AppInstanceId { get; set; }
+        public string? BizPK { get; set; }
     }
 
     /// <summary>POST api/WfBizForm/Submit · OnSubmit + StartProcess</summary>
@@ -66,7 +66,7 @@ public class WfBizFormController(SailFormBizHost bizHost) : ControllerBase
 
             var ok = ResponseResult<object>.Success(ctx.Data ?? new
             {
-                ctx.AppInstanceId,
+                ctx.BizPK,
                 ctx.ProcessInstanceId,
                 ctx.FormCode
             }, "submitted");
@@ -119,7 +119,7 @@ public class WfBizFormController(SailFormBizHost bizHost) : ControllerBase
             var ctx = new SailFormBizContext
             {
                 FormCode = body.FormCode,
-                AppInstanceId = body.AppInstanceId ?? ""
+                BizPK = body.BizPK ?? ""
             };
             handler.OnQuery(ctx);
             if (!string.IsNullOrWhiteSpace(ctx.Error))
