@@ -1,31 +1,15 @@
-using System.Text.Json;
 using sailflow.engine.Hooks;
 
 namespace SleveenAdmin.Sailflow.Hooks;
 
 /// <summary>
-/// 开发核验用：流程 Hook 回调时把 <see cref="FlowHookContext"/> 打到控制台。
-/// 仅 Sync；勿用于生产噪声场景。
+/// 开发核验：流程 Hook 回调时用 TP 风格控制台输出。
+/// 不序列化 <see cref="FlowHookContext.Kit"/>。仅 Sync；勿用于生产噪声场景。
 /// </summary>
 public sealed class SailDebugConsoleHook : IFlowHook
 {
-    private static readonly JsonSerializerOptions JsonOpts = new()
-    {
-        WriteIndented = false,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
-
     public string Name => "sail.debug.console.hook";
 
-    public void Handle(FlowHookContext ctx)
-    {
-        try
-        {
-            Console.WriteLine($"[SailDebug.Hook] {JsonSerializer.Serialize(ctx, JsonOpts)}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[SailDebug.Hook] Event={ctx?.EventType} serialize-failed: {ex.Message}");
-        }
-    }
+    public void Handle(FlowHookContext ctx) =>
+        SailDevConsole.WriteHook("调试", ctx);
 }

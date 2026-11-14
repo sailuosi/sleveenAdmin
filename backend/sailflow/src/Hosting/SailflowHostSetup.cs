@@ -15,6 +15,7 @@ using sailflow.hub.Hosting;
 using sailflow.hub.Hosting;
 using SleveenAdmin.Foundation.Data;
 using SleveenAdmin.Sailflow.Assignee;
+using SleveenAdmin.Sailflow.BizMirror;
 using SleveenAdmin.Sailflow.FormBiz;
 using SleveenAdmin.Sailflow.Hooks;
 using SleveenAdmin.Sailflow.Integration.UnifiedReport;
@@ -53,9 +54,10 @@ public static class SailflowHostSetup
                 .UseBizAssignees()
                 .UseBizData() // sailflow.data：Table 日志 Sink + 归档扩展
                 .UseDataLifecycleFromConfig(configuration) // Sail:DataLifecycle → 保留窗/冷库/日志分表
-                .UseDebugConsoleHook() // 开发核验：流程/待办 Hook → 控制台
+                .UseDebugConsoleHook() // 开发核验：流程 Hook + 待办 Notifier → TP 风格控制台
                 .UseFlowEventFileLog() // BestEffort：流程事件 Channel → 串行写文件（可丢）
                 .UseFormBizLifecycleHook() // §H：FormCode → OnFinish（含请假 Status）
+                .UseBizMirrorHook() // stub: console-only; real port later
                 .UseNodePolicyTimeoutStamp() // §A：NodePolicy 超时 → OverdueDateTime
                 // 立刻归档默认不挂：需要时 .UseImmediateProcessArchiveHook()（sailflow.data）
                 // 旧 UseLeaveStatusHook 已由 FormBiz 生命周期 Hook 替代
