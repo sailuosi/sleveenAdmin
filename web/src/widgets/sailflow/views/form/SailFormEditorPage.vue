@@ -1,9 +1,9 @@
 <template>
-  <div class="sf-form-editor">
+  <div class="sf-form-editor" :class="{ 'sf-form-editor--embedded': embedded }">
     <header class="sf-form-editor__bar">
       <div class="sf-form-editor__title">{{ formId ? '编辑表单' : '新建表单' }}</div>
       <div class="sf-form-editor__actions">
-        <el-button @click="router.push('/sail/forms')">返回列表</el-button>
+        <el-button @click="handleBack">{{ embedded ? '关闭' : '返回列表' }}</el-button>
         <el-button type="primary" :loading="saving" @click="openSaveDialog">保存</el-button>
       </div>
     </header>
@@ -12,7 +12,7 @@
       <fc-designer ref="designer" class="sf-form-editor__designer" :config="designerConfig" />
     </div>
 
-    <el-dialog v-model="saveVisible" title="保存表单" width="520px" destroy-on-close>
+    <el-dialog v-model="saveVisible" title="保存表单" width="520px" destroy-on-close append-to-body>
       <el-form label-width="80px">
         <el-form-item label="表单名" required>
           <el-input v-model="meta.FormName" placeholder="请输入表单名" />
@@ -33,14 +33,29 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
+import { NextLoading } from '/@/utils/loading';
 import { getForm, saveForm } from '@sail/api/form';
 import { encodeConf, encodeFields, setConfAndFields } from '@sail/utils/formCreate';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
 
 defineOptions({ name: 'SailFormEditorPage' });
+
+const props = withDefaults(
+  defineProps<{
+    embedded?: boolean;
+    /** 嵌入弹窗时优先于 route.query */
+    editFormId?: string;
+  }>(),
+  {
+    embedded: false,
+    editFormId: undefined
+  }
+);
+
+const emit = defineEmits<{ close: []; saved: [] }>();
 
 const route = useRoute();
 const router = useRouter();
@@ -48,7 +63,14 @@ const designer = ref<any>(null);
 const err = ref('');
 const saving = ref(false);
 const saveVisible = ref(false);
-const formId = ref<string>(String(route.query.formId || ''));
+
+const embedded = computed(() => !!props.embedded);
+
+const formId = ref<string>(
+  embedded.value
+    ? String(props.editFormId || '')
+    : String(route.query.formId || '')
+);
 
 const meta = reactive({
   FormName: '',
@@ -68,6 +90,9 @@ const designerConfig = {
 
 async function load() {
   err.value = '';
+  if (embedded.value) {
+    formId.value = String(props.editFormId || '');
+  }
   if (!formId.value) {
     await nextTick();
     try {
@@ -133,6 +158,10 @@ async function submitSave() {
     if (newId) formId.value = newId;
     ElMessage.success('已保存');
     saveVisible.value = false;
+    emit('saved');
+    if (embedded.value) {
+      return;
+    }
     if (newId && !route.query.formId) {
       router.replace({ path: '/sail/form-editor', query: { formId: newId } });
     }
@@ -143,7 +172,18 @@ async function submitSave() {
   }
 }
 
-onMounted(load);
+function handleBack() {
+  if (embedded.value) {
+    emit('close');
+    return;
+  }
+  router.push('/sail/forms');
+}
+
+onMounted(() => {
+  if (!embedded.value) NextLoading.done();
+  void load();
+});
 </script>
 
 <style scoped>
@@ -152,6 +192,10 @@ onMounted(load);
   display: flex;
   flex-direction: column;
   background: var(--el-bg-color-page, #f5f7fa);
+}
+.sf-form-editor--embedded {
+  height: 100%;
+  min-height: 0;
 }
 .sf-form-editor__bar {
   display: flex;

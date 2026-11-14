@@ -33,9 +33,6 @@
                         </el-link>
                     </template>
                 </vccol>
-                <vccol field="FormId" caption="Id" width="80px" type="text">
-                    <template #default="cellp">{{ field(cellp.row, 'FormId', 'formId') }}</template>
-                </vccol>
                 <vccol field="FormName" caption="名称" min-width="160px" type="text">
                     <template #default="cellp">{{ field(cellp.row, 'FormName', 'formName') }}</template>
                 </vccol>
@@ -46,19 +43,20 @@
                     <template #default="cellp">{{ field(cellp.row, 'Version', 'version') || '1' }}</template>
                 </vccol>
             </vclist>
+            <SailFormEditDialog ref="editDialogRef" @saved="getlist" />
         </template>
     </flexpan>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import flexpan from "@/ui/common/flexpan.vue"
 import vclist from "@/ui/common/vclist/vclist.vue"
 import vccol from "@/ui/common/vclist/vccol.vue"
 import useListEditor from "@/uiext/gene/hook/listeditor.js"
 import { pickField } from '@sail/utils/sailResult'
+import SailFormEditDialog from '@sail/components/SailFormEditDialog.vue'
 
 const props = defineProps({
     page: null, api: null, bus: null, height: null,
@@ -68,7 +66,6 @@ const props = defineProps({
     pageSize: { type: Number, default: 30 },
 })
 
-const router = useRouter()
 const listHolder = useListEditor()
 const oidField = "FormId"
 const loading = ref(false)
@@ -77,6 +74,7 @@ const total = ref(0)
 const keyword = ref('')
 const queryParams = ref({ pageSize: props.pageSize, pageNum: 1 })
 const queryRowCondtions = ref([])
+const editDialogRef = ref(null)
 
 const listpara = computed(() => ({
     pageSize: queryParams.value.pageSize,
@@ -110,14 +108,11 @@ function reload() {
 }
 
 function onBtnAddClick() {
-    openEditor()
+    editDialogRef.value?.open()
 }
 
 function openEditor(id) {
-    router.push({
-        path: '/sail/form-editor',
-        query: id ? { formId: String(id) } : undefined
-    })
+    editDialogRef.value?.open(id ? { formId: String(id) } : undefined)
 }
 
 const removeRow = (row) => {

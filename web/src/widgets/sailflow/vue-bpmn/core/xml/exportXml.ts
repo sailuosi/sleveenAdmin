@@ -26,6 +26,7 @@ function childrenOf(
 function appendOpaqueBody(el: DiagramElement, level: number, bodyParts: string[]) {
   if (!el.opaqueInnerXml) return;
   // Strip children that we also emit from businessObject to avoid duplicates
+  // sanitize：清理历史 xmldom ns0 脏前缀
   let xml = el.opaqueInnerXml;
   if (el.businessObject.documentation != null && String(el.businessObject.documentation) !== '') {
     xml = xml

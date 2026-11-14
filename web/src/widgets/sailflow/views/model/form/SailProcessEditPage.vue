@@ -1,5 +1,5 @@
 <template>
-  <div class="sf-model-edit">
+  <div class="sf-model-edit" :class="{ 'sf-model-edit--embedded': embedded }">
     <header class="sf-model-edit__bar">
       <div class="sf-model-edit__left">
         <el-button text @click="handleBack">← 返回</el-button>
@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { getProcessEdit, saveProcessEdit } from '@sail/api/processEdit';
@@ -67,6 +67,27 @@ import {
 
 defineOptions({ name: 'SailProcessEditPage' });
 
+const props = withDefaults(
+  defineProps<{
+    embedded?: boolean;
+    /** 嵌入弹窗时优先于 route.query */
+    editType?: 'create' | 'update' | 'copy';
+    editProcessId?: string;
+    editVersion?: string;
+  }>(),
+  {
+    embedded: false,
+    editType: undefined,
+    editProcessId: undefined,
+    editVersion: undefined
+  }
+);
+
+const emit = defineEmits<{
+  close: [];
+  saved: [];
+}>();
+
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
@@ -82,6 +103,8 @@ const basicInfoRef = ref<InstanceType<typeof BasicInfo> | null>(null);
 const formDesignRef = ref<InstanceType<typeof FormDesign> | null>(null);
 const processDesignRef = ref<InstanceType<typeof ProcessDesign> | null>(null);
 const extraSettingsRef = ref<InstanceType<typeof ExtraSettings> | null>(null);
+
+const embedded = computed(() => !!props.embedded);
 
 const steps = [
   { title: '基本信息' },
@@ -142,17 +165,37 @@ function applyBundle(bundle: Record<string, unknown>) {
   formData.value = model;
 }
 
+function resolveEditArgs() {
+  // 嵌入模式只信 props，避免落到列表页 route（无 query）而误判为 create
+  if (props.embedded) {
+    return {
+      type: (props.editType || 'update') as 'create' | 'update' | 'copy',
+      processId: String(props.editProcessId || ''),
+      version: String(props.editVersion || '1'),
+      category: ''
+    };
+  }
+  return {
+    type: String(route.query.type || 'create') as 'create' | 'update' | 'copy',
+    processId: route.query.processId ? String(route.query.processId) : '',
+    version: route.query.version ? String(route.query.version) : '1',
+    category: route.query.category ? String(route.query.category) : ''
+  };
+}
+
 async function init() {
   loading.value = true;
   try {
     await loadLookups();
-    const type = String(route.query.type || 'create') as 'create' | 'update' | 'copy';
+    const { type, processId, version, category } = resolveEditArgs();
     actionType.value = type;
-    const processId = route.query.processId ? String(route.query.processId) : '';
-    const version = route.query.version ? String(route.query.version) : '1';
-    const category = route.query.category ? String(route.query.category) : '';
 
     if (type === 'create' || !processId) {
+      if (props.embedded && type !== 'create') {
+        ElMessage.error('缺少 processId，无法加载流程');
+        emit('close');
+        return;
+      }
       pageTitle.value = '创建流程';
       formData.value = createEmptyProcessEditForm();
       if (category) formData.value.category = category;
@@ -281,8 +324,9 @@ async function handleSave() {
     actionType.value = 'update';
     pageTitle.value = '修改流程';
     ElMessage.success('保存成功');
-    // 同步 URL，便于刷新
-    if (formData.value.processId) {
+    emit('saved');
+    // 独立页同步 URL，便于刷新；弹窗内不改路由
+    if (!embedded.value && formData.value.processId) {
       router.replace({
         path: '/sail/process-edit',
         query: {
@@ -324,7 +368,12 @@ async function handleDeploy() {
       return;
     }
     ElMessage.success('发布成功');
-    router.push('/sail/processes');
+    emit('saved');
+    if (embedded.value) {
+      emit('close');
+    } else {
+      router.push('/sail/processes');
+    }
   } catch (e: unknown) {
     ElMessage.warning(e instanceof Error ? e.message : '发布失败');
   } finally {
@@ -354,6 +403,10 @@ async function handleStepClick(index: number) {
 }
 
 function handleBack() {
+  if (embedded.value) {
+    emit('close');
+    return;
+  }
   router.push('/sail/processes');
 }
 
@@ -366,6 +419,10 @@ onMounted(init);
   background: #f5f7fa;
   display: flex;
   flex-direction: column;
+}
+.sf-model-edit--embedded {
+  min-height: 0;
+  height: 100%;
 }
 .sf-model-edit__bar {
   height: 56px;
