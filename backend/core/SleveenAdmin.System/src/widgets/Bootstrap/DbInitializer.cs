@@ -10,7 +10,9 @@ using SleveenAdmin.System.Dict.DBLayer;
 using SleveenAdmin.System.File.DBLayer;
 using SleveenAdmin.System.Menu.DBLayer;
 using SleveenAdmin.System.Notice.DBLayer;
+using SleveenAdmin.System.Hr.DBLayer;
 using SleveenAdmin.System.Org.DBLayer;
+using SleveenAdmin.System.SysPost.DBLayer;
 using SleveenAdmin.System.Tenant.DBLayer;
 using SleveenAdmin.System.User.DBLayer;
 using mooSQL.data;
@@ -41,7 +43,13 @@ public sealed class DbInitializer : IDbInitializer
         typeof(AuthVisitorItem),
         typeof(AuthWordBag),
         typeof(AuthWordItem),
-        typeof(AuthWordDefine)
+        typeof(AuthWordDefine),
+        typeof(HROrganize),
+        typeof(SysPostEntity),
+        typeof(SysPostType),
+        typeof(SysPostScope),
+        typeof(SysPostTypeRole),
+        typeof(SysPostTypeChild)
     ];
 
     private readonly DBInsCash _cash;
@@ -57,6 +65,7 @@ public sealed class DbInitializer : IDbInitializer
         db.useDDL().doInitTable(new DMLOption(), EntityTypes);
         SeedIfEmpty(db);
         EnsureOrgAndUsersFromCatalog(db);
+        EnsureHrOrganizeFromCatalog(db);
         EnsureMenusFromCatalog(db);
         EnsureDefaultTenant(db);
         return Task.CompletedTask;
@@ -135,6 +144,44 @@ public sealed class DbInitializer : IDbInitializer
                 now));
             dirty = true;
         }
+
+        if (dirty)
+            work.Commit();
+    }
+
+    /// <summary>幂等补种行政组织 HR_Organize（与演示公司/部门同 Id，供岗位 OrgSrc=1）。</summary>
+    private static void EnsureHrOrganizeFromCatalog(DBInstance db)
+    {
+        var repo = db.useRepo<HROrganize>();
+        var now = DateTime.Now;
+        var work = db.useWork();
+        var dirty = false;
+
+        void Upsert(Guid id, Guid? parent, string name, string code, string classCode, int idx, int lv, bool leaf)
+        {
+            if (repo.Exist(id)) return;
+            work.Insert(new HROrganize
+            {
+                HR_OrganizeOID = id,
+                SYS_Created = now,
+                SYS_Deleted = false,
+                O_OrgNo = code,
+                O_OrgName = name,
+                O_OrgCode = code,
+                O_ClassCode = classCode,
+                O_Active = true,
+                O_Idx = idx,
+                O_Lv = lv,
+                O_Leaf = leaf,
+                HR_Parent_FK = parent
+            });
+            dirty = true;
+        }
+
+        Upsert(SeedIds.RootOrgId, null, OrgUserSeedCatalog.CompanyName, OrgUserSeedCatalog.CompanyCode,
+            OrgUserSeedCatalog.CompanyClassCode, 1, 1, false);
+        Upsert(SeedIds.OrgDevDeptId, SeedIds.RootOrgId, "XX开发部", "XX_DEV", "001001", 1, 2, true);
+        Upsert(SeedIds.OrgCsDeptId, SeedIds.RootOrgId, "XX客服部", "XX_CS", "001002", 2, 2, true);
 
         if (dirty)
             work.Commit();

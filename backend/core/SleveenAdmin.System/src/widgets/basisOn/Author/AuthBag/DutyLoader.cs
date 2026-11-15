@@ -232,6 +232,23 @@ public sealed class DutyLoader : AuthDialect
             .ToList();
         foreach (var r in defaults) res.AddNotRepeat(r);
 
+        // 岗位授权：Sys_PostScope → Sys_PostTypeRole → AuthDutyItem
+        if (user.UserId != Guid.Empty)
+        {
+            var postDuties = kit.clear()
+                .select("r.Pr_DutyItemId")
+                .distinct()
+                .from("Sys_PostScope s")
+                .join("join Sys_PostTypeRole r on s.Ps_PostTypeId=r.Pr_PostTypeId")
+                .join("join Sys_Post p on s.Ps_PostId=p.P_Id")
+                .whereGuid("s.Ps_UserId", user.UserId)
+                .whereIsOrNull("p.P_Deleted", 0)
+                .whereIsOrNull("p.P_IsOn", 1)
+                .queryFirstField<string>()
+                .ToList();
+            res.AddNotRepeat(postDuties);
+        }
+
         var visitBags = loadHisVisitorBag(user.Account, true);
         if (visitBags.Count > 0)
         {

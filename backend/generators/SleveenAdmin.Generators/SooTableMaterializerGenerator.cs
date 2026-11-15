@@ -562,8 +562,11 @@ namespace SleveenAdmin.Generators
                     sb.AppendLine($"                col.Scale = {col.Scale};");
                 if (col.HasIsPrimaryKey)
                     sb.AppendLine($"                col.IsPrimarykey = {(col.IsPrimaryKey ? "true" : "false")};");
-                if (col.HasCanBeNull)
-                    sb.AppendLine($"                col.IsNullable = {(col.CanBeNull ? "true" : "false")};");
+                // Align with SooColumnAttribute.CanBeNull (_canBeNull ?? true) and SooEntityAnalyser PK override.
+                var isNullable = col.HasCanBeNull ? col.CanBeNull : true;
+                if (col.HasIsPrimaryKey && col.IsPrimaryKey)
+                    isNullable = false;
+                sb.AppendLine($"                col.IsNullable = {(isNullable ? "true" : "false")};");
                 if (col.HasDataType && col.DataType != 0)
                     sb.AppendLine($"                col.DataType = (DataFam){col.DataType};");
                 if (!string.IsNullOrWhiteSpace(col.Caption))
