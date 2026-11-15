@@ -8,10 +8,20 @@ export type SailFormPayload = {
   Conf?: string;
   FieldsJson?: string;
   Description?: string;
+  AuthType?: string;
+  AuthCode?: string;
+  AuthId?: string;
+  AuthLevel?: number | null;
+  Creator?: string;
+  CreatorName?: string;
 };
 
-export function getFormList() {
-  return request({ url: '/api/WfForm/GetList', method: 'get' });
+export function getFormList(unitId?: string | null) {
+  return request({
+    url: '/api/WfForm/GetList',
+    method: 'get',
+    params: unitId ? { unitId } : undefined
+  });
 }
 
 export function getForm(id: string | number) {

@@ -6,11 +6,29 @@ export type CategoryRow = {
   Name?: string;
   SortOrder?: number;
   Remark?: string;
+  AuthType?: string;
+  AuthCode?: string;
+  AuthId?: string;
+  AuthLevel?: number | null;
+  Creator?: string;
+  CreatorName?: string;
   CreatedAt?: string;
 };
 
-export function listCategories() {
-  return request({ url: '/api/WfCategory/List', method: 'get' });
+export function listCategories(unitId?: string | null) {
+  return request({
+    url: '/api/WfCategory/List',
+    method: 'get',
+    params: unitId ? { unitId } : undefined
+  });
+}
+
+export function getNextSort(authType?: string, unitId?: string) {
+  return request({
+    url: '/api/WfCategory/NextSort',
+    method: 'get',
+    params: { authType, unitId }
+  });
 }
 
 export function saveCategory(data: CategoryRow) {

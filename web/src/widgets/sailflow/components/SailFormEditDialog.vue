@@ -14,6 +14,8 @@
       :key="pageKey"
       embedded
       :edit-form-id="editFormId"
+      :initial-auth-type="initialAuthType"
+      :initial-auth-id="initialAuthId"
       @close="visible = false"
       @saved="emit('saved')"
     />
@@ -32,10 +34,14 @@ const visible = ref(false);
 const ready = ref(false);
 const editFormId = ref('');
 const pageKey = ref('');
+const initialAuthType = ref('');
+const initialAuthId = ref('');
 
-async function open(opts?: { formId?: string }) {
+async function open(opts?: { formId?: string; authType?: string; authId?: string }) {
   const id = String(opts?.formId || '').trim();
   editFormId.value = id;
+  initialAuthType.value = String(opts?.authType || '');
+  initialAuthId.value = String(opts?.authId || '');
   pageKey.value = `${id || 'new'}@${Date.now()}`;
   visible.value = true;
   await nextTick();
@@ -46,6 +52,8 @@ function onClosed() {
   ready.value = false;
   editFormId.value = '';
   pageKey.value = '';
+  initialAuthType.value = '';
+  initialAuthId.value = '';
 }
 
 defineExpose({ open });

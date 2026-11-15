@@ -13,17 +13,20 @@ namespace SleveenAdmin.Sailflow.Controller;
 public class WfUnitScopeController : ControllerBase
 {
     private readonly SailUnitAccess _access;
+    private readonly SailOrgTreeService _orgTree;
     private readonly SailCopyToUnitService _copy;
     private readonly SailAssigneeConfigService _assignee;
     private readonly SailReleaseService _release;
 
     public WfUnitScopeController(
         SailUnitAccess access,
+        SailOrgTreeService orgTree,
         SailCopyToUnitService copy,
         SailAssigneeConfigService assignee,
         SailReleaseService release)
     {
         _access = access;
+        _orgTree = orgTree;
         _copy = copy;
         _assignee = assignee;
         _release = release;
@@ -37,10 +40,13 @@ public class WfUnitScopeController : ControllerBase
         {
             var platform = _access.IsPlatformAdmin(User);
             var units = _access.GetManagedUnitIds(User);
+            var orgs = _orgTree.SelectableOrgs(User);
             return ResponseResult<object>.Success(new
             {
                 isPlatformAdmin = platform,
                 managedUnitIds = units,
+                orgs,
+                units = orgs.Select(o => new { id = o.Id, name = o.Name, label = o.Name, parentId = o.ParentId, orgNo = o.OrgNo }),
                 unitAdminDuty = SailAuthScope.UnitAdminDutyCode,
                 availableAssigneeStrategies = SailAssigneeConfigService.AvailableStrategies
             });

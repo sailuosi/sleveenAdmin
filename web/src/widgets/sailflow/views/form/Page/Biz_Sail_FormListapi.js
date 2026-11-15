@@ -5,13 +5,14 @@ export function loadPageInit() {
   return Promise.resolve({});
 }
 
-/** 全量拉取后按 keyword + pageNum/pageSize 前端切片 */
+/** 全量拉取后按 keyword + pageNum/pageSize 前端切片；支持 unitId */
 export function querySailFormlist(para) {
   const pageNum = Number(para?.pageNum || para?.page || 1);
   const pageSize = Number(para?.pageSize || 30);
   const keyword = String(para?.keyword || '').trim().toLowerCase();
+  const unitId = para?.unitId || null;
 
-  return getFormList().then((data) => {
+  return getFormList(unitId).then((data) => {
     if ((data?.Status ?? data?.status) === -1) {
       const r = unpackSailResult(data);
       throw new Error(r.message || '加载失败');

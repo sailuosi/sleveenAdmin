@@ -12,8 +12,15 @@
                         @clear="reload"
                     />
                     <el-button @click="reload" class="toolbar-action-btn">刷新</el-button>
-                    <el-button @click="onBtnAddClick" class="toolbar-action-btn toolbar-btn-add-yellow">
-                        <SvgIcon name="fa fa-plus-circle" /> 新建表单
+                    <el-button
+                        v-if="isPlatformAdmin"
+                        @click="onBtnAddClick('PUBLIC')"
+                        class="toolbar-action-btn toolbar-btn-add-yellow"
+                    >
+                        <SvgIcon name="fa fa-plus-circle" /> 新建公共表单
+                    </el-button>
+                    <el-button @click="onBtnAddClick('UNIT')" class="toolbar-action-btn toolbar-btn-add-yellow">
+                        <SvgIcon name="fa fa-plus-circle" /> 新建单位表单
                     </el-button>
                 </div>
             </teleport>
@@ -33,11 +40,24 @@
                         </el-link>
                     </template>
                 </vccol>
+                <vccol field="icon" caption="ICON" width="70px" type="text" align="center" headerAlign="center">
+                    <template #default>
+                        <span class="sf-form-icon">📄</span>
+                    </template>
+                </vccol>
                 <vccol field="FormName" caption="名称" min-width="160px" type="text">
                     <template #default="cellp">{{ field(cellp.row, 'FormName', 'formName') }}</template>
                 </vccol>
                 <vccol field="FormCode" caption="编码" min-width="120px" type="text">
                     <template #default="cellp">{{ field(cellp.row, 'FormCode', 'formCode') }}</template>
+                </vccol>
+                <vccol field="AuthType" caption="归属" width="100px" type="text" align="center" headerAlign="center">
+                    <template #default="cellp">{{ field(cellp.row, 'AuthType', 'authType') || '待分配' }}</template>
+                </vccol>
+                <vccol field="CreatorName" caption="创建人" width="110px" type="text">
+                    <template #default="cellp">
+                        {{ field(cellp.row, 'CreatorName', 'creatorName') || field(cellp.row, 'Creator', 'creator') || '—' }}
+                    </template>
                 </vccol>
                 <vccol field="Version" caption="版本" width="80px" type="text">
                     <template #default="cellp">{{ field(cellp.row, 'Version', 'version') || '1' }}</template>
@@ -49,7 +69,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import flexpan from "@/ui/common/flexpan.vue"
 import vclist from "@/ui/common/vclist/vclist.vue"
@@ -64,6 +84,8 @@ const props = defineProps({
     autoLoad: { type: Boolean, default: true },
     position: null, flex: { type: Boolean, default: false },
     pageSize: { type: Number, default: 30 },
+    unitId: { type: String, default: null },
+    isPlatformAdmin: { type: Boolean, default: false },
 })
 
 const listHolder = useListEditor()
@@ -75,12 +97,14 @@ const keyword = ref('')
 const queryParams = ref({ pageSize: props.pageSize, pageNum: 1 })
 const queryRowCondtions = ref([])
 const editDialogRef = ref(null)
+const createDefaults = ref({ authType: '', authId: '' })
 
 const listpara = computed(() => ({
     pageSize: queryParams.value.pageSize,
     pageNum: queryParams.value.pageNum,
     page: queryParams.value.pageNum,
     keyword: keyword.value,
+    unitId: props.unitId || undefined,
 }))
 
 function field(row, ...keys) {
@@ -107,8 +131,15 @@ function reload() {
     getlist()
 }
 
-function onBtnAddClick() {
-    editDialogRef.value?.open()
+function onBtnAddClick(kind) {
+    createDefaults.value = {
+        authType: kind || 'PUBLIC',
+        authId: kind === 'UNIT' ? (props.unitId || '') : ''
+    }
+    editDialogRef.value?.open({
+        authType: createDefaults.value.authType,
+        authId: createDefaults.value.authId
+    })
 }
 
 function openEditor(id) {
@@ -135,6 +166,8 @@ const removeRow = (row) => {
 
 function setFocusRow() {}
 
+watch(() => props.unitId, () => reload())
+
 onMounted(() => {
     if (props.autoLoad) getlist()
 })
@@ -153,4 +186,5 @@ onMounted(() => {
 .toolbar-btn-add-yellow {
     --el-button-text-color: #fff; --el-button-bg-color: #FEB75B; --el-button-border-color: #FEB75B;
 }
+.sf-form-icon { font-size: 16px; }
 </style>

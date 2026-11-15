@@ -37,6 +37,19 @@ public class SailProcessCategoryEntity
     [SooColumn(Name = "auth_level")]
     public int? AuthLevel { get; set; }
 
+    [SooColumn(Name = "creator", Length = 128)]
+    public string? Creator { get; set; }
+
+    [SooColumn(Name = "creator_name", Length = 128)]
+    public string? CreatorName { get; set; }
+
+    /// <summary>0/空=正常，1=已逻辑删除。</summary>
+    [SooColumn(Name = "deleted")]
+    public int Deleted { get; set; }
+
+    [SooColumn(Name = "delete_time")]
+    public DateTime? DeleteTime { get; set; }
+
     [SooColumn(Name = "created_at")]
     public DateTime? CreatedAt { get; set; }
 }

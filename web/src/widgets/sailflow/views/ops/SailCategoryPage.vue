@@ -3,69 +3,61 @@
     <template #toolbar>
       <div class="sf-formcard-toolbar">
         <el-button :loading="loading" @click="refresh">刷新</el-button>
-        <el-button type="primary" @click="openCreate">新建分类</el-button>
+        <el-button v-if="isPlatformAdmin" type="primary" @click="openCreate('PUBLIC')">新建公共分类</el-button>
+        <el-button type="primary" plain @click="openCreate('UNIT')">新建单位分类</el-button>
         <el-button @click="router.push('/sail/processes')">流程定义</el-button>
-        <el-button @click="router.push('/sail/report')">报表</el-button>
       </div>
     </template>
-    <main class="sf-cat-page__main">
-      <el-alert
-        title="分类目录存 sf_process_category；绑定写入流程定义 AppType（不改引擎表结构）。"
-        type="info"
-        show-icon
-        :closable="false"
-        class="sf-cat-page__alert"
-      />
-      <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-cat-page__alert" />
-      <el-row :gutter="16">
-        <el-col :md="10" :xs="24">
-          <el-table v-loading="loading" :data="rows" stripe border empty-text="暂无分类" height="420">
-            <el-table-column prop="Code" label="编码" width="120" />
-            <el-table-column prop="Name" label="名称" min-width="120" />
-            <el-table-column prop="SortOrder" label="排序" width="70" />
-            <el-table-column label="流程数" width="80">
-              <template #default="{ row }">{{ counts[row.Code || ''] ?? 0 }}</template>
-            </el-table-column>
-            <el-table-column label="操作" width="140" fixed="right">
-              <template #default="{ row }">
-                <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
-                <el-button link type="danger" @click="onDelete(row)">删除</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
-        </el-col>
-        <el-col :md="14" :xs="24">
-          <h3 class="sf-cat-page__h">绑定流程到分类</h3>
-          <el-form label-width="90px" class="sf-cat-page__bind">
-            <el-form-item label="流程">
-              <el-select v-model="bind.ProcessId" filterable style="width: 100%" @change="onPickProcess">
-                <el-option
-                  v-for="p in processes"
-                  :key="String(field(p, 'ProcessId', 'processId'))"
-                  :label="`${field(p, 'ProcessName', 'processName')} · ${field(p, 'AppType', 'appType') || '未分类'}`"
-                  :value="String(field(p, 'ProcessId', 'processId'))"
-                />
-              </el-select>
-            </el-form-item>
-            <el-form-item label="分类">
-              <el-select v-model="bind.CategoryCode" clearable placeholder="清空=未分类" style="width: 100%">
-                <el-option v-for="c in rows" :key="c.Code" :label="`${c.Name} (${c.Code})`" :value="c.Code!" />
-              </el-select>
-            </el-form-item>
-            <el-form-item>
-              <el-button type="primary" :loading="binding" :disabled="!bind.ProcessId" @click="onBind">
-                保存绑定
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-col>
-      </el-row>
+    <main class="sf-cat-page__layout">
+      <OrgTreeSidePane storage-key="category">
+        <SailOrgFilterTree :orgs="orgFlat" @select="onUnitSelect" />
+      </OrgTreeSidePane>
+      <div class="sf-cat-page__main">
+        <el-alert
+          title="分类目录存 sf_process_category；绑定写入流程定义 AppType。删除为逻辑删除。"
+          type="info"
+          show-icon
+          :closable="false"
+          class="sf-cat-page__alert"
+        />
+        <el-alert v-if="err" :title="err" type="error" show-icon :closable="false" class="sf-cat-page__alert" />
+        <el-table v-loading="loading" :data="rows" stripe border empty-text="暂无分类" height="100%" class="sf-cat-page__table">
+          <el-table-column type="index" label="序号" width="60" />
+          <el-table-column prop="Code" label="编码" width="160" />
+          <el-table-column prop="Name" label="名称" min-width="120" />
+          <el-table-column label="归属" width="100">
+            <template #default="{ row }">{{ row.AuthType || '待分配' }}</template>
+          </el-table-column>
+          <el-table-column prop="SortOrder" label="排序" width="70" />
+          <el-table-column label="创建人" width="110">
+            <template #default="{ row }">{{ row.CreatorName || row.Creator || '—' }}</template>
+          </el-table-column>
+          <el-table-column label="流程数" width="80">
+            <template #default="{ row }">{{ counts[row.Code || ''] ?? 0 }}</template>
+          </el-table-column>
+          <el-table-column label="操作" width="140" fixed="right">
+            <template #default="{ row }">
+              <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
+              <el-button link type="danger" @click="onDelete(row)">删除</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </main>
 
-    <el-dialog v-model="dlg" :title="draft.Id ? '编辑分类' : '新建分类'" width="420px" destroy-on-close>
-      <el-form label-width="70px">
-        <el-form-item label="编码" required>
-          <el-input v-model="draft.Code" :disabled="!!draft.Id" />
+    <el-dialog v-model="dlg" :title="draft.Id ? '编辑分类' : '新建分类'" width="480px" destroy-on-close>
+      <el-form label-width="90px">
+        <ResourceScopeFields
+          v-model:auth-type="draft.AuthType"
+          v-model:auth-id="draft.AuthId"
+          v-model:auth-code="draft.AuthCode"
+          :existing="!!draft.Id"
+          :fixed-scope-type="fixedScope"
+          :unit-context="unitContext"
+          resource-label="分类"
+        />
+        <el-form-item label="编码">
+          <el-input v-model="draft.Code" :disabled="!!draft.Id" placeholder="空则按 O_OrgNo 规范自动生成" />
         </el-form-item>
         <el-form-item label="名称" required>
           <el-input v-model="draft.Name" />
@@ -86,19 +78,22 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import formcard from '@/ui/panels/formcard.vue';
+import OrgTreeSidePane from '@sail/components/OrgTreeSidePane.vue';
+import SailOrgFilterTree from '@sail/components/SailOrgFilterTree.vue';
+import ResourceScopeFields from '@sail/components/ResourceScopeFields.vue';
 import {
-  bindProcessCategory,
-  countByCategory,
   deleteCategory,
+  getNextSort,
   listCategories,
+  countByCategory,
   saveCategory,
   type CategoryRow
 } from '@sail/api/category';
-import { getProcessListSimple } from '@sail/api/process';
+import { getUnitScopeContext } from '@sail/api/unitScope';
 import { pickField, unpackSailResult } from '@sail/utils/sailResult';
 
 defineOptions({ name: 'SailCategoryPage' });
@@ -106,20 +101,35 @@ defineOptions({ name: 'SailCategoryPage' });
 const router = useRouter();
 const loading = ref(false);
 const saving = ref(false);
-const binding = ref(false);
 const err = ref('');
 const rows = ref<CategoryRow[]>([]);
 const counts = ref<Record<string, number>>({});
-const processes = ref<Record<string, unknown>[]>([]);
 const dlg = ref(false);
-const draft = reactive<CategoryRow>({ Code: '', Name: '', SortOrder: 0, Remark: '' });
-const bind = reactive({ ProcessId: '', Version: '1', CategoryCode: '' as string | undefined });
+const filterUnitId = ref<string | null>(null);
+const unitContext = ref<any>(null);
+const fixedScope = ref<'PUBLIC' | 'UNIT' | undefined>(undefined);
+const draft = reactive<CategoryRow>({
+  Code: '',
+  Name: '',
+  SortOrder: 0,
+  Remark: '',
+  AuthType: 'PUBLIC',
+  AuthId: '',
+  AuthCode: ''
+});
 
-function field(row: Record<string, unknown>, ...keys: string[]) {
-  return pickField(row, ...keys) ?? '';
-}
+const isPlatformAdmin = computed(() => !!unitContext.value?.isPlatformAdmin);
 
-/** API 多为 camelCase；表格/表单统一成 PascalCase */
+const orgFlat = computed(() => {
+  const orgs = unitContext.value?.orgs || unitContext.value?.units || [];
+  return (orgs || []).map((o: any) => ({
+    id: String(o.id ?? o.Id ?? ''),
+    parentId: o.parentId ?? o.ParentId ?? null,
+    name: o.name ?? o.Name ?? o.label,
+    label: o.label ?? o.name ?? o.Name
+  })).filter((o: any) => o.id);
+});
+
 function normalizeCategory(raw: Record<string, unknown> | CategoryRow): CategoryRow {
   const r = raw as Record<string, unknown>;
   return {
@@ -128,18 +138,32 @@ function normalizeCategory(raw: Record<string, unknown> | CategoryRow): Category
     Name: String(pickField(r, 'Name', 'name') ?? ''),
     SortOrder: Number(pickField(r, 'SortOrder', 'sortOrder') ?? 0),
     Remark: String(pickField(r, 'Remark', 'remark') ?? ''),
+    AuthType: String(pickField(r, 'AuthType', 'authType') ?? ''),
+    AuthCode: String(pickField(r, 'AuthCode', 'authCode') ?? ''),
+    AuthId: String(pickField(r, 'AuthId', 'authId') ?? ''),
+    Creator: String(pickField(r, 'Creator', 'creator') ?? ''),
+    CreatorName: String(pickField(r, 'CreatorName', 'creatorName') ?? ''),
     CreatedAt: pickField<string>(r, 'CreatedAt', 'createdAt')
   };
+}
+
+async function loadContext() {
+  try {
+    const data = await getUnitScopeContext();
+    const r = unpackSailResult(data);
+    unitContext.value = r.entity || data?.Entity || data?.entity || null;
+  } catch {
+    unitContext.value = { isPlatformAdmin: false, orgs: [] };
+  }
 }
 
 async function refresh() {
   loading.value = true;
   err.value = '';
   try {
-    const [catData, cntData, procData] = await Promise.all([
-      listCategories(),
-      countByCategory(),
-      getProcessListSimple()
+    const [catData, cntData] = await Promise.all([
+      listCategories(filterUnitId.value),
+      countByCategory()
     ]);
     if ((catData?.Status ?? catData?.status) === -1) {
       err.value = catData?.Message || '分类加载失败';
@@ -147,12 +171,10 @@ async function refresh() {
     } else {
       const r = unpackSailResult<CategoryRow[]>(catData);
       const list = Array.isArray(r.entity) ? r.entity : [];
-      rows.value = list.map(x => normalizeCategory(x as CategoryRow));
+      rows.value = list.map((x) => normalizeCategory(x as CategoryRow));
     }
     const cnt = unpackSailResult<Record<string, number>>(cntData);
     counts.value = cnt.entity || {};
-    const list = procData?.Entity ?? procData?.entity ?? procData;
-    processes.value = Array.isArray(list) ? list : [];
   } catch (e: unknown) {
     err.value = e instanceof Error ? e.message : String(e);
   } finally {
@@ -160,19 +182,49 @@ async function refresh() {
   }
 }
 
-function openCreate() {
-  Object.assign(draft, { Id: undefined, Code: '', Name: '', SortOrder: rows.value.length, Remark: '' });
+function onUnitSelect(unitId: string | null) {
+  filterUnitId.value = unitId;
+  void refresh();
+}
+
+async function openCreate(kind: 'PUBLIC' | 'UNIT') {
+  fixedScope.value = kind;
+  const authType = kind;
+  const authId = kind === 'UNIT' ? filterUnitId.value || '' : '';
+  let sort = 10;
+  try {
+    const data = await getNextSort(authType, authId || undefined);
+    const r = unpackSailResult<{ sortOrder?: number }>(data);
+    sort = Number(r.entity?.sortOrder ?? 10);
+  } catch {
+    /* ignore */
+  }
+  Object.assign(draft, {
+    Id: undefined,
+    Code: '',
+    Name: '',
+    SortOrder: sort,
+    Remark: '',
+    AuthType: authType,
+    AuthId: authId,
+    AuthCode: ''
+  });
   dlg.value = true;
 }
 
 function openEdit(row: CategoryRow) {
+  fixedScope.value = undefined;
   Object.assign(draft, { ...row });
   dlg.value = true;
 }
 
 async function onSave() {
-  if (!draft.Code?.trim() || !draft.Name?.trim()) {
-    ElMessage.warning('请填写编码与名称');
+  if (!draft.Name?.trim()) {
+    ElMessage.warning('请填写名称');
+    return;
+  }
+  if (draft.AuthType === 'UNIT' && !draft.AuthId) {
+    ElMessage.warning('请选择所属单位');
     return;
   }
   saving.value = true;
@@ -211,34 +263,10 @@ async function onDelete(row: CategoryRow) {
   }
 }
 
-function onPickProcess(processId: string) {
-  const p = processes.value.find(x => String(field(x, 'ProcessId', 'processId')) === processId);
-  bind.Version = String(field(p || {}, 'Version', 'version') || '1');
-  bind.CategoryCode = String(field(p || {}, 'AppType', 'appType') || '') || undefined;
-}
-
-async function onBind() {
-  binding.value = true;
-  try {
-    const data = await bindProcessCategory({
-      ProcessId: bind.ProcessId,
-      Version: bind.Version,
-      CategoryCode: bind.CategoryCode || ''
-    });
-    if ((data?.Status ?? data?.status) === -1) {
-      ElMessage.error(data?.Message || '绑定失败');
-      return;
-    }
-    ElMessage.success('已绑定');
-    refresh();
-  } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : String(e));
-  } finally {
-    binding.value = false;
-  }
-}
-
-onMounted(refresh);
+onMounted(async () => {
+  await loadContext();
+  await refresh();
+});
 </script>
 
 <style scoped>
@@ -248,23 +276,28 @@ onMounted(refresh);
   flex-wrap: wrap;
   align-items: center;
 }
-.sf-cat-page__main {
+.sf-cat-page__layout {
+  display: flex;
+  flex-direction: row;
   height: 100%;
-  padding: 16px;
-  overflow: auto;
+  min-height: 0;
+  padding: 12px;
+  gap: 8px;
   box-sizing: border-box;
 }
+.sf-cat-page__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
 .sf-cat-page__alert {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  flex: 0 0 auto;
 }
-.sf-cat-page__h {
-  margin: 0 0 12px;
-  font-size: 14px;
-}
-.sf-cat-page__bind {
-  background: var(--el-bg-color, #fff);
-  border: 1px solid var(--el-border-color-lighter);
-  border-radius: 6px;
-  padding: 16px 16px 4px;
+.sf-cat-page__table {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 </style>

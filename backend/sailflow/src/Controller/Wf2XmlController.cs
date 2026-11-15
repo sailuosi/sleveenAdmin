@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using mooSQL.data;
 using sailflow.biz.query;
+using sailflow.data;
 using sailflow.engine.Entity;
 using sailflow.engine.Client;
 using sailflow.engine.Service;
-using sailflow.engine.Xpdl;
 using sailflow.engine.Xpdl;
 using sailflow.hub.Form;
 using sailflow.hub.Resource;
@@ -14,6 +15,7 @@ using SleveenAdmin.Sailflow.Assignee;
 using SleveenAdmin.Sailflow.Dto;
 using SleveenAdmin.Sailflow.Operations;
 using SleveenAdmin.Sailflow.Service;
+using SleveenAdmin.Sailflow.UnitScope;
 using SleveenAdmin.Sailflow.Utility;
 
 namespace SleveenAdmin.Sailflow.Controller;
@@ -223,13 +225,13 @@ public partial class Wf2XmlController : ControllerBase
         }
     }
 
-    /// <summary>GET api/Wf2Xml/DeleteProcessById/{id}</summary>
+    /// <summary>GET api/Wf2Xml/DeleteProcessById/{id}（逻辑删除）</summary>
     [HttpGet]
     public ResponseResult DeleteProcessById(string id)
     {
         try
         {
-            _workflowService.DeleteProcess(id);
+            SoftDeleteProcessByDefId(id);
             return ResponseResult.Success("DeleteProcessById ok");
         }
         catch (Exception ex)
@@ -238,7 +240,7 @@ public partial class Wf2XmlController : ControllerBase
         }
     }
 
-    /// <summary>POST api/Wf2Xml/DeleteProcess · { ProcessId, Version }</summary>
+    /// <summary>POST api/Wf2Xml/DeleteProcess · { ProcessId, Version }（逻辑删除）</summary>
     [HttpPost]
     public ResponseResult DeleteProcess([FromBody] ProcessQuery query)
     {
@@ -246,13 +248,34 @@ public partial class Wf2XmlController : ControllerBase
         {
             if (query == null || string.IsNullOrWhiteSpace(query.ProcessId))
                 return ResponseResult.Error("ProcessId required");
-            _workflowService.DeleteProcess(query.ProcessId, query.Version ?? "1");
+            SoftDeleteProcess(query.ProcessId, query.Version ?? "1");
             return ResponseResult.Success("DeleteProcess ok");
         }
         catch (Exception ex)
         {
             return ResponseResult.Error("DeleteProcess failed: " + ex.Message);
         }
+    }
+
+    void SoftDeleteProcess(string processId, string version)
+    {
+        var entity = _workflowService.GetProcessByVersion(processId, version);
+        if (entity == null) throw new InvalidOperationException("process not found");
+        _unitAccess.RequireProcessAccess(User, entity, write: true);
+        if (SailSoftDelete.IsDeleted(entity.Deleted)) return;
+        SailSoftDelete.MarkDeleted(v => entity.Deleted = v, t => entity.DeleteTime = t);
+        entity.UpdatedDateTime = DateTime.Now;
+        _workflowService.UpdateProcess(entity);
+    }
+
+    void SoftDeleteProcessByDefId(string processDefId)
+    {
+        var clip = _sail.UseRunSQL().useClip();
+        clip.from<ProcessEntity>(out var p);
+        clip.where(() => p.ProcessDefId, processDefId);
+        var entity = clip.select(p).queryList().FirstOrDefault()
+            ?? throw new InvalidOperationException("process not found");
+        SoftDeleteProcess(entity.ProcessId, entity.Version ?? "1");
     }
 
     /// <summary>POST api/Wf2Xml/UpdateProcessUsingState · { ProcessId, Version, UsingState } · 1启用 0停用</summary>

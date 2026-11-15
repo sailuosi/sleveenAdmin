@@ -12,13 +12,21 @@
       <fc-designer ref="designer" class="sf-form-editor__designer" :config="designerConfig" />
     </div>
 
-    <el-dialog v-model="saveVisible" title="保存表单" width="520px" destroy-on-close append-to-body>
-      <el-form label-width="80px">
+    <el-dialog v-model="saveVisible" title="保存表单" width="560px" destroy-on-close append-to-body>
+      <el-form label-width="90px">
+        <ResourceScopeFields
+          v-model:auth-type="meta.AuthType"
+          v-model:auth-id="meta.AuthId"
+          v-model:auth-code="meta.AuthCode"
+          :existing="!!formId"
+          :fixed-scope-type="fixedScope"
+          resource-label="表单"
+        />
         <el-form-item label="表单名" required>
           <el-input v-model="meta.FormName" placeholder="请输入表单名" />
         </el-form-item>
         <el-form-item label="编码">
-          <el-input v-model="meta.FormCode" placeholder="可选编码" />
+          <el-input v-model="meta.FormCode" placeholder="空则按归属自动生成" />
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="meta.Description" type="textarea" :rows="2" />
@@ -34,12 +42,14 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
+
 import { useRoute, useRouter } from 'vue-router';
 import { ElMessage } from 'element-plus';
 import { NextLoading } from '/@/utils/loading';
 import { getForm, saveForm } from '@sail/api/form';
 import { encodeConf, encodeFields, setConfAndFields } from '@sail/utils/formCreate';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
+import ResourceScopeFields from '@sail/components/ResourceScopeFields.vue';
 
 defineOptions({ name: 'SailFormEditorPage' });
 
@@ -48,10 +58,14 @@ const props = withDefaults(
     embedded?: boolean;
     /** 嵌入弹窗时优先于 route.query */
     editFormId?: string;
+    initialAuthType?: string;
+    initialAuthId?: string;
   }>(),
   {
     embedded: false,
-    editFormId: undefined
+    editFormId: undefined,
+    initialAuthType: '',
+    initialAuthId: ''
   }
 );
 
@@ -76,7 +90,17 @@ const meta = reactive({
   FormName: '',
   FormCode: '',
   Description: '',
-  Version: '1'
+  Version: '1',
+  AuthType: '',
+  AuthId: '',
+  AuthCode: ''
+});
+
+const fixedScope = computed(() => {
+  if (formId.value) return undefined;
+  const t = String(props.initialAuthType || meta.AuthType || '').toUpperCase();
+  if (t === 'PUBLIC' || t === 'UNIT' || t === 'TEMPLATE') return t as 'PUBLIC' | 'UNIT' | 'TEMPLATE';
+  return undefined;
 });
 
 const designerConfig = {
@@ -94,6 +118,9 @@ async function load() {
     formId.value = String(props.editFormId || '');
   }
   if (!formId.value) {
+    meta.AuthType = String(props.initialAuthType || 'PUBLIC');
+    meta.AuthId = String(props.initialAuthId || '');
+    meta.AuthCode = '';
     await nextTick();
     try {
       designer.value?.setOption?.({});
@@ -115,6 +142,9 @@ async function load() {
     meta.FormCode = String(pickField(entity, 'FormCode', 'formCode') || '');
     meta.Description = String(pickField(entity, 'Description', 'description') || '');
     meta.Version = String(pickField(entity, 'Version', 'version') || '1');
+    meta.AuthType = String(pickField(entity, 'AuthType', 'authType') || '');
+    meta.AuthId = String(pickField(entity, 'AuthId', 'authId') || '');
+    meta.AuthCode = String(pickField(entity, 'AuthCode', 'authCode') || '');
     await nextTick();
     setConfAndFields(
       designer,
@@ -140,12 +170,19 @@ async function submitSave() {
   try {
     const conf = encodeConf(designer);
     const fields = encodeFields(designer);
+    if (meta.AuthType === 'UNIT' && !String(meta.AuthId || '').trim()) {
+      ElMessage.warning('请选择所属单位');
+      return;
+    }
     const data = await saveForm({
       FormId: formId.value || undefined,
       FormName: meta.FormName.trim(),
       FormCode: meta.FormCode.trim() || undefined,
       Description: meta.Description,
       Version: meta.Version || '1',
+      AuthType: meta.AuthType || undefined,
+      AuthId: meta.AuthId || undefined,
+      AuthCode: meta.AuthCode || undefined,
       Conf: conf,
       FieldsJson: JSON.stringify(fields)
     });

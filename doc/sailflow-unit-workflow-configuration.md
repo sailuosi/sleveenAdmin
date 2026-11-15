@@ -2,8 +2,8 @@
 
 编制日期：2026-11-15。落地仓库：`sleveen-admin`（`backend/sailflow` + `web/src/widgets/sailflow`）。
 
-> **引擎约束**：不改 sailflow 核心源码；归属、发布路由、按单位+业务发起解析均在宿主完成。  
-> 对照：minehub「发布即生效」单位流程；菜单见 [sailflow-menu-mount.md](./sailflow-menu-mount.md)。
+> **引擎约束**：归属/发布/发起解析在宿主完成；软删与创建人列可落引擎 `FormEntity`/`ProcessEntity`（同版本 NuGet 覆盖，不升版本号）。  
+> 对照：minehub「发布即生效」单位流程；菜单见 [sailflow-menu-mount.md](./sailflow-menu-mount.md)；分类/表单见 [sailflow-category-form-resource.md](./sailflow-category-form-resource.md)。
 
 ---
 
@@ -26,9 +26,11 @@
 
 | 资源 | 字段 |
 |------|------|
-| 流程定义 | 宿主表 `sf_process_auth`（`auth_type/code/id/level`；语义对齐引擎预留的 `p_auth_*`；当前 NuGet ProcessEntity 未暴露时由宿主附表读写） |
-| 表单 | `ff_auth_type` / …（引擎 FormEntity，若包未暴露则后续同形附表） |
+| 流程定义 | `wf_process.p_auth_*`（主源）；`sf_process_auth` 仅作迁移双写/回填 |
+| 表单 | `fm_form.ff_auth_*`（FormEntity） |
 | 分类 | `sf_process_category.auth_type` / … |
+
+**软删**（`Deleted` int，0/空=正常，1=已删）：`wf_process.p_deleted`、`fm_form.ff_deleted`、`sf_process_category.deleted`；另有 `Creator`/`CreatorName`/`DeleteTime`。
 
 | 字段 | 合同 |
 |------|------|

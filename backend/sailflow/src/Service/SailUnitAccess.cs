@@ -106,7 +106,7 @@ public class SailUnitAccess
         IEnumerable<ProcessEntity> source,
         string? workspace)
     {
-        var list = source.ToList();
+        var list = source.Where(p => SailSoftDelete.IsAlive(p.Deleted)).ToList();
         var authMap = SailProcessAuthStore.ReadMany(
             _sail,
             list.Select(p => (p.ProcessId, p.Version ?? "1")));

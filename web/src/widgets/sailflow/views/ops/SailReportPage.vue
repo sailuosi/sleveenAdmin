@@ -20,12 +20,22 @@
         </el-col>
       </el-row>
       <h3 class="sf-report-page__h">实例量 Top</h3>
-      <el-table :data="top" stripe border empty-text="暂无实例">
+      <el-table :data="pagedTop" stripe border empty-text="暂无实例">
+        <el-table-column type="index" label="序号" width="60" :index="indexMethod" />
         <el-table-column prop="ProcessName" label="流程" min-width="160" />
         <el-table-column prop="ProcessId" label="ProcessId" min-width="180" show-overflow-tooltip />
         <el-table-column prop="Version" label="版本" width="80" />
         <el-table-column prop="InstanceCount" label="实例数" width="100" />
       </el-table>
+      <div class="sf-report-page__pager">
+        <el-pagination
+          v-model:current-page="pageNum"
+          v-model:page-size="pageSize"
+          layout="total, prev, pager, next"
+          :total="top.length"
+          :page-size="20"
+        />
+      </div>
     </main>
   </div>
 </template>
@@ -43,6 +53,15 @@ const loading = ref(false);
 const err = ref('');
 const overview = ref<WorkflowReportOverview>({});
 const top = ref<ProcessInstanceRankItem[]>([]);
+const pageNum = ref(1);
+const pageSize = ref(20);
+const pagedTop = computed(() => {
+  const start = (pageNum.value - 1) * pageSize.value;
+  return top.value.slice(start, start + pageSize.value);
+});
+function indexMethod(i: number) {
+  return (pageNum.value - 1) * pageSize.value + i + 1;
+}
 
 const cards = computed(() => {
   const o = overview.value;
@@ -137,5 +156,10 @@ onMounted(load);
 .sf-report-page__h {
   margin: 8px 0 12px;
   font-size: 14px;
+}
+.sf-report-page__pager {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

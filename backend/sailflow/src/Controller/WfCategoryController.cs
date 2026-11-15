@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using sailflow.WebUtility;
 using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Service;
+using SleveenAdmin.Sailflow.UnitScope;
 
 namespace SleveenAdmin.Sailflow.Controller;
 
@@ -23,17 +24,31 @@ public class WfCategoryController : ControllerBase
         public string? CategoryCode { get; set; }
     }
 
-    /// <summary>GET api/WfCategory/List</summary>
+    /// <summary>GET api/WfCategory/List?unitId=</summary>
     [HttpGet]
-    public ResponseResult<List<SailProcessCategoryEntity>> List()
+    public ResponseResult<List<SailProcessCategoryEntity>> List([FromQuery] string? unitId = null)
     {
         try
         {
-            return ResponseResult<List<SailProcessCategoryEntity>>.Success(_cats.List(User));
+            return ResponseResult<List<SailProcessCategoryEntity>>.Success(_cats.List(User, unitId));
         }
         catch (Exception ex)
         {
             return ResponseResult<List<SailProcessCategoryEntity>>.Error(ex.Message);
+        }
+    }
+
+    /// <summary>GET api/WfCategory/NextSort?authType=&amp;unitId=</summary>
+    [HttpGet]
+    public ResponseResult<object> NextSort([FromQuery] string? authType = null, [FromQuery] string? unitId = null)
+    {
+        try
+        {
+            return ResponseResult<object>.Success(new { sortOrder = _cats.NextSort(authType, unitId) });
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult<object>.Error(ex.Message);
         }
     }
 
@@ -58,8 +73,12 @@ public class WfCategoryController : ControllerBase
     {
         try
         {
-            var n = _cats.Delete(id);
+            var n = _cats.Delete(id, User);
             return n > 0 ? ResponseResult.Success("deleted") : ResponseResult.Error("not found");
+        }
+        catch (SailUnitAccessException ex)
+        {
+            return ResponseResult.Error(ex.Message);
         }
         catch (Exception ex)
         {

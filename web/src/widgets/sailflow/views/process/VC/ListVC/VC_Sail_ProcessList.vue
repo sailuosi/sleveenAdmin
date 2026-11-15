@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import flexpan from "@/ui/common/flexpan.vue"
@@ -101,6 +101,7 @@ const props = defineProps({
     position: null, flex: { type: Boolean, default: false },
     pageSize: { type: Number, default: 30 },
     workspace: { type: String, default: '' },
+    filterUnitId: { type: String, default: null },
 })
 
 const router = useRouter()
@@ -138,8 +139,22 @@ const getlist = () => {
           })
         : props.api.querySailProcesslist(listpara.value)
     loader.then((res) => {
-        mlist.value = res.Items || res.records || res.Records || []
-        total.value = res.Total ?? res.total ?? 0
+        let items = res.Items || res.records || res.Records || []
+        const uid = props.filterUnitId
+        if (uid) {
+            items = items.filter((row) => {
+                const authType = String(field(row, 'AuthType', 'authType') || '').toUpperCase()
+                const authId = String(field(row, 'AuthId', 'authId') || '')
+                if (authType === 'PUBLIC' || authType === 'TEMPLATE' || !authType) return true
+                return authType === 'UNIT' && authId === String(uid)
+            })
+        }
+        // 前端分页
+        const pageNum = queryParams.value.pageNum || 1
+        const pageSize = queryParams.value.pageSize || props.pageSize
+        total.value = items.length
+        const start = Math.max(0, (pageNum - 1) * pageSize)
+        mlist.value = items.slice(start, start + pageSize)
         listHolder.init(mlist.value, oidField)
         loading.value = false
     }).catch((err) => {
@@ -240,7 +255,7 @@ async function onUpgrade(row) {
 
 const removeRow = (row) => {
     const name = field(row, 'ProcessName', 'processName')
-    alertIsOK(`确认删除流程「${name}」？此操作不可恢复。`, (e) => {
+    alertIsOK(`确认删除流程「${name}」？（逻辑删除，列表不再显示）`, (e) => {
         if (e === "yes") {
             props.api.removeSailProcess(row).then((data) => {
                 if ((data?.Status ?? data?.status) === -1) {
@@ -257,6 +272,11 @@ const removeRow = (row) => {
 }
 
 function setFocusRow() {}
+
+watch(() => props.filterUnitId, () => {
+    queryParams.value.pageNum = 1
+    getlist()
+})
 
 onMounted(() => {
     if (props.autoLoad) getlist()
