@@ -101,6 +101,8 @@ public static class SailHostSchemaInitializer
             "tk_task_state", "tk_crt_time");
         TryCreateIndex(kit, "IX_wf_task_state_overdue", "wf_task",
             "tk_task_state", "tk_overdue_time");
+        TryCreateIndex(kit, "IX_wf_task_consult_src", "wf_task",
+            "tk_consult_src_task_id", "tk_task_state");
         TryCreateIndex(kit, "IX_wf_ai_pi_state", "wf_act_instance",
             "ai_proc_instance_id", "ai_activity_state");
         TryCreateIndex(kit, "IX_wf_pi_state_created", "wf_proc_instance",
@@ -213,6 +215,8 @@ public static class SailHostSchemaInitializer
             pi.SubProcessDefId,
             pi.SubProcessId,
             t.EntrustedTaskId,
+            t.AssigneeRole,
+            t.ConsultSrcTaskId,
             ai.MainActivityInstanceId,
             ai.CompleteOrder,
             t.AssignedUserId,

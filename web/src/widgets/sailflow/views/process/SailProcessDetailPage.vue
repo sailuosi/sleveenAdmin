@@ -168,6 +168,9 @@
           :show-jump="canJump"
           :has-back-src="hasBackSrc"
           :buttons-setting="buttonsSetting"
+          :assignee-role="assigneeRole"
+          :consult-pending="consultPending"
+          :open-participant-count="openParticipantCount"
           @done="onDone"
         />
       </div>
@@ -256,6 +259,9 @@ const aiConfigUuids = ref<string[]>([]);
 const buttonsSetting = ref<SailButtonSetting[]>(defaultButtonsSetting());
 /** §G：当前活动带退回源 → 可返送 */
 const hasBackSrc = ref(false);
+const assigneeRole = ref<number | null>(null);
+const consultPending = ref(false);
+const openParticipantCount = ref(0);
 /** §J 维②：ForwardNormal | ReturnToSender */
 const resubmitMode = ref<'ForwardNormal' | 'ReturnToSender'>('ReturnToSender');
 
@@ -442,6 +448,18 @@ async function load() {
       pickField(entity, 'HasBackSrc', 'hasBackSrc') === true ||
       pickField(entity, 'HasBackSrc', 'hasBackSrc') === 'true' ||
       backSrcId !== ''
+    );
+    const roleRaw = pickField(entity, 'AssigneeRole', 'assigneeRole');
+    assigneeRole.value =
+      roleRaw === null || roleRaw === undefined || roleRaw === ''
+        ? null
+        : Number(roleRaw);
+    consultPending.value = !!(
+      pickField(entity, 'ConsultPending', 'consultPending') === true ||
+      pickField(entity, 'ConsultPending', 'consultPending') === 'true'
+    );
+    openParticipantCount.value = Number(
+      pickField(entity, 'OpenParticipantCount', 'openParticipantCount') || 0
     );
     const mode = String(
       pickField(entity, 'ResubmitMode', 'resubmitMode') || 'ReturnToSender'

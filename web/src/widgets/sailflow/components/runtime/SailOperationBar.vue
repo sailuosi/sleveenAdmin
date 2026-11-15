@@ -1,9 +1,50 @@
 <template>
   <div class="sf-op-bar">
     <div class="sf-op-bar__actions">
-      <template v-if="canHandle">
+      <template v-if="canHandle && isParticipant">
         <el-popover
-          v-if="showApprove && btnOn('Approve')"
+          v-if="btnOn('Acknowledge')"
+          :visible="ackVisible"
+          placement="top-end"
+          :width="420"
+          trigger="click"
+        >
+          <template #reference>
+            <el-button type="primary" plain :loading="loading" @click="ackVisible = true">
+              {{ btnLabel('Acknowledge') }}
+            </el-button>
+          </template>
+          <div class="sf-op-pop">
+            <el-form label-position="top" @submit.prevent>
+              <el-form-item label="阅办意见" required>
+                <el-input
+                  v-model="ackComment"
+                  type="textarea"
+                  :rows="3"
+                  placeholder="请输入反馈意见"
+                />
+              </el-form-item>
+              <div class="sf-op-pop__footer">
+                <el-button @click="ackVisible = false">取消</el-button>
+                <el-button type="primary" :loading="loading" @click="onAcknowledge">
+                  {{ btnLabel('Acknowledge') }}
+                </el-button>
+              </div>
+            </el-form>
+          </div>
+        </el-popover>
+      </template>
+      <template v-else-if="canHandle">
+        <el-alert
+          v-if="consultPending"
+          type="warning"
+          :closable="false"
+          show-icon
+          class="sf-op-bar__consult-alert"
+          :title="`待沟通反馈（${openParticipantCount} 人），审批已锁定`"
+        />
+        <el-popover
+          v-if="showApprove && btnOn('Approve') && !consultPending"
           :visible="approveVisible"
           placement="top-end"
           :width="440"
@@ -94,7 +135,7 @@
           </div>
         </el-popover>
         <el-popover
-          v-if="btnOn('Reject')"
+          v-if="btnOn('Reject') && !consultPending"
           :visible="rejectVisible"
           placement="top-end"
           :width="420"
@@ -125,7 +166,7 @@
           </div>
         </el-popover>
         <el-button
-          v-if="btnOn('SendBack')"
+          v-if="btnOn('SendBack') && !consultPending"
           plain
           :loading="loading"
           :disabled="!previousNodes.length"
@@ -134,7 +175,7 @@
           {{ btnLabel('SendBack') }}
         </el-button>
         <el-button
-          v-if="btnOn('SignForward')"
+          v-if="btnOn('SignForward') && !consultPending"
           plain
           :loading="loading"
           @click="signVisible = true"
@@ -142,17 +183,39 @@
           {{ btnLabel('SignForward') }}
         </el-button>
         <el-button
-          v-if="btnOn('Transfer')"
+          v-if="btnOn('Transfer') && !consultPending"
           plain
           :loading="loading"
           @click="transferVisible = true"
         >
           {{ btnLabel('Transfer') }}
         </el-button>
+        <el-button
+          v-if="btnOn('Consult')"
+          plain
+          :loading="loading"
+          @click="consultVisible = true"
+        >
+          {{ btnLabel('Consult') }}
+        </el-button>
+        <el-button
+          v-if="btnOn('RecallConsult') && consultPending"
+          plain
+          type="warning"
+          :loading="loading"
+          @click="onRecallConsult"
+        >
+          {{ btnLabel('RecallConsult') }}
+        </el-button>
         <el-button v-if="btnOn('Copyto')" plain :loading="loading" @click="copytoVisible = true">
           {{ btnLabel('Copyto') }}
         </el-button>
-        <el-button v-if="btnOn('Revise')" plain :loading="loading" @click="onRevise">
+        <el-button
+          v-if="btnOn('Revise') && !consultPending"
+          plain
+          :loading="loading"
+          @click="onRevise"
+        >
           {{ btnLabel('Revise') }}
         </el-button>
       </template>
@@ -275,6 +338,35 @@
       <template #footer>
         <el-button @click="signVisible = false">取消</el-button>
         <el-button type="primary" :loading="loading" @click="onSignForward">确认加签</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 沟通：建参与者待办 -->
+    <el-dialog v-model="consultVisible" :title="btnLabel('Consult')" width="480px" destroy-on-close>
+      <el-form label-width="90px">
+        <el-form-item label="征询对象" required>
+          <el-select
+            v-model="consultUserIds"
+            multiple
+            filterable
+            style="width: 100%"
+            placeholder="选择需要反馈的人（非审批）"
+          >
+            <el-option
+              v-for="u in transferCandidates"
+              :key="userKey(u)"
+              :label="userLabel(u)"
+              :value="userKey(u)"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="说明">
+          <el-input v-model="consultComment" type="textarea" :rows="2" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="consultVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="onConsult">发起沟通</el-button>
       </template>
     </el-dialog>
 
@@ -424,6 +516,11 @@ const props = withDefaults(
     hasBackSrc?: boolean;
     /** 节点 sf:ButtonsSetting（Workbench 下发） */
     buttonsSetting?: SailButtonSetting[] | null;
+    /** 办理人角色：0/null 常规；1 参与者 */
+    assigneeRole?: number | null;
+    /** 发起人侧沟通未反馈完 */
+    consultPending?: boolean;
+    openParticipantCount?: number;
   }>(),
   {
     canHandle: true,
@@ -434,7 +531,10 @@ const props = withDefaults(
     showJump: false,
     hasBackSrc: false,
     buttonsSetting: null,
-    fieldModes: null
+    fieldModes: null,
+    assigneeRole: null,
+    consultPending: false,
+    openParticipantCount: 0
   }
 );
 
@@ -466,6 +566,11 @@ const signUserIds = ref<string[]>([]);
 const transferVisible = ref(false);
 const transferUserIds = ref<string[]>([]);
 const transferComment = ref('');
+const consultVisible = ref(false);
+const consultUserIds = ref<string[]>([]);
+const consultComment = ref('');
+const ackVisible = ref(false);
+const ackComment = ref('');
 const copytoVisible = ref(false);
 const copytoUserIds = ref<string[]>([]);
 const copytoReason = ref('');
@@ -481,6 +586,12 @@ function btnOn(id: string) {
 function btnLabel(id: string) {
   return buttonDisplayName(buttons.value, id);
 }
+
+const isParticipant = computed(
+  () => Number(props.assigneeRole ?? 0) === 1
+);
+const consultPending = computed(() => !!props.consultPending);
+const openParticipantCount = computed(() => Number(props.openParticipantCount || 0));
 
 /** §G：被退回后再发送 —— 正常发送 vs 返送退回人 */
 const approveActionLabel = computed(() =>
@@ -860,6 +971,54 @@ async function onTransfer() {
   }
 }
 
+async function onConsult() {
+  if (!consultUserIds.value.length) {
+    ElMessage.warning('请选择征询对象');
+    return;
+  }
+  const activityId = String(
+    pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'consult'
+  );
+  const runner = buildRunner({
+    NextActivityPerformers: withNextPerformers(
+      activityId,
+      consultUserIds.value,
+      allUsers.value
+    )
+  });
+  if (consultComment.value.trim()) {
+    runner.Conditions = {
+      ...(runner.Conditions || {}),
+      comment: consultComment.value.trim()
+    };
+  }
+  const ok = await execButton('Consult', runner, '已发起沟通');
+  if (ok) {
+    consultVisible.value = false;
+    consultUserIds.value = [];
+    consultComment.value = '';
+  }
+}
+
+async function onAcknowledge() {
+  if (!ackComment.value.trim()) {
+    ElMessage.warning('请填写阅办意见');
+    return;
+  }
+  const runner = buildRunner({
+    Conditions: { comment: ackComment.value.trim() }
+  });
+  const ok = await execButton('Acknowledge', runner, '已阅办');
+  if (ok) {
+    ackVisible.value = false;
+    ackComment.value = '';
+  }
+}
+
+async function onRecallConsult() {
+  await execButton('RecallConsult', buildRunner(), '已收回沟通');
+}
+
 async function onCopyto() {
   if (!copytoUserIds.value.length) {
     ElMessage.warning('请选择抄送人');
@@ -1038,6 +1197,10 @@ onMounted(async () => {
   flex-wrap: wrap;
   align-items: center;
   min-height: 40px;
+}
+.sf-op-bar__consult-alert {
+  width: 100%;
+  margin-bottom: 4px;
 }
 .sf-op-bar__group-row {
   display: flex;

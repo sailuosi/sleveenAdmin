@@ -618,6 +618,8 @@ public partial class Wf2XmlController
                     dto.SendBackTarget = fallback.SendBackTarget;
                     dto.ResubmitMode = fallback.ResubmitMode;
                 }
+
+                ApplyConsultWorkbenchState(dto, task);
             }
 
             // 表单：显式 FormId → 实例 BizCode（发起写入的 formId，Guid/数字均可）
@@ -849,6 +851,81 @@ public partial class Wf2XmlController
             exec.ProcessInstanceIdStarted);
         SailProcessVariableHelper.PersistConditions(_workflowService, runner, piId, _logger);
     }
+
+    /// <summary>
+    /// 沟通：下发 AssigneeRole / ConsultPending，并按角色裁剪 ButtonsSetting。
+    /// 参与者仅留 Acknowledge；常规办理人待反馈时隐藏推进类按钮，保留沟通/收回/抄送。
+    /// </summary>
+    void ApplyConsultWorkbenchState(ApprovalWorkbenchDto dto, TaskViewEntity task)
+    {
+        dto.AssigneeRole = task.AssigneeRole;
+        var isParticipant = task.AssigneeRole == (int)AssigneeRoleEnum.Participant;
+
+        if (isParticipant)
+        {
+            dto.ConsultPending = false;
+            dto.OpenParticipantCount = 0;
+            dto.ButtonsSetting = (dto.ButtonsSetting ?? SailButtonsCatalog.Merge(null))
+                .Where(b => string.Equals(b.Id, "Acknowledge", StringComparison.OrdinalIgnoreCase))
+                .Select(b =>
+                {
+                    b.Enable = true;
+                    return b;
+                })
+                .ToList();
+            if (dto.ButtonsSetting.Count == 0)
+            {
+                dto.ButtonsSetting =
+                [
+                    new SailButtonSettingDto
+                    {
+                        Id = "Acknowledge",
+                        DisplayName = "阅办",
+                        Enable = true,
+                        Engine = "AcknowledgeProcess"
+                    }
+                ];
+            }
+            return;
+        }
+
+        try
+        {
+            using var kit = _sail.UseRunSQL();
+            var open = _sail.ManagerFactory.Tasks.GetOpenParticipantsBySrc(kit, task.TaskId);
+            dto.OpenParticipantCount = open?.Count ?? 0;
+            dto.ConsultPending = dto.OpenParticipantCount > 0;
+        }
+        catch
+        {
+            dto.ConsultPending = false;
+            dto.OpenParticipantCount = 0;
+        }
+
+        if (!dto.ConsultPending)
+            return;
+
+        // 锁定推进类；保留沟通 / 收回 / 抄送
+        var keep = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Consult", "RecallConsult", "Copyto"
+        };
+        foreach (var b in dto.ButtonsSetting ?? [])
+        {
+            if (keep.Contains(b.Id))
+            {
+                b.Enable = true;
+                continue;
+            }
+            // 推进/改责任类：显示但禁用由前端处理；此处直接关掉 enable 更稳
+            if (IsConsultLockedButton(b.Id))
+                b.Enable = false;
+        }
+    }
+
+    static bool IsConsultLockedButton(string? id) =>
+        id is "Approve" or "Reject" or "SendBack" or "SignForward" or "Transfer"
+            or "Revise" or "Resend" or "Jump" or "Close";
 
     private static ResponseResult FromExecuted(WfExecutedResult wfResult)
     {

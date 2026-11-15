@@ -42,6 +42,15 @@ public class ApprovalWorkbenchDto
 
     /// <summary>节点产品策略摘要（空人/超时/退回两维等）。</summary>
     public SailNodePolicyDto? NodePolicy { get; set; }
+
+    /// <summary>办理人角色：null/0=常规；1=沟通参与者。</summary>
+    public int? AssigneeRole { get; set; }
+
+    /// <summary>当前审批待办下是否仍有未关闭的沟通参与者。</summary>
+    public bool ConsultPending { get; set; }
+
+    /// <summary>打开中的沟通参与者数量（ConsultPending 时 &gt; 0）。</summary>
+    public int OpenParticipantCount { get; set; }
 }
 
 /// <summary>工作台查询入参。</summary>

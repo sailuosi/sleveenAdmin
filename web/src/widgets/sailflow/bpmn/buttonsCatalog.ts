@@ -61,6 +61,30 @@ export const SAIL_BUTTON_CATALOG: SailButtonDef[] = [
     note: '个人办结+本节点交人，不流转'
   },
   {
+    id: 'Consult',
+    displayName: '沟通',
+    engine: 'ConsultProcess',
+    contexts: ['handle'],
+    defaultEnable: true,
+    note: '建参与者待办；锁定发起人审批直至全员阅办或收回'
+  },
+  {
+    id: 'Acknowledge',
+    displayName: '阅办',
+    engine: 'AcknowledgeProcess',
+    contexts: ['handle'],
+    defaultEnable: true,
+    note: '参与者关闭自己的沟通待办；运行态按 AssigneeRole 显隐'
+  },
+  {
+    id: 'RecallConsult',
+    displayName: '收回沟通',
+    engine: 'RecallConsultProcess',
+    contexts: ['handle'],
+    defaultEnable: true,
+    note: '发起人取消未反馈参与者；仅 ConsultPending 时露出'
+  },
+  {
     id: 'Copyto',
     displayName: '抄送',
     engine: 'WfCopyto/Create',

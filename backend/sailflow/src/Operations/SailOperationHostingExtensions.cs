@@ -13,6 +13,9 @@ public static class SailOperationHostingExtensions
         services.AddScoped<ISailOperationHandler, SendBackOperationHandler>();
         services.AddScoped<ISailOperationHandler, SignForwardOperationHandler>();
         services.AddScoped<ISailOperationHandler, TransferOperationHandler>();
+        services.AddScoped<ISailOperationHandler, ConsultOperationHandler>();
+        services.AddScoped<ISailOperationHandler, AcknowledgeOperationHandler>();
+        services.AddScoped<ISailOperationHandler, RecallConsultOperationHandler>();
         services.AddScoped<ISailOperationHandler, WithdrawOperationHandler>();
         services.AddScoped<ISailOperationHandler, ResendOperationHandler>();
         services.AddScoped<ISailOperationHandler, CloseOperationHandler>();

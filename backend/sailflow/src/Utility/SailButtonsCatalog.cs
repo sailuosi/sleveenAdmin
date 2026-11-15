@@ -22,6 +22,9 @@ public static class SailButtonsCatalog
         new() { Id = "SendBack", DisplayName = "退回", Enable = true, Engine = "SendBackProcess" },
         new() { Id = "SignForward", DisplayName = "加签", Enable = true, Engine = "SignForwardProcess" },
         new() { Id = "Transfer", DisplayName = "转办", Enable = true, Engine = "TransferProcess" },
+        new() { Id = "Consult", DisplayName = "沟通", Enable = true, Engine = "ConsultProcess" },
+        new() { Id = "Acknowledge", DisplayName = "阅办", Enable = true, Engine = "AcknowledgeProcess" },
+        new() { Id = "RecallConsult", DisplayName = "收回沟通", Enable = true, Engine = "RecallConsultProcess" },
         new() { Id = "Copyto", DisplayName = "抄送", Enable = true, Engine = "WfCopyto/Create" },
         new() { Id = "Withdraw", DisplayName = "撤回", Enable = true, Engine = "WithdrawProcess" },
         new() { Id = "Resend", DisplayName = "重发", Enable = true, Engine = "ResendProcess" }, // §G：有 BackSrc 时办理台文案「返送退回人」
