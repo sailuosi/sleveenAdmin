@@ -4,7 +4,7 @@
 
 前端页面在 `web/src/widgets/sailflow`，后端 API 在 `backend/sailflow`（`/api/sail/Probe`、`/api/Wf2Xml` 等）。
 
-现行能力与接入说明见 [sailflow-features.md](./sailflow-features.md)；复刻范围与阶段勾选见 [sailflow-nflowable-feature-replication.md](./sailflow-nflowable-feature-replication.md)。
+现行能力与接入说明见 [sailflow-features.md](./sailflow-features.md)；复刻范围与阶段勾选见 [sailflow-nflowable-feature-replication.md](./sailflow-nflowable-feature-replication.md)；**单位流程归属 / 发布即生效** 见 [sailflow-unit-workflow-configuration.md](./sailflow-unit-workflow-configuration.md)。
 
 ---
 
@@ -19,25 +19,25 @@
 ├── 我的流程
 ├── 任务管理                ← S3 管理端
 ├── 流程实例管理            ← S3
-├── 流程定义                ← 设计入口
+├── 流程模板中心            ← 单位流程：TEMPLATE / PUBLIC（原「流程模板库」口径升级）
+├── 单位流程配置            ← 单位流程：UNIT（沿用「流程定义」路径 /sail/processes）
 ├── 流程表单                ← S2 form-create
 ├── 规则集                  ← 特色
 ├── AI 模型                 ← 特色
 ├── 知识库                  ← 特色（上传/删除）
 ├── 回调死信                ← S5 Outbox
-├── 流程模板库              ← S5
 ├── 请假样例                ← S5 业务样例
 ├── 流程分类                ← S6
 ├── 流程报表                ← S6
-├── 流程设计器              ← 建议隐藏；从「流程定义」点「设计」进入
+├── 流程设计器              ← 建议隐藏；从「单位流程配置」点「设计」进入
 ├── 表单设计器              ← 建议隐藏；从「流程表单」进入
 └── 流程详情                ← 建议隐藏；从待办/已办跳入
 ```
 
 | 侧栏展示 | 说明 |
 |----------|------|
-| 要 | 待办、已办、抄送、发起、我的流程、任务管理、实例管理、流程定义、流程表单、规则集、AI 模型、知识库、回调死信、模板库、请假样例、分类、报表 |
-| 隐藏 | 流程设计器、表单设计器、流程详情、流程编辑（全屏四步向导；从「流程定义」点「修改/新建」进入） |
+| 要 | 待办、已办、抄送、发起、我的流程、任务管理、实例管理、**流程模板中心**、**单位流程配置**、流程表单、规则集、AI 模型、知识库、回调死信、请假样例、分类、报表 |
+| 隐藏 | 流程设计器、表单设计器、流程详情、流程编辑（全屏四步向导；从「单位流程配置」点「修改/新建」进入） |
 
 ---
 
@@ -66,13 +66,13 @@
 | 我的流程 | `sail_process_my` | `/sail/process-my` | `widgets/sailflow/views/process/SailProcessMyPage.vue` | 2 | 5 | 否 |
 | 任务管理 | `sail_task_manager` | `/sail/task-manager` | `widgets/sailflow/views/task/SailTaskManagerPage.vue` | 2 | 6 | 否 |
 | 流程实例管理 | `sail_process_manager` | `/sail/process-manager` | `widgets/sailflow/views/process/SailProcessManagerPage.vue` | 2 | 7 | 否 |
-| 流程定义 | `sail_processes` | `/sail/processes` | `widgets/sailflow/views/SailProcessListPage.vue` | 2 | 8 | 否 |
-| 流程表单 | `sail_forms` | `/sail/forms` | `widgets/sailflow/views/form/SailFormListPage.vue` | 2 | 9 | 否 |
-| 规则集 | `sail_rulesets` | `/sail/rulesets` | `widgets/sailflow/views/SailRuleSetPage.vue` | 2 | 10 | 否 |
-| AI 模型 | `sail_ai_models` | `/sail/ai-models` | `widgets/sailflow/views/SailAiModelPage.vue` | 2 | 11 | 否 |
-| 知识库 | `sail_knowledge` | `/sail/knowledge` | `widgets/sailflow/views/SailKnowledgeBasePage.vue` | 2 | 12 | 否 |
-| 回调死信 | `sail_outbox` | `/sail/outbox` | `widgets/sailflow/views/ops/SailOutboxPage.vue` | 2 | 13 | 否 |
-| 流程模板库 | `sail_templates` | `/sail/templates` | `widgets/sailflow/views/SailTemplateGalleryPage.vue` | 2 | 14 | 否 |
+| 流程模板中心 | `sail_templates` | `/sail/templates` | `widgets/sailflow/views/SailTemplateGalleryPage.vue` | 2 | 8 | 否 |
+| 单位流程配置 | `sail_processes` | `/sail/processes` | `widgets/sailflow/views/process/Page/Biz_Sail_ProcessList.vue` | 2 | 9 | 否 |
+| 流程表单 | `sail_forms` | `/sail/forms` | `widgets/sailflow/views/form/SailFormListPage.vue` | 2 | 10 | 否 |
+| 规则集 | `sail_rulesets` | `/sail/rulesets` | `widgets/sailflow/views/SailRuleSetPage.vue` | 2 | 11 | 否 |
+| AI 模型 | `sail_ai_models` | `/sail/ai-models` | `widgets/sailflow/views/SailAiModelPage.vue` | 2 | 12 | 否 |
+| 知识库 | `sail_knowledge` | `/sail/knowledge` | `widgets/sailflow/views/SailKnowledgeBasePage.vue` | 2 | 13 | 否 |
+| 回调死信 | `sail_outbox` | `/sail/outbox` | `widgets/sailflow/views/ops/SailOutboxPage.vue` | 2 | 14 | 否 |
 | 请假样例 | `sail_leave` | `/sail/leave` | `widgets/sailflow/views/demo/SailLeavePage.vue` | 2 | 15 | 否 |
 | 流程分类 | `sail_categories` | `/sail/categories` | `widgets/sailflow/views/ops/SailCategoryPage.vue` | 2 | 16 | 否 |
 | 流程报表 | `sail_report` | `/sail/report` | `widgets/sailflow/views/ops/SailReportPage.vue` | 2 | 17 | 否 |

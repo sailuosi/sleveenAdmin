@@ -48,6 +48,10 @@ public class SailProcessMetaEntity
     [SooColumn(Name = "manager_user_ids", Length = 2000)]
     public string ManagerUserIds { get; set; } = "[]";
 
+    /// <summary>稳定业务标识（如 leave）；不加流水。归属走 wf_process.Auth*。</summary>
+    [SooColumn(Name = "business_type", Length = 64)]
+    public string BusinessType { get; set; } = "";
+
     /// <summary>更多设置整包 JSON（撤销/撤回/编码规则/去重/标题/摘要/通知/打印模板）</summary>
     [SooColumn(Name = "extra_json")]
     public string ExtraJson { get; set; } = "{}";

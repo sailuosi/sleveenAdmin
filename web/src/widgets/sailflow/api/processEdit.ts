@@ -19,6 +19,11 @@ export type ProcessEditSavePayload = {
   StartDeptIds?: string;
   ManagerUserIds?: string;
   ExtraJson?: string;
+  BusinessType?: string;
+  AuthType?: string;
+  AuthCode?: string;
+  AuthId?: string;
+  AuthLevel?: number;
 };
 
 export function getProcessEdit(data: { ProcessId: string; Version?: string }) {

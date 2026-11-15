@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using mooSQL.data;
 using sailflow.data;
 using sailflow.engine.Entity;
@@ -6,40 +7,52 @@ using sailflow.engine.Service;
 using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Hosting;
+using SleveenAdmin.Sailflow.UnitScope;
 
 namespace SleveenAdmin.Sailflow.Service;
 
-/// <summary>流程分类目录；绑定落在 Process.AppType。</summary>
+/// <summary>流程分类目录；绑定落在 Process.AppType；Auth* 与流程同套归属。</summary>
 [Scoped]
 public class SailCategoryService
 {
     private readonly SailClient _sail;
     private readonly IWorkflowService _wf;
+    private readonly SailUnitAccess _access;
 
-    public SailCategoryService(SailClient sail, IWorkflowService wf)
+    public SailCategoryService(SailClient sail, IWorkflowService wf, SailUnitAccess access)
     {
         _sail = sail ?? throw new ArgumentNullException(nameof(sail));
         _wf = wf ?? throw new ArgumentNullException(nameof(wf));
+        _access = access ?? throw new ArgumentNullException(nameof(access));
     }
 
     public void EnsureTable() => SailHostSchemaInitializer.EnsureHostTables(_sail);
 
-    public List<SailProcessCategoryEntity> List()
+    public List<SailProcessCategoryEntity> List(ClaimsPrincipal? user = null)
     {
         EnsureTable();
         var clip = _sail.UseRunSQL().useClip();
         clip.from<SailProcessCategoryEntity>(out var c);
         clip.orderBy(() => c.SortOrder);
-        return clip.select(c).queryList().ToList();
+        var all = clip.select(c).queryList().ToList();
+        if (user == null) return all;
+        return all.Where(x => _access.CanAccessResource(user, x.AuthType, x.AuthId, x.AuthCode, write: false)).ToList();
     }
 
-    public SailProcessCategoryEntity Save(SailProcessCategoryEntity row)
+    public SailProcessCategoryEntity Save(SailProcessCategoryEntity row, ClaimsPrincipal? user = null)
     {
         EnsureTable();
         if (string.IsNullOrWhiteSpace(row.Code))
             throw new ArgumentException("Code required");
         if (string.IsNullOrWhiteSpace(row.Name))
             throw new ArgumentException("Name required");
+
+        if (user != null)
+            _access.RequireAccess(user, row.AuthType, row.AuthId, row.AuthCode, write: true);
+
+        if (SailAuthScope.EqualsType(row.AuthType, SailAuthScope.Unit)
+            && string.IsNullOrWhiteSpace(row.AuthId))
+            throw new ArgumentException("UNIT 分类须填写 AuthId");
 
         var repo = _sail.UseRunSQL().useRepo<SailProcessCategoryEntity>();
         var existing = List().FirstOrDefault(x =>
@@ -53,6 +66,9 @@ public class SailCategoryService
             repo.Insert(row);
             return row;
         }
+
+        if (user != null)
+            _access.RequireAccess(user, existing.AuthType, existing.AuthId, existing.AuthCode, write: true);
 
         existing.Name = row.Name;
         existing.SortOrder = row.SortOrder;

@@ -29,7 +29,7 @@ public class WfCategoryController : ControllerBase
     {
         try
         {
-            return ResponseResult<List<SailProcessCategoryEntity>>.Success(_cats.List());
+            return ResponseResult<List<SailProcessCategoryEntity>>.Success(_cats.List(User));
         }
         catch (Exception ex)
         {
@@ -44,7 +44,7 @@ public class WfCategoryController : ControllerBase
         try
         {
             if (body == null) return ResponseResult<SailProcessCategoryEntity>.Error("body required");
-            return ResponseResult<SailProcessCategoryEntity>.Success(_cats.Save(body), "saved");
+            return ResponseResult<SailProcessCategoryEntity>.Success(_cats.Save(body, User), "saved");
         }
         catch (Exception ex)
         {

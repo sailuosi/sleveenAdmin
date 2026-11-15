@@ -24,6 +24,7 @@
                     <template #default="cellp">
                         <el-link type="primary" @click="goEdit(cellp.row)" style="margin-right: 10px;">修改</el-link>
                         <el-link @click="goCopy(cellp.row)" style="margin-right: 10px;">复制</el-link>
+                        <el-link @click="openAssignee(cellp.row)" style="margin-right: 10px;">审批人</el-link>
                         <el-link type="primary" @click="goDesigner(cellp.row)" style="margin-right: 10px;">设计</el-link>
                         <el-link type="primary" @click="goDesignerVue(cellp.row)" style="margin-right: 10px;">Vue设计</el-link>
                         <el-link
@@ -58,6 +59,11 @@
                         </el-tag>
                     </template>
                 </vccol>
+                <vccol field="AuthType" caption="归属" width="100px" type="text" align="center" headerAlign="center">
+                    <template #default="cellp">
+                        {{ field(cellp.row, 'AuthType', 'authType') || '待分配' }}
+                    </template>
+                </vccol>
                 <vccol field="ProcessId" caption="ProcessId" min-width="180px" type="text">
                     <template #default="cellp">{{ field(cellp.row, 'ProcessId', 'processId') }}</template>
                 </vccol>
@@ -66,6 +72,7 @@
             <TemplateGalleryDialog ref="templateDialogRef" @created="getlist" />
             <SailProcessEditDialog ref="editDialogRef" @saved="getlist" />
             <SailDesignerVueDialog ref="designerVueDialogRef" @saved="getlist" />
+            <AssigneeConfigDrawer ref="assigneeDrawerRef" />
         </template>
     </flexpan>
 </template>
@@ -83,6 +90,9 @@ import ImportProcessDialog from '@sail/components/ImportProcessDialog.vue'
 import TemplateGalleryDialog from '@sail/components/TemplateGalleryDialog.vue'
 import SailProcessEditDialog from '@sail/components/SailProcessEditDialog.vue'
 import SailDesignerVueDialog from '@sail/components/SailDesignerVueDialog.vue'
+import AssigneeConfigDrawer from '@sail/components/AssigneeConfigDrawer.vue'
+import { getProcessListSimple } from '@sail/api/process'
+import { unpackSailResult } from '@sail/utils/sailResult'
 
 const props = defineProps({
     page: null, api: null, bus: null, height: null,
@@ -90,6 +100,7 @@ const props = defineProps({
     autoLoad: { type: Boolean, default: true },
     position: null, flex: { type: Boolean, default: false },
     pageSize: { type: Number, default: 30 },
+    workspace: { type: String, default: '' },
 })
 
 const router = useRouter()
@@ -104,6 +115,7 @@ const importDialogRef = ref(null)
 const templateDialogRef = ref(null)
 const editDialogRef = ref(null)
 const designerVueDialogRef = ref(null)
+const assigneeDrawerRef = ref(null)
 
 const listpara = computed(() => ({
     pageSize: queryParams.value.pageSize,
@@ -118,7 +130,14 @@ function field(row, ...keys) {
 
 const getlist = () => {
     loading.value = true
-    props.api.querySailProcesslist(listpara.value).then((res) => {
+    const loader = props.workspace
+        ? getProcessListSimple(props.workspace).then((raw) => {
+            const data = unpackSailResult(raw)
+            const list = data?.Entity || data?.entity || data || []
+            return { Items: Array.isArray(list) ? list : [], Total: Array.isArray(list) ? list.length : 0 }
+          })
+        : props.api.querySailProcesslist(listpara.value)
+    loader.then((res) => {
         mlist.value = res.Items || res.records || res.Records || []
         total.value = res.Total ?? res.total ?? 0
         listHolder.init(mlist.value, oidField)
@@ -128,6 +147,13 @@ const getlist = () => {
         total.value = 0
         ElMessage.error(err?.message || String(err))
         loading.value = false
+    })
+}
+
+function openAssignee(row) {
+    assigneeDrawerRef.value?.open({
+        processId: String(field(row, 'ProcessId', 'processId')),
+        version: String(field(row, 'Version', 'version') || '1')
     })
 }
 

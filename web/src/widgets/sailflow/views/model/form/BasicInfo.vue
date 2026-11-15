@@ -18,6 +18,29 @@
     <el-form-item label="流程名称" prop="processName">
       <el-input v-model="model.processName" clearable placeholder="请输入流程名称" />
     </el-form-item>
+    <el-form-item label="业务标识" prop="businessType">
+      <el-input v-model="model.businessType" clearable placeholder="如 leave，同层唯一、不加流水" />
+    </el-form-item>
+    <el-form-item label="归属类型" prop="authType">
+      <el-select v-model="model.authType" clearable placeholder="待分配留空" style="width: 100%">
+        <el-option label="公共 PUBLIC" value="PUBLIC" />
+        <el-option label="单位 UNIT" value="UNIT" />
+        <el-option label="模板 TEMPLATE" value="TEMPLATE" />
+      </el-select>
+    </el-form-item>
+    <el-form-item v-if="model.authType === 'UNIT'" label="所属单位" prop="authId">
+      <el-input v-model="model.authId" clearable placeholder="人力/SysOrg 单位 Id" />
+    </el-form-item>
+    <el-form-item
+      v-if="model.authType === 'PUBLIC' || model.authType === 'TEMPLATE'"
+      label="共享单位"
+    >
+      <el-input
+        v-model="model.authCode"
+        clearable
+        placeholder="单位 Id 逗号分隔，空=全集团"
+      />
+    </el-form-item>
     <el-form-item label="流程分类" prop="category">
       <el-select v-model="model.category" clearable filterable placeholder="请选择流程分类" style="width: 100%">
         <el-option v-for="c in categoryList" :key="c.Code" :label="c.Name" :value="c.Code" />

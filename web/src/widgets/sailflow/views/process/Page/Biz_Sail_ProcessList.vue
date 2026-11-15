@@ -1,12 +1,13 @@
 <template>
-<formcard title="流程定义" width="" flex stretch>
+<formcard title="单位流程配置" width="" flex stretch>
     <template #toolbar>
         <div ref="VC_Sail_ProcessListHead"></div>
     </template>
     <VC_Sail_ProcessList
         :api="api" :bus="bus" :page="pageData"
         :showTitle="false"
-        title="流程定义"
+        title="单位流程配置"
+        workspace="unit"
         :pageSize="30"
         :flex="true"
         height="100%"

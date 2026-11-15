@@ -161,6 +161,12 @@ function applyBundle(bundle: Record<string, unknown>) {
   model.startUserIds = parseIdList(pickField(meta, 'StartUserIds', 'startUserIds'));
   model.startDeptIds = parseIdList(pickField(meta, 'StartDeptIds', 'startDeptIds'));
   model.managerUserIds = parseIdList(pickField(meta, 'ManagerUserIds', 'managerUserIds'));
+  model.businessType = String(pickField(meta, 'BusinessType', 'businessType') || '');
+  model.authType = String(pickField(bundle, 'AuthType', 'authType') || '');
+  model.authCode = String(pickField(bundle, 'AuthCode', 'authCode') || '');
+  model.authId = String(pickField(bundle, 'AuthId', 'authId') || '');
+  const authLevel = pickField(bundle, 'AuthLevel', 'authLevel');
+  model.authLevel = authLevel === null || authLevel === undefined || authLevel === '' ? null : Number(authLevel);
   applyExtraJson(model, pickField(meta, 'ExtraJson', 'extraJson'));
   formData.value = model;
 }
@@ -248,7 +254,12 @@ function buildSavePayload() {
     StartUserIds: JSON.stringify(m.startUserIds || []),
     StartDeptIds: JSON.stringify(m.startDeptIds || []),
     ManagerUserIds: JSON.stringify(m.managerUserIds || []),
-    ExtraJson: packExtraJson(m)
+    ExtraJson: packExtraJson(m),
+    BusinessType: m.businessType || '',
+    AuthType: m.authType || '',
+    AuthCode: m.authCode || '',
+    AuthId: m.authId || '',
+    AuthLevel: m.authLevel ?? undefined
   };
 }
 

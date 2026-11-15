@@ -32,6 +32,8 @@ public partial class Wf2XmlController : ControllerBase
     private readonly SailClient _sail;
     private readonly SailOperationDispatcher _operationDispatcher;
     private readonly SailProcessMetaService _processMeta;
+    private readonly SailUnitAccess _unitAccess;
+    private readonly SailReleaseService _release;
     private readonly ILogger<Wf2XmlController> _logger;
 
     public Wf2XmlController(
@@ -40,6 +42,8 @@ public partial class Wf2XmlController : ControllerBase
         SailClient sail,
         SailOperationDispatcher operationDispatcher,
         SailProcessMetaService processMeta,
+        SailUnitAccess unitAccess,
+        SailReleaseService release,
         ILogger<Wf2XmlController> logger)
     {
         _workflowService = workflowService;
@@ -47,21 +51,44 @@ public partial class Wf2XmlController : ControllerBase
         _sail = sail;
         _operationDispatcher = operationDispatcher;
         _processMeta = processMeta;
+        _unitAccess = unitAccess;
+        _release = release;
         _logger = logger;
     }
 
-    /// <summary>GET api/Wf2Xml/GetProcessListSimple</summary>
+    /// <summary>GET api/Wf2Xml/GetProcessListSimple?workspace=templates|unit（含 Auth*）</summary>
     [HttpGet]
-    public ResponseResult<List<ProcessEntity>> GetProcessListSimple()
+    public ResponseResult<List<object>> GetProcessListSimple([FromQuery] string? workspace = null)
     {
         try
         {
             var list = _queryService.GetProcessListSimple().ToList();
-            return ResponseResult<List<ProcessEntity>>.Success(list);
+            var filtered = _unitAccess.FilterProcesses(User, list, workspace).ToList();
+            var shaped = filtered.Select(p =>
+            {
+                var auth = _unitAccess.GetProcessAuth(p.ProcessId, p.Version ?? "1");
+                return (object)new
+                {
+                    p.ProcessId,
+                    p.ProcessName,
+                    p.ProcessCode,
+                    p.Version,
+                    p.Status,
+                    p.AppType,
+                    p.Description,
+                    p.Icon,
+                    p.ProcessDefId,
+                    AuthType = auth.AuthType,
+                    AuthCode = auth.AuthCode,
+                    AuthId = auth.AuthId,
+                    AuthLevel = auth.AuthLevel
+                };
+            }).ToList();
+            return ResponseResult<List<object>>.Success(shaped);
         }
         catch (Exception ex)
         {
-            return ResponseResult<List<ProcessEntity>>.Error("GetProcessListSimple failed: " + ex.Message);
+            return ResponseResult<List<object>>.Error("GetProcessListSimple failed: " + ex.Message);
         }
     }
 
@@ -153,6 +180,7 @@ public partial class Wf2XmlController : ControllerBase
                 fileEntity.Version);
             entity.XmlContent = fileEntity.XmlContent;
 
+            // 新建默认同待分配；归属在 WfProcessEdit/Save 写入 Auth*
             var processId = _workflowService.CreateProcess(entity);
             entity.ProcessDefId = processId;
             return ResponseResult<ProcessEntity>.Success(entity, "CreateProcess ok");
@@ -170,6 +198,7 @@ public partial class Wf2XmlController : ControllerBase
         try
         {
             var processEntity = _workflowService.GetProcessByVersion(entity.ProcessId, entity.Version);
+            _unitAccess.RequireProcessAccess(User, processEntity, write: true);
             processEntity.ProcessName = entity.ProcessName;
             processEntity.ProcessCode = entity.ProcessCode;
             processEntity.XmlFileName = entity.XmlFileName;
@@ -183,6 +212,10 @@ public partial class Wf2XmlController : ControllerBase
 
             _workflowService.UpdateProcess(processEntity);
             return ResponseResult.Success("UpdateProcess ok");
+        }
+        catch (SailUnitAccessException ex)
+        {
+            return ResponseResult.Error(ex.Message);
         }
         catch (Exception ex)
         {
@@ -251,8 +284,27 @@ public partial class Wf2XmlController : ControllerBase
                 }
             }
 
+            if (body.UsingState == 1 || body.UsingState == 0)
+            {
+                var process = _workflowService.GetProcessByVersion(body.ProcessId, version);
+                if (process != null)
+                    _unitAccess.RequireProcessAccess(User, process, write: true);
+            }
+
             _workflowService.UpdateProcessUsingState(body.ProcessId, version, body.UsingState);
+            try
+            {
+                _release.OnUsingStateChanged(body.ProcessId, version, body.UsingState);
+            }
+            catch (Exception releaseEx)
+            {
+                _logger.LogWarning(releaseEx, "Publish snapshot/route failed after UsingState change");
+            }
             return ResponseResult.Success("UpdateProcessUsingState ok");
+        }
+        catch (SailUnitAccessException ex)
+        {
+            return ResponseResult.Error(ex.Message);
         }
         catch (Exception ex)
         {

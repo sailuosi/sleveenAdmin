@@ -12,6 +12,21 @@
       <div class="sf-create-form">
         <!-- 元数据表单：与 SailFormRender 拆开，禁止套进 form-create 的 ElForm -->
         <el-form label-width="100px" @submit.prevent>
+          <el-form-item label="业务标识">
+            <el-input v-model="businessType" clearable placeholder="如 leave；填写后按单位解析生效定义" />
+          </el-form-item>
+          <el-form-item label="办理单位">
+            <el-input v-model="startUnitId" clearable placeholder="单位 Id（Resolve 用）" />
+            <el-button
+              style="margin-left: 8px"
+              :disabled="!businessType"
+              :loading="resolving"
+              @click="resolveByBusiness"
+            >
+              解析生效流程
+            </el-button>
+            <span v-if="resolveHint" class="sf-resolve-hint">{{ resolveHint }}</span>
+          </el-form-item>
           <el-form-item label="流程定义" required>
             <el-select
               v-model="selectedKey"
@@ -140,6 +155,7 @@ import { getProcessListSimple } from '@sail/api/process';
 import { getProcessEdit } from '@sail/api/processEdit';
 import { getForm, getFormList } from '@sail/api/form';
 import { getNextActivityRoleUserTree, startProcess } from '@sail/api/runtime';
+import { resolveStartDefinition } from '@sail/api/unitScope';
 import { useSailCurrentUser } from '@sail/adapters/currentUser';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
 import { formValuesToConditions } from '@sail/utils/formCreate';
@@ -152,6 +168,9 @@ defineOptions({ name: 'SailProcessCreatePage' });
 const router = useRouter();
 const { userId, userName } = useSailCurrentUser();
 const loadingList = ref(false);
+const businessType = ref('');
+const resolving = ref(false);
+const resolveHint = ref('');
 const submitting = ref(false);
 const err = ref('');
 const processes = ref<Record<string, unknown>[]>([]);
@@ -376,6 +395,34 @@ async function onSelectForm() {
   }
 }
 
+async function resolveByBusiness() {
+  if (!businessType.value.trim()) return;
+  resolving.value = true;
+  resolveHint.value = '';
+  try {
+    const raw = await resolveStartDefinition({
+      BusinessType: businessType.value.trim(),
+      UnitId: startUnitId.value.trim() || undefined
+    });
+    const data = unpackSailResult(raw);
+    if ((data as { Status?: number })?.Status === -1) {
+      resolveHint.value = (data as { Message?: string })?.Message || '解析失败';
+      return;
+    }
+    const entity = (pickField(data, 'Entity', 'entity') || data) as Record<string, unknown>;
+    const pid = String(pickField(entity, 'ProcessId', 'processId') || '');
+    const ver = String(pickField(entity, 'Version', 'version') || '1');
+    const source = String(pickField(entity, 'Source', 'source') || '');
+    resolveHint.value = `生效：${source} ${pid}@${ver}`;
+    selectedKey.value = `${pid}@${ver}`;
+    await onSelectProcess();
+  } catch (e: unknown) {
+    resolveHint.value = e instanceof Error ? e.message : String(e);
+  } finally {
+    resolving.value = false;
+  }
+}
+
 async function loadProcesses() {
   const data = await getProcessListSimple();
   const r = unpackSailResult<Record<string, unknown>[]>(data);
@@ -545,6 +592,12 @@ onMounted(refreshAll);
 }
 .sf-create-alert {
   margin-bottom: 12px;
+}
+.sf-resolve-hint {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 .sf-create-form {
   max-width: 760px;

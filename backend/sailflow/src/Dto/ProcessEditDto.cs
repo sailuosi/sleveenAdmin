@@ -10,6 +10,12 @@ public class ProcessEditBundle
     public SailProcessMetaEntity? Meta { get; set; }
     /// <summary>是否已有 BPMN（流程设计步骤校验）</summary>
     public bool HasBpmn { get; set; }
+
+    /// <summary>归属 Auth*（宿主 SQL，NuGet ProcessEntity 可能未暴露）</summary>
+    public string? AuthType { get; set; }
+    public string? AuthCode { get; set; }
+    public string? AuthId { get; set; }
+    public int? AuthLevel { get; set; }
 }
 
 /// <summary>保存流程编辑（基本信息 + 表单 + 更多设置）。</summary>
@@ -34,4 +40,13 @@ public class ProcessEditSaveRequest
     public string? StartDeptIds { get; set; }
     public string? ManagerUserIds { get; set; }
     public string? ExtraJson { get; set; }
+
+    /// <summary>稳定业务标识</summary>
+    public string? BusinessType { get; set; }
+
+    /// <summary>PUBLIC | UNIT | TEMPLATE</summary>
+    public string? AuthType { get; set; }
+    public string? AuthCode { get; set; }
+    public string? AuthId { get; set; }
+    public int? AuthLevel { get; set; }
 }

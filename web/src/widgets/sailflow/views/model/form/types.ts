@@ -12,6 +12,13 @@ export type ProcessEditFormModel = {
   startUserIds: string[];
   startDeptIds: string[];
   managerUserIds: string[];
+  /** 稳定业务标识 */
+  businessType: string;
+  /** PUBLIC | UNIT | TEMPLATE | '' */
+  authType: string;
+  authCode: string;
+  authId: string;
+  authLevel?: number | null;
   /** 10 NORMAL · 20 CUSTOM */
   formType: number;
   formId: string;
@@ -61,6 +68,11 @@ export function createEmptyProcessEditForm(): ProcessEditFormModel {
     startUserIds: [],
     startDeptIds: [],
     managerUserIds: [],
+    businessType: '',
+    authType: '',
+    authCode: '',
+    authId: '',
+    authLevel: null,
     formType: FORM_TYPE_NORMAL,
     formId: '',
     formCustomCreatePath: '',

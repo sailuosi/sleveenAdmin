@@ -31,7 +31,11 @@ public class WfProcessEditController : ControllerBase
             if (body == null || string.IsNullOrWhiteSpace(body.ProcessId))
                 return ResponseResult<ProcessEditBundle>.Error("ProcessId required");
             return ResponseResult<ProcessEditBundle>.Success(
-                _meta.GetBundle(body.ProcessId!, body.Version ?? "1"));
+                _meta.GetBundle(body.ProcessId!, body.Version ?? "1", User));
+        }
+        catch (SailUnitAccessException ex)
+        {
+            return ResponseResult<ProcessEditBundle>.Error(ex.Message);
         }
         catch (Exception ex)
         {
@@ -46,8 +50,12 @@ public class WfProcessEditController : ControllerBase
         try
         {
             if (body == null) return ResponseResult<ProcessEditBundle>.Error("body required");
-            var bundle = _meta.Save(body);
+            var bundle = _meta.Save(body, User);
             return ResponseResult<ProcessEditBundle>.Success(bundle, "saved");
+        }
+        catch (SailUnitAccessException ex)
+        {
+            return ResponseResult<ProcessEditBundle>.Error(ex.Message);
         }
         catch (Exception ex)
         {

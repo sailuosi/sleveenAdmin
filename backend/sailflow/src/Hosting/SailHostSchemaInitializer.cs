@@ -155,6 +155,9 @@ public static class SailHostSchemaInitializer
             .createTable<SailLeaveEntity>()
             .createTable<SailProcessCategoryEntity>()
             .createTable<SailProcessMetaEntity>()
+            .createTable<SailProcessAuthEntity>()
+            .createTable<SailPublishedReleaseEntity>()
+            .createTable<SailEffectiveSourceEntity>()
             .createTable<SailTodoPortalRecordEntity>()
             .createTable<SailPreselectAssigneeEntity>();
         TryCreateIndex(kit, "IX_sf_preselect_pi_act", "sf_preselect_assignee",

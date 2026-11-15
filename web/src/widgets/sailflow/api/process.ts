@@ -19,11 +19,12 @@ export function initDb(seed = true) {
   });
 }
 
-/** GET api/Wf2Xml/GetProcessListSimple */
-export function getProcessListSimple() {
+/** GET api/Wf2Xml/GetProcessListSimple?workspace=templates|unit */
+export function getProcessListSimple(workspace?: 'templates' | 'unit') {
   return request({
     url: '/api/Wf2Xml/GetProcessListSimple',
-    method: 'get'
+    method: 'get',
+    params: workspace ? { workspace } : undefined
   });
 }
 
