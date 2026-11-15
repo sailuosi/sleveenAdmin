@@ -86,10 +86,10 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
             ? channel
             : $"{channel}-{activityName}";
 
-        var createCode = task?.CreatedUserId ?? ctx.AssignedUserId ?? "";
+        var createCode = task?.CreatedUserId ?? ctx.SignId ?? "";
         var createName = task?.CreatedUserName ?? "";
-        var receiveCode = ctx.AssignedUserId ?? task?.AssignedUserId ?? "";
-        var receiveName = ctx.AssignedUserName ?? task?.AssignedUserName ?? "";
+        var receiveCode = ctx.SignId ?? task?.SignId ?? "";
+        var receiveName = ctx.SignName ?? task?.SignName ?? "";
 
         var now = DateTime.Now.ToString(TimeFormat);
         var dto = new TaskInfoDto

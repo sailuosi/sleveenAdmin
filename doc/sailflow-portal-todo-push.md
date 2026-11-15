@@ -44,7 +44,7 @@ TaskManager.Insert/Complete/… → FireTaskLifecycle
 | TaskInfo | 来源 |
 |----------|------|
 | `appScheduleId` | `TaskId` |
-| `receiveUserCode` / `Name` | `AssignedUserId` / `AssignedUserName`（Account） |
+| `receiveUserCode` / `Name` | `SignId` / `SignName`（Account） |
 | `createUserCode` / `Name` | 任务 `CreatedUserId` / `CreatedUserName` |
 | `sourceType` | 固定 `"0"`（流程） |
 | `pcUrl` | `{PcUrlBase}sail/process-detail?taskId={id}&processInstanceId={pi}` |

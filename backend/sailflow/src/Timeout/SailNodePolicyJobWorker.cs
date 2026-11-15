@@ -95,7 +95,7 @@ public sealed class SailNodePolicyJobWorker(
             {
                 var clip = sail.UseRunSQL().useClip();
                 clip.from<TaskEntity>(out var t);
-                clip.where(() => t.AssignedUserId, skipId);
+                clip.where(() => t.SignId, skipId);
                 clip.where(() => t.TaskState, (short)TaskStateEnum.Waiting);
                 var batch = clip.select(t).queryList() ?? new List<TaskEntity>();
                 tasks.AddRange(batch);
@@ -119,12 +119,12 @@ public sealed class SailNodePolicyJobWorker(
             if (string.IsNullOrWhiteSpace(task.TaskId)) continue;
             try
             {
-                var uid = string.IsNullOrWhiteSpace(task.AssignedUserId)
+                var uid = string.IsNullOrWhiteSpace(task.SignId)
                     ? SailPolicyConstants.ActiveSkipUserId
-                    : task.AssignedUserId;
-                var uname = string.IsNullOrWhiteSpace(task.AssignedUserName)
+                    : task.SignId;
+                var uname = string.IsNullOrWhiteSpace(task.SignName)
                     ? SailPolicyConstants.ActiveSkipUserName
-                    : task.AssignedUserName;
+                    : task.SignName;
                 var runner = BuildRunnerFromTask(sail, task, uid!, uname!);
                 runner.DynamicVariables ??= new Dictionary<string, string>();
                 runner.DynamicVariables["sail.policySkip"] = "1";
@@ -148,7 +148,7 @@ public sealed class SailNodePolicyJobWorker(
         {
             var clip = sail.UseRunSQL().useClip();
             clip.from<TaskEntity>(out var t);
-            clip.where(() => t.AssignedUserId, SailPolicyConstants.PolicyAutoRejectUserId);
+            clip.where(() => t.SignId, SailPolicyConstants.PolicyAutoRejectUserId);
             clip.where(() => t.TaskState, (short)TaskStateEnum.Waiting);
             tasks = clip.select(t).queryList().Take(20).ToList();
         }
@@ -191,21 +191,21 @@ public sealed class SailNodePolicyJobWorker(
             clip.from<TaskEntity>(out var t);
             clip.where(() => t.TaskState, (short)TaskStateEnum.Waiting);
             var waiting = clip.select(t).queryList() ?? new List<TaskEntity>();
-            // 主路径：已落库的 task.overdue_datetime；旧行无 Due 时回退 Created+策略（Handle 内）
+            // 主路径：已落库 DueAt；未打戳时回退 Created+策略（Handle 内）
             dueTasks = waiting
                 .Where(x => !string.IsNullOrWhiteSpace(x.TaskId))
-                .Where(x => x.OverdueDateTime.HasValue && ToUtc(x.OverdueDateTime.Value) <= now)
+                .Where(x => x.DueAt.HasValue && ToUtc(x.DueAt.Value) <= now)
                 .Take(20)
                 .ToList();
 
-            // 兼容旧数据：Waiting 无 Due 的少量行，仍交给按活动策略回退
+            // Waiting 尚未 DueAt：按活动策略即时演算
             if (dueTasks.Count < 20)
             {
-                var legacy = waiting
-                    .Where(x => !string.IsNullOrWhiteSpace(x.TaskId) && !x.OverdueDateTime.HasValue)
+                var undated = waiting
+                    .Where(x => !string.IsNullOrWhiteSpace(x.TaskId) && !x.DueAt.HasValue)
                     .Take(20 - dueTasks.Count)
                     .ToList();
-                dueTasks.AddRange(legacy);
+                dueTasks.AddRange(undated);
             }
         }
         catch (Exception ex)
@@ -247,14 +247,14 @@ public sealed class SailNodePolicyJobWorker(
         if (!policy.TimeoutHandlerEnable)
             return;
 
-        // 有 Due 只信字段；无 Due 旧行才回退 Created+span
-        if (!task.OverdueDateTime.HasValue)
+        // 有 DueAt 只信字段；无则回退 Created+span
+        if (!task.DueAt.HasValue)
         {
             var span = SailNodePolicyTimeout.ToTimeSpan(policy.TimeDuration, policy.TimeUnit);
             if (span == null || !IsLegacyTaskDue(task, act, span.Value))
                 return;
         }
-        else if (ToUtc(task.OverdueDateTime.Value) > DateTime.UtcNow)
+        else if (ToUtc(task.DueAt.Value) > DateTime.UtcNow)
         {
             return;
         }
@@ -272,10 +272,10 @@ public sealed class SailNodePolicyJobWorker(
                 runner.DynamicVariables ??= new Dictionary<string, string>();
                 runner.DynamicVariables["sail.timeout"] = "agree";
                 runner.DynamicVariables["sail.comment"] = "超时策略：自动同意";
-                runner.UserId = task.AssignedUserId;
-                runner.UserName = string.IsNullOrWhiteSpace(task.AssignedUserName)
+                runner.UserId = task.SignId;
+                runner.UserName = string.IsNullOrWhiteSpace(task.SignName)
                     ? SailPolicyConstants.TimeoutSystemUserName
-                    : task.AssignedUserName;
+                    : task.SignName;
                 var exec = wf.RunProcess(runner);
                 if (exec.Status != WfExecutedStatus.Success)
                     logger.LogWarning("Timeout agree failed task={Id}: {Msg}", task.TaskId, exec.Message);
@@ -284,8 +284,8 @@ public sealed class SailNodePolicyJobWorker(
             case 3: // 自动拒绝
             {
                 var runner = BuildRunnerFromTask(sail, task,
-                    task.AssignedUserId,
-                    task.AssignedUserName ?? SailPolicyConstants.TimeoutSystemUserName);
+                    task.SignId,
+                    task.SignName ?? SailPolicyConstants.TimeoutSystemUserName);
                 runner.DynamicVariables ??= new Dictionary<string, string>();
                 runner.DynamicVariables["sail.timeout"] = "reject";
                 runner.DynamicVariables["sail.comment"] = "超时策略：自动拒绝";
@@ -299,7 +299,7 @@ public sealed class SailNodePolicyJobWorker(
 
     static bool IsLegacyTaskDue(TaskEntity task, ActivityInstanceEntity act, TimeSpan span)
     {
-        var created = task.ActivatedDateTime ?? task.CreatedDateTime ?? act.CreatedDateTime ?? DateTime.UtcNow;
+        var created = task.ActiveAt ?? task.CreatedDateTime ?? act.CreatedDateTime ?? DateTime.UtcNow;
         var dueAt = ToUtc(created).Add(span);
         return dueAt <= DateTime.UtcNow;
     }
@@ -326,7 +326,7 @@ public sealed class SailNodePolicyJobWorker(
 
             logger.LogInformation(
                 "Timeout remind #{Count}/{Max} task={TaskId} user={User} activity={Act}",
-                count, max, task.TaskId, task.AssignedUserId, task.ActivityId);
+                count, max, task.TaskId, task.SignId, task.ActivityId);
             try
             {
                 sail.CapabilityDispatcher.FireTaskLifecycle(

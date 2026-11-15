@@ -537,8 +537,8 @@ public partial class Wf2XmlController
                     BizPK = task.BizPK,
                     ProcessId = task.ProcessId,
                     Version = task.Version,
-                    UserId = task.AssignedUserId,
-                    UserName = task.AssignedUserName,
+                    UserId = task.SignId,
+                    UserName = task.SignName,
                     BizChannel = task.BizChannel,
                     Conditions = query.Conditions ?? new Dictionary<string, string>()
                 };
@@ -582,10 +582,10 @@ public partial class Wf2XmlController
                         ai = dto.ActivityInstances.FirstOrDefault(a => a.ActivityInstanceId == task.ActivityInstanceId)
                              ?? _workflowService.GetActivityInstance(task.ActivityInstanceId);
                     }
-                    if (!string.IsNullOrWhiteSpace(ai?.BackSrcActivityInstanceId))
+                    if (!string.IsNullOrWhiteSpace(ai?.BackSrcActInstanceId))
                     {
                         dto.HasBackSrc = true;
-                        dto.BackSrcActivityInstanceId = ai.BackSrcActivityInstanceId;
+                        dto.BackSrcActInstanceId = ai.BackSrcActInstanceId;
                     }
                 }
                 catch

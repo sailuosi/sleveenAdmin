@@ -58,7 +58,7 @@ public static class SailflowHostSetup
                 .UseFlowEventFileLog() // BestEffort：流程事件 Channel → 串行写文件（可丢）
                 .UseFormBizLifecycleHook() // §H：FormCode → OnFinish（含请假 Status）
                 .UseBizMirrorHook() // stub: console-only; real port later
-                .UseNodePolicyTimeoutStamp() // §A：NodePolicy 超时 → OverdueDateTime
+                .UseNodePolicyTimeoutStamp() // §A：NodePolicy 超时 → DueAt
                 // 立刻归档默认不挂：需要时 .UseImmediateProcessArchiveHook()（sailflow.data）
                 // 旧 UseLeaveStatusHook 已由 FormBiz 生命周期 Hook 替代
                 .UsePortalScheduleTaskNotifier(sp) // Reliable：UnifiedReport:Enabled 时 Outbox Drain + 待办推送

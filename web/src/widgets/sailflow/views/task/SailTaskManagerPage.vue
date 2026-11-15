@@ -43,7 +43,7 @@
           </vccol>
           <vccol field="appName" caption="应用" min-width="140px" type="text" />
           <vccol field="activityName" caption="节点" min-width="120px" type="text" />
-          <vccol field="assignedUserName" caption="办理人" width="120px" type="text" />
+          <vccol field="signName" caption="办理人" width="120px" type="text" />
           <vccol field="appInstanceId" caption="业务单号" min-width="140px" type="text" />
           <vccol field="createdDateTime" caption="到达时间" width="168px" type="datetime" />
         </vclist>

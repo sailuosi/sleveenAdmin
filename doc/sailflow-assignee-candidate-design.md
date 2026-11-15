@@ -28,7 +28,7 @@
 | 2026-11-01 | **§7.5 / §8 收口**：订入 R1–R5（单位、单轨、主数据、缺配置拒绝、抄送/通知分离）；其余开放问题再议 |
 | 2026-11-01 | **修订 R1**：UnitId/Code/Name 独立于 Group\*（可空）；实例可选 StartUnit\*；Leave 不读 Unit |
 | 2026-11-01 | **R6**：设计默认 Resolve=`ApproverPick`（发送人自选）+ Leave=`Collaborate`；发布前非空；预埋可覆盖 |
-| 2026-11-01 | **R3 补**：AssignedUserId = 用户编码（如登录账号） |
+| 2026-11-01 | **R3 补**：SignId = 用户编码（如登录账号） |
 | 2026-11-01 | **R7**：组间完成 And/Or + groupCompleteCount/Rate |
 | 2026-11-01 | **R8**：队长关卡必办、组员可办、关卡办完可发送 |
 | 2026-11-01 | **R9**：同码覆盖诊断强制 |
@@ -54,7 +54,7 @@
 | 叫法 | 含义 | 备注 |
 |------|------|------|
 | **用户任务** | BPMN User Task（设计器中文常译「用户任务」） | 参照项目审批节点同属此类 |
-| **办理人 / 待办人** | 任务落到具体人后的执行者（待办列表按此人过滤） | Sail 任务表 `AssignedUserId` |
+| **办理人 / 待办人** | 任务落到具体人后的执行者（待办列表按此人过滤） | Sail 任务表 `SignId` |
 | **候选人** | 尚未认领或多人可选时的候选集合 | 参照项目 candidateUsers；Sail 多用「下一跳 Users 树」再 Specific 指定 |
 | **参与者 Performer** | Sail 设计器挂在节点上的 Role/User 条目 | `sf:Performer`，不等于完整策略模型 |
 | **候选人策略** | 参照项目 `CandidateStrategy` 枚举 | 「按什么规则算出人」 |
@@ -230,7 +230,7 @@ NextActivityPerformers[activityId] = [
 **约定**：
 
 1. 结构化自选（场景 8 + 多单位）发出的矩阵：有组内抢办语义时须带 **GroupId**；有企业单位语境时填 **Unit\***（可空）；二者重叠时可双写 `GroupId=UnitId`。身份默认可选 `Member`。  
-2. Resolver（F3）有组语义须填齐 Group\*；有单位语境建议填 Unit\*（允许空）。禁止靠「逗号拼接 AssignedUserIds」事后猜组。  
+2. Resolver（F3）有组语义须填齐 Group\*；有单位语境建议填 Unit\*（允许空）。禁止靠「逗号拼接 SignIds」事后猜组。  
 3. 任务/活动实例落库须能还原 Group\*（Leave）与 Unit\*（展示）；实例可选 StartUnit\*。
 
 #### 三根基与上层场景的分工
@@ -386,7 +386,7 @@ SailClient
 经由：F1 传入整表 → F2 按组拆任务并判完成
 ```
 
-实施时往往对应：**多路并行人工分支 / 多实例按组拆分 / 或显式「单位会签」结构**，而不是只改一个扁平 `AssignedUserId`。
+实施时往往对应：**多路并行人工分支 / 多实例按组拆分 / 或显式「单位会签」结构**，而不是只改一个扁平 `SignId`。
 
 ### 4.4 从场景反推的建模含义
 
@@ -517,7 +517,7 @@ SailClient
 |----|------|------------------|
 | **R1** | Group\* vs Unit\* | **正交，禁止 GroupId 冒充单位。** ① Group\*：办理分组 + 组内身份；Leave **只读 Group\***。② **UnitId/UnitCode/UnitName**（string，**可空**）：企业单位展示/筛选；落 Performer→任务/活动/视图。③ 流程实例可选 **StartUnitId/Code/Name**（发起单位，供实例列表筛），**不覆盖**节点 Unit\*。④ 重叠时可双写 `GroupId=UnitId` 并仍填 Unit\*。 |
 | **R2** | 单轨定型 | 定型期**收掉双轨**，不背历史债。运行时只走 Assignee 管道；缺配置不得回落 Definition/旧会签。 |
-| **R3** | 主数据与用户身份键 | 在 **sleveen-admin** 接组织/人员（如 `SysUser`/Org）；覆盖或继承 Lookup。sailflow 不吸收宿主用户表。**`AssignedUserId` / `Performer.UserId` = 用户编码（如登录账号 `Account`）**，选人/派发/待办过滤同一套；不默认存 `Id` GUID 或人事工号。 |
+| **R3** | 主数据与用户身份键 | 在 **sleveen-admin** 接组织/人员（如 `SysUser`/Org）；覆盖或继承 Lookup。sailflow 不吸收宿主用户表。**`SignId` / `Performer.UserId` = 用户编码（如登录账号 `Account`）**，选人/派发/待办过滤同一套；不默认存 `Id` GUID 或人事工号。 |
 | **R4** | 缺配置 | 运行时**禁止暗默认** → **拒绝** + ReasonCode。设计预埋见 **R6**（写入 BPMN 后运行时只认落盘配置）。显式 `Fallback`/`onEmpty` 除外。 |
 | **R5** | 三线分离 | 待办人 ConfigPair ≠ 通知（Task Notifier / 回调与事件）≠ 抄送（独立通道 + 自有事件 / 现 Host 表 `sf_proc_copyto`）。设计器勿混面板。 |
 | **R6** | 设计默认 | **流程设计能力**。发布前 Resolve+Leave 非空。预埋可覆盖。出厂默认：Resolve=**`ApproverPick`（发送人自选）**，Leave=**`Collaborate`**。勿与 `StarterPick`（发起人自选）混淆。设计器新增 UserTask / 模板种子写入；项目可改默认（如改 Race）。 |
@@ -545,7 +545,7 @@ SailClient
 ### 8.2 主数据、身份、**单位维度**（场景 4/6/7 的前提）
 
 3. 选人 UI 默认数据源：Sail 资源用户 / 宿主系统用户 / 人事主数据？ → **倾向宿主系统用户**（R3），细目再议  
-4. 任务 `AssignedUserId` 存什么：✅ **用户编码（如登录账号）**（R3）；非 GUID/工号默认。  
+4. 任务 `SignId` 存什么：✅ **用户编码（如登录账号）**（R3）；非 GUID/工号默认。  
 5. **「单位」到底是什么？** ✅ **独立 Unit\***（R1 修订）；引擎不解释组织树语义，只存 string 三字段。业务含义（法人/班级/项目部…）由该节点 Resolve/宿主填入；**不等于** GroupId。  
 6. 单位→人 / 单位→群组 的映射：✅ 主数据与映射在**宿主/业务**；引擎仅 `UnitMap`/`JobRelative` 等骨架 + Lookup 覆盖（R3）；输出填 Unit\*，需要组内抢办时再写 Group\*。
 
@@ -614,7 +614,7 @@ SailClient
 | 办理人实体（仅 Id/Name） | `sailflow/.../Common/Performer.cs` ← **待扩 GroupId / GroupRole** |
 | 节点算人（角色） | `.../Xpdl/ProcessModelBPMN.cs` → `GetActivityPerformers` / `GetActivityRoles` |
 | 角色扩用户 | `.../Common/PerformerBuilder.cs` |
-| 写入办理人（时刻 A 落点附近） | `.../Core/Pattern/NodeMediator.cs` → `GenerateActivityAssignedUserInfo` |
+| 写入办理人（时刻 A 落点附近） | `.../Core/Pattern/NodeMediator.cs` → `GenerateActivitySignInfo` |
 | 会签完成（时刻 B 应收口） | 多实例 / `sf:MultiSignDetail` |
 | 参照策略枚举 | n_flowable `SimpleProcessDesignerV2/src/consts.ts` → `CandidateStrategy` |
 | 分层铁律 | `sailflow/doc/sail/架构设计-项目依赖与分层.md` |
@@ -873,7 +873,7 @@ sf:leaveJudge      = {"type":"Collaborate","params":{"completeRate":0.6}}
 
 | 时机 | 今日锚点 | engine 内目标代码形态 |
 |------|----------|------------------------|
-| **时刻 A** | `GenerateActivityAssignedUserInfo` 等 | `pipeline.ResolveForTaskCreate(req)` → 用返回列表建任务；**删除** Role-only 硬编码分支 |
+| **时刻 A** | `GenerateActivitySignInfo` 等 | `pipeline.ResolveForTaskCreate(req)` → 用返回列表建任务；**删除** Role-only 硬编码分支 |
 | **时刻 B** | `CheckPassRateMatchedInfo` 等 | `pipeline.CanLeave(req)`；Allow 才转移 |
 | 未挂载 | — | `GetAssigneePipelineRequired()` 提示调用 `UseAssignees()` |
 

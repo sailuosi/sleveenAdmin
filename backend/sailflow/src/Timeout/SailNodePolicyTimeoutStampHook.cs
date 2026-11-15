@@ -11,7 +11,7 @@ using SleveenAdmin.Sailflow.Utility;
 namespace SleveenAdmin.Sailflow.Timeout;
 
 /// <summary>
-/// §A：可办时刻按 NodePolicy 写入待办 <c>ActivatedDateTime</c> / <c>OverdueDateTime</c>
+/// §A：可办时刻按 NodePolicy 写入待办 <c>ActiveAt</c> / <c>DueAt</c>
 ///（及对应活动实例 Overdue；与 Boundaries 取更严）。
 /// Sync 时必须用 <see cref="FlowHookContext.Kit"/> 同事务，禁止另开连接。
 /// </summary>
@@ -98,8 +98,8 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
         var due = SailNodePolicyTimeout.ComputeOverdue(activated, policy);
         if (due == null) return;
 
-        task.ActivatedDateTime = activated;
-        task.OverdueDateTime = PickEarlier(task.OverdueDateTime, due.Value);
+        task.ActiveAt = activated;
+        task.DueAt = PickEarlier(task.DueAt, due.Value);
         kit.useRepo<TaskEntity>().Update(task);
         ApplyActivityOverdue(kit, inst, due.Value);
     }
@@ -135,10 +135,10 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
     static void ApplyActivityOverdue(SQLBuilder kit, ActivityInstanceEntity inst, DateTime due)
     {
         // 已有 Boundaries 逾期时：取更早的截止（更严）
-        if (inst.OverdueDateTime.HasValue && inst.OverdueDateTime.Value < due)
+        if (inst.DueAt.HasValue && inst.DueAt.Value < due)
             return;
 
-        inst.OverdueDateTime = due;
+        inst.DueAt = due;
         kit.useRepo<ActivityInstanceEntity>().Update(inst);
     }
 
@@ -155,8 +155,8 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
         var taskRepo = kit.useRepo<TaskEntity>();
         foreach (var task in tasks)
         {
-            task.ActivatedDateTime = activated;
-            task.OverdueDateTime = PickEarlier(task.OverdueDateTime, due);
+            task.ActiveAt = activated;
+            task.DueAt = PickEarlier(task.DueAt, due);
             taskRepo.Update(task);
         }
     }

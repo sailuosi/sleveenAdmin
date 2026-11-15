@@ -70,7 +70,7 @@ public static class SailHostSchemaInitializer
             .createTable<ProcessInstanceEntity>()
             .createTable<ActivityInstanceEntity>()
             .createTable<TaskEntity>()
-            .createTable<TransitionInstanceEntity>()
+            .createTable<TrackEntity>()
             .createTable<VariableEntity>()
             .createTable<ProcessVariableEntity>()
             .createTable<LogEntity>()
@@ -96,11 +96,11 @@ public static class SailHostSchemaInitializer
 
         TryCreateIndex(kit, "IX_wf_task_pi", "wf_task", "tk_proc_instance_id");
         TryCreateIndex(kit, "IX_wf_task_assignee_state", "wf_task",
-            "tk_asgn_user_id", "tk_task_state", "tk_proc_instance_id");
+            "tk_sign_id", "tk_task_state", "tk_proc_instance_id");
         TryCreateIndex(kit, "IX_wf_task_state_created", "wf_task",
             "tk_task_state", "tk_crt_time");
-        TryCreateIndex(kit, "IX_wf_task_state_overdue", "wf_task",
-            "tk_task_state", "tk_overdue_time");
+        TryCreateIndex(kit, "IX_wf_task_state_due", "wf_task",
+            "tk_task_state", "tk_due_at");
         TryCreateIndex(kit, "IX_wf_task_consult_src", "wf_task",
             "tk_consult_src_task_id", "tk_task_state");
         TryCreateIndex(kit, "IX_wf_ai_pi_state", "wf_act_instance",
@@ -111,7 +111,7 @@ public static class SailHostSchemaInitializer
             "pi_crt_user_id", "pi_process_state", "pi_crt_time");
         TryCreateIndex(kit, "IX_wf_pv_pi_name", "wf_proc_variable",
             "pv_proc_instance_id", "pv_name");
-        TryCreateIndex(kit, "IX_wf_ti_pi", "wf_tran_instance",
+        TryCreateIndex(kit, "IX_wf_ti_pi", "wf_track",
             "ti_proc_instance_id");
         TryCreateIndex(kit, "IX_wf_hook_outbox_status", "wf_hook_outbox",
             "ho_status", "ho_nxt_retry_at");
@@ -192,7 +192,7 @@ public static class SailHostSchemaInitializer
             .InnerJoin<ProcessInstanceEntity>(out var pi)
             .on(() => t.ProcessInstanceId == pi.ProcessInstanceId)
             .LeftJoin<ActivityInstanceEntity>(out var mai)
-            .on(() => ai.MainActivityInstanceId == mai.ActivityInstanceId);
+            .on(() => ai.MainActInstanceId == mai.ActivityInstanceId);
 
         // 投影列名须与 TaskViewEntity SooColumn 一致（带表前缀后不可再混用 t./ai./pi. 同名列）。
         clip.select(() => new
@@ -201,6 +201,8 @@ public static class SailHostSchemaInitializer
             t.BizChannel,
             t.BizPK,
             pi.BizCode,
+            pi.Title,
+            pi.ProcessName,
             t.ProcessInstanceId,
             pi.ProcessId,
             pi.Version,
@@ -217,10 +219,12 @@ public static class SailHostSchemaInitializer
             t.EntrustedTaskId,
             t.AssigneeRole,
             t.ConsultSrcTaskId,
-            ai.MainActivityInstanceId,
+            ai.MainActInstanceId,
             ai.CompleteOrder,
-            t.AssignedUserId,
-            t.AssignedUserName,
+            t.SignKind,
+            t.SignId,
+            t.SignName,
+            t.Idx,
             t.GroupId,
             t.GroupName,
             t.GroupRole,
@@ -228,12 +232,18 @@ public static class SailHostSchemaInitializer
             t.UnitCode,
             t.UnitName,
             t.IsEMailSent,
+            t.IsRead,
+            t.ReadAt,
+            t.Msg,
+            t.RowPara,
             ai.ApprovalStatus,
             t.CreatedDateTime,
-            t.ActivatedDateTime,
-            t.OverdueDateTime,
+            t.SendAt,
+            t.GotAt,
+            t.ActiveAt,
+            t.DueAt,
             t.UpdatedDateTime,
-            t.EndedDateTime,
+            t.CompletedAt,
             t.EndedUserId,
             t.EndedUserName,
             t.TaskState,

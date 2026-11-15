@@ -55,7 +55,7 @@ function makeOverdueEntry() {
       element,
       label: '逾期时长（Boundaries）',
       description:
-        'ISO8601，例 PT10M / PT1H / P1D。仅写入 OverdueDateTime，不执行提醒/自动同意/拒绝。产品超时策略请用节点配置「审批人超时未处理时」。',
+        'ISO8601，例 PT10M / PT1H / P1D。仅写入活动 DueAt，不执行提醒/自动同意/拒绝。产品超时策略请用节点配置「审批人超时未处理时」。',
       getValue,
       setValue,
       debounce

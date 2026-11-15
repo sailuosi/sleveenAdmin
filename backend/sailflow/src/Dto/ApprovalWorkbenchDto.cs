@@ -32,7 +32,7 @@ public class ApprovalWorkbenchDto
     public bool HasBackSrc { get; set; }
 
     /// <summary>§G：退回源活动实例 Id（有则 HasBackSrc=true）。</summary>
-    public string? BackSrcActivityInstanceId { get; set; }
+    public string? BackSrcActInstanceId { get; set; }
 
     /// <summary>§J 维①：Prev | Starter | History（来自节点 NodePolicy）。</summary>
     public string SendBackTarget { get; set; } = "Starter";

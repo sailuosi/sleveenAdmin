@@ -26,7 +26,7 @@ public static class SailDevConsole
                 DevConsole.Field("活动节点", $"{ctx.ActivityCode} ({ctx.ActivityId})"),
                 DevConsole.Field("活动实例", ctx.ActivityInstanceId),
                 DevConsole.Field("待办Id", ctx.TaskId),
-                DevConsole.Field("办理人", $"{ctx.AssignedUserName} ({ctx.AssignedUserId})"),
+                DevConsole.Field("办理人", $"{ctx.SignName} ({ctx.SignId})"),
                 DevConsole.Field("同事务Kit", ctx.Kit != null ? "是" : "否"));
         }
         catch (Exception ex)
@@ -55,7 +55,7 @@ public static class SailDevConsole
                 DevConsole.Field("活动节点", $"{ctx.ActivityCode} ({ctx.ActivityId})"),
                 DevConsole.Field("活动实例", ctx.ActivityInstanceId),
                 DevConsole.Field("待办Id", ctx.TaskId),
-                DevConsole.Field("办理人", $"{ctx.AssignedUserName} ({ctx.AssignedUserId})"));
+                DevConsole.Field("办理人", $"{ctx.SignName} ({ctx.SignId})"));
         }
         catch (Exception ex)
         {

@@ -126,8 +126,8 @@
                     <el-tag size="small" effect="plain">{{ activityStateLabel(a) }}</el-tag>
                   </div>
                   <div class="sf-detail-page__tl-sub">
-                    <span v-if="field(a, 'AssignedUserNames', 'assignedUserNames')">
-                      办理人 {{ field(a, 'AssignedUserNames', 'assignedUserNames') }}
+                    <span v-if="field(a, 'SignNames', 'signNames')">
+                      办理人 {{ field(a, 'SignNames', 'signNames') }}
                     </span>
                     <span v-if="field(a, 'EndedUserName', 'endedUserName')">
                       · 完成人 {{ field(a, 'EndedUserName', 'endedUserName') }}
@@ -285,7 +285,7 @@ const ACTIVITY_STATE: Record<number, string> = {
 
 const canHandle = computed(() => {
   if (!task.value) return false;
-  const assigned = String(pickField(task.value, 'AssignedUserId', 'assignedUserId') || '');
+  const assigned = String(pickField(task.value, 'SignId', 'signId') || '');
   const state = Number(pickField(task.value, 'ActivityState', 'activityState') || 0);
   return assigned === userId.value && (state === 1 || state === 2);
 });
@@ -442,7 +442,7 @@ async function load() {
     processInstance.value =
       (pickField(entity, 'ProcessInstance', 'processInstance') as Record<string, unknown>) || null;
     const backSrcId = String(
-      pickField(entity, 'BackSrcActivityInstanceId', 'backSrcActivityInstanceId') || ''
+      pickField(entity, 'BackSrcActInstanceId', 'backSrcActInstanceId') || ''
     ).trim();
     hasBackSrc.value = !!(
       pickField(entity, 'HasBackSrc', 'hasBackSrc') === true ||

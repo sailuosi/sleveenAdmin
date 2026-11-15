@@ -64,7 +64,7 @@ public class SailReportService
             doneClip.from<TaskViewEntity>(out var td);
             doneClip.where(() => td.TaskState, (short)4);
             dto.TaskCompletedRecent = doneClip.select(td).queryList()
-                .Count(x => x.EndedDateTime != null && x.EndedDateTime >= since);
+                .Count(x => x.CompletedAt != null && x.CompletedAt >= since);
         }
         catch
         {
