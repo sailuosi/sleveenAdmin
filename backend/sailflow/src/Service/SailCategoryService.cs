@@ -61,6 +61,7 @@ public class SailCategoryService
         existing.AuthType = row.AuthType;
         existing.AuthCode = row.AuthCode;
         existing.AuthId = row.AuthId;
+        existing.AuthLevel = row.AuthLevel;
         repo.Update(existing);
         return existing;
     }

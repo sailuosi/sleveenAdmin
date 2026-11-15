@@ -33,6 +33,10 @@ public class SailProcessCategoryEntity
     [SooColumn(Name = "auth_id", Length = 64)]
     public string? AuthId { get; set; }
 
+    /// <summary>密级；业务侧权限过滤预留（可空，非必填）。</summary>
+    [SooColumn(Name = "auth_level")]
+    public int? AuthLevel { get; set; }
+
     [SooColumn(Name = "created_at")]
     public DateTime? CreatedAt { get; set; }
 }
