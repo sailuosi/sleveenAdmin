@@ -1,5 +1,6 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using sailflow.biz.query;
 using sailflow.engine.Entity;
 using sailflow.engine.Manager;
@@ -26,6 +27,7 @@ public partial class Wf2XmlController
             SailAuthIdentity.BindRunner(User, runner);
             var exec = await _workflowService.StartProcessAsync(runner, HttpContext.RequestAborted);
             PersistRunnerConditions(runner, exec);
+            // 预选办理人：独立 api/WfPreselect，由发起页组件在 Start 成功后写入
             return FromExecuted(exec);
         }
         catch (Exception ex)
@@ -260,10 +262,7 @@ public partial class Wf2XmlController
         try
         {
             SailAuthIdentity.BindRunner(User, runner);
-            var ok = _workflowService.TerminateProcess(runner);
-            return ok
-                ? ResponseResult.Success("TerminateProcess ok")
-                : ResponseResult.Error("TerminateProcess failed");
+            return FromExecuted(_workflowService.TerminateProcess(runner));
         }
         catch (Exception ex)
         {
@@ -278,10 +277,7 @@ public partial class Wf2XmlController
         try
         {
             SailAuthIdentity.BindRunner(User, runner);
-            var ok = _workflowService.DiscardProcess(runner);
-            return ok
-                ? ResponseResult.Success("DiscardProcess ok")
-                : ResponseResult.Error("DiscardProcess failed");
+            return FromExecuted(_workflowService.DiscardProcess(runner));
         }
         catch (Exception ex)
         {

@@ -39,8 +39,16 @@
                   </el-radio>
                 </el-radio-group>
               </el-form-item>
+              <SailPreselectApproveHint
+                v-if="selectedActivityId"
+                :process-id="String(pickField(task, 'ProcessId', 'processId') || '')"
+                :version="String(pickField(task, 'Version', 'version') || '1')"
+                :process-instance-id="approveProcessInstanceId"
+                :activity-id="selectedActivityId"
+                @update:skip-manual-pick="v => (preselectSkipManualPick = v)"
+              />
               <el-form-item
-                v-if="selectedActivityId && selectedNeedsPerformer"
+                v-if="selectedActivityId && selectedNeedsPerformer && !preselectSkipManualPick"
                 :label="needsManualPick ? '下一办理人（必选）' : '下一办理人'"
                 :required="needsManualPick"
               >
@@ -392,6 +400,7 @@ import {
   type SailButtonSetting
 } from '@sail/bpmn/buttonsCatalog';
 import SailCandidatePicker from '@sail/components/runtime/SailCandidatePicker.vue';
+import SailPreselectApproveHint from '@sail/components/preselect/SailPreselectApproveHint.vue';
 
 const props = withDefaults(
   defineProps<{
@@ -558,8 +567,19 @@ const candidateUsers = computed(() => {
   if (roleTreeUsers.value.length) return roleTreeUsers.value;
   return allUsers.value as unknown as Record<string, unknown>[];
 });
+/** 下一跳已有 Preselect 表数据时跳过强制选人（独立组件探测） */
+const preselectSkipManualPick = ref(false);
+const approveProcessInstanceId = computed(() =>
+  String(
+    pickField(props.task, 'ProcessInstanceId', 'processInstanceId') ||
+      pickField(props.processInstance || {}, 'ProcessInstanceId', 'processInstanceId', 'Id', 'id') ||
+      ''
+  )
+);
+
 // 结束/网关等不需选人；anyselect/search 必选；无 Mode 时兼容旧接口
 const needsManualPick = computed(() => {
+  if (preselectSkipManualPick.value) return false;
   if (!selectedActivityId.value || !selectedNeedsPerformer.value) return false;
   const m = selectedCandidateMode.value.toLowerCase();
   if (m === 'anyselect' || m === 'search') return true;

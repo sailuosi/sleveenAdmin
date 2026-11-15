@@ -103,12 +103,20 @@
         </el-form-item>
       </template>
       <el-alert
-        v-else-if="type === 'StarterPick' || type === 'ApproverPick' || type === 'Specific'"
+        v-else-if="type === 'StarterPick' || type === 'ApproverPick' || type === 'Specific' || type === 'Preselect'"
         type="info"
         :closable="false"
         show-icon
         :title="pickHint"
       />
+      <template v-if="type === 'Preselect'">
+        <el-form-item label="required">
+          <el-switch v-model="draft.required" />
+        </el-form-item>
+        <el-form-item label="allowMulti">
+          <el-switch v-model="draft.allowMulti" />
+        </el-form-item>
+      </template>
       <el-alert
         v-else-if="type"
         type="info"
@@ -197,6 +205,8 @@ type Draft = {
   completeRate: number | undefined;
   groupJoin: string;
   gateRoles: string[];
+  required: boolean;
+  allowMulti: boolean;
 };
 
 const draft = reactive<Draft>(emptyDraft());
@@ -215,13 +225,17 @@ function emptyDraft(): Draft {
     relative: '',
     completeRate: undefined,
     groupJoin: '',
-    gateRoles: []
+    gateRoles: [],
+    required: false,
+    allowMulti: true
   };
 }
 
 const pickHint = computed(() => {
   if (props.type === 'StarterPick') return '发起人自选：运行时由办理人指定下一跳；通常无需 Params';
   if (props.type === 'ApproverPick') return '发送人自选（出厂默认）：通常无需 Params';
+  if (props.type === 'Preselect')
+    return '实例预选：发起时写入 sf_preselect_assignee；到达本节点时从表取人。发起可把多人塞进 NextActivityPerformers 多 key。';
   return 'Specific：办理人由调用方传入；通常无需 Params';
 });
 
@@ -243,6 +257,8 @@ function applyFromJson(raw: string) {
     typeof p.completeRate === 'number' ? p.completeRate : p.completeRate != null ? Number(p.completeRate) : undefined;
   draft.groupJoin = String(p.groupJoin ?? '');
   draft.gateRoles = Array.isArray(p.gateRoles) ? p.gateRoles.map(String) : [];
+  draft.required = p.required === true || p.required === 'true';
+  draft.allowMulti = p.allowMulti !== false && p.allowMulti !== 'false';
   advancedJson.value = raw || '';
 }
 
@@ -268,6 +284,9 @@ function buildParams(): Record<string, unknown> {
       if (draft.nextType) p.nextType = draft.nextType;
     } else if (props.type === 'ProcessRelative') {
       if (draft.relative) p.relative = draft.relative;
+    } else if (props.type === 'Preselect') {
+      if (draft.required) p.required = true;
+      if (draft.allowMulti) p.allowMulti = true;
     }
   } else {
     if (props.type === 'Collaborate' || props.type === 'GroupCollaborate') {

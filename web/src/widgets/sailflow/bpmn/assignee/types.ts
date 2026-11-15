@@ -7,6 +7,7 @@ export const RESOLVE_TYPE_OPTIONS: SelectOpt[] = [
   { label: 'ProcessRelative', value: 'ProcessRelative' },
   { label: 'StarterPick', value: 'StarterPick' },
   { label: 'ApproverPick', value: 'ApproverPick' },
+  { label: 'Preselect（实例预选）', value: 'Preselect' },
   { label: 'UnitMap', value: 'UnitMap' },
   { label: 'JobRelative', value: 'JobRelative' },
   { label: 'BusinessCallback', value: 'BusinessCallback' },

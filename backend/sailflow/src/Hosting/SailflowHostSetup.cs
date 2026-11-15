@@ -101,6 +101,8 @@ public static class SailflowHostSetup
             client.UseSleveenOrgLookups(configuration);
             // §A：NodePolicy 空人/同人（同人=3 → assignStartResolveType 走管道，如 deptBoss）
             client.UseSleveenNodePolicyAssignee(configuration);
+            // 实例预选：Type=Preselect → sf_preselect_assignee（Store 与 DI Scoped 同实现类，此处用新实例绑同一 SailClient）
+            client.UseSleveenPreselectAssignees(new SleveenPreselectAssigneeStore(client));
 
             // LogSinkKind=HostLogger 时转发 ILogger；Table/File 由 UseBizData PostBuild 处理
             if (client.DataLifecycleOptions?.LogSinkKind == EngineLogSinkKind.HostLogger)

@@ -154,7 +154,10 @@ public static class SailHostSchemaInitializer
             .createTable<SailLeaveEntity>()
             .createTable<SailProcessCategoryEntity>()
             .createTable<SailProcessMetaEntity>()
-            .createTable<SailTodoPortalRecordEntity>();
+            .createTable<SailTodoPortalRecordEntity>()
+            .createTable<SailPreselectAssigneeEntity>();
+        TryCreateIndex(kit, "IX_sf_preselect_pi_act", "sf_preselect_assignee",
+            "process_instance_id", "activity_id");
         return wk.WorkingProgress?.ToString() ?? string.Empty;
     }
 

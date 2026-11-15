@@ -114,6 +114,12 @@
               </div>
             </el-form-item>
           </template>
+          <SailPreselectPanel
+            v-if="selected"
+            ref="preselectRef"
+            :process-id="String(pickField(selected, 'ProcessId', 'processId') || '')"
+            :version="String(pickField(selected, 'Version', 'version') || '1')"
+          />
           <el-form-item>
             <el-button type="primary" :loading="submitting" :disabled="!selected" @click="submit">
               提交发起
@@ -139,6 +145,7 @@ import { unpackSailResult, pickField } from '@sail/utils/sailResult';
 import { formValuesToConditions } from '@sail/utils/formCreate';
 import SailFormRender from '@sail/components/runtime/SailFormRender.vue';
 import SailCandidatePicker from '@sail/components/runtime/SailCandidatePicker.vue';
+import SailPreselectPanel from '@sail/components/preselect/SailPreselectPanel.vue';
 
 defineOptions({ name: 'SailProcessCreatePage' });
 
@@ -151,6 +158,7 @@ const processes = ref<Record<string, unknown>[]>([]);
 const forms = ref<Record<string, unknown>[]>([]);
 const selectedKey = ref('');
 const selected = ref<Record<string, unknown> | null>(null);
+const preselectRef = ref<InstanceType<typeof SailPreselectPanel> | null>(null);
 const appName = ref('');
 const appInstanceId = ref('');
 const selectedFormId = ref('');
@@ -419,6 +427,11 @@ async function submit() {
       ElMessage.warning(candidateUsers.value.length ? '请选择下一办理人' : '暂无候选人，无法发起');
       return;
     }
+    const preselectErr = preselectRef.value?.validate?.() ?? null;
+    if (preselectErr) {
+      ElMessage.warning(preselectErr);
+      return;
+    }
     const processId = String(pickField(selected.value, 'ProcessId', 'processId') || '');
     const version = String(pickField(selected.value, 'Version', 'version') || '1');
     const instanceId = appInstanceId.value.trim() || `APP-${Date.now()}`;
@@ -478,6 +491,21 @@ async function submit() {
       err.value = r.message || '发起失败';
       ElMessage.error(err.value);
       return;
+    }
+    const extra = (r.extra || {}) as Record<string, unknown>;
+    const piId = String(
+      r.newId || pickField(extra, 'processInstanceId', 'ProcessInstanceId') || ''
+    );
+    if (piId && preselectRef.value?.persist) {
+      try {
+        await preselectRef.value.persist(piId);
+      } catch (pe: unknown) {
+        ElMessage.warning(
+          pe instanceof Error
+            ? `流程已发起，但预选写入失败：${pe.message}`
+            : '流程已发起，但预选写入失败'
+        );
+      }
     }
     ElMessage.success(r.message || '发起成功');
     router.push({ path: '/sail/task-todo' });

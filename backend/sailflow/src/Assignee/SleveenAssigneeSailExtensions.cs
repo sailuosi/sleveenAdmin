@@ -37,6 +37,19 @@ public static class SleveenAssigneeSailExtensions
     }
 
     /// <summary>
+    /// 实例预选办理人：注册 Type=<c>Preselect</c> + 宿主表 <c>sf_preselect_assignee</c>。
+    /// 须在 <see cref="UseSleveenOrgLookups"/> / UseBizAssignees 之后调用。
+    /// </summary>
+    public static SailClient UseSleveenPreselectAssignees(
+        this SailClient client,
+        SleveenPreselectAssigneeStore store)
+    {
+        ArgumentNullException.ThrowIfNull(client);
+        ArgumentNullException.ThrowIfNull(store);
+        return client.UsePreselectAssignees(store);
+    }
+
+    /// <summary>
     /// §A / R10：NodePolicy → EmptyActionSelector + Filter；Skip **只打锚点、不落占位人**。
     /// 同人=3：读 assignStartResolveType → 主管道 Registry（如 deptBoss）。
     /// <list type="bullet">

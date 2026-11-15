@@ -7,21 +7,6 @@ public sealed class TerminateOperationHandler(IWorkflowService wf) : ISailOperat
 {
     public IReadOnlyList<string> SupportedButtonIds { get; } = ["Terminate"];
 
-    public Task<WfExecutedResult> ExecuteAsync(SailOperationContext ctx, CancellationToken ct = default)
-    {
-        var ok = wf.TerminateProcess(ctx.Runner);
-        var r = WfExecutedResult.Default();
-        if (ok)
-        {
-            r.Status = WfExecutedStatus.Success;
-            r.Message = "TerminateProcess ok";
-        }
-        else
-        {
-            r.Status = WfExecutedStatus.Failed;
-            r.Message = "TerminateProcess failed";
-            r.ReasonCode = "TerminateFailed";
-        }
-        return Task.FromResult(r);
-    }
+    public Task<WfExecutedResult> ExecuteAsync(SailOperationContext ctx, CancellationToken ct = default) =>
+        Task.FromResult(wf.TerminateProcess(ctx.Runner));
 }
