@@ -21,6 +21,18 @@ public class SailProcessCategoryEntity
     [SooColumn(Name = "remark", Length = 255)]
     public string Remark { get; set; } = "";
 
+    /// <summary>授权类型；业务侧权限过滤预留。</summary>
+    [SooColumn(Name = "auth_type", Length = 20)]
+    public string AuthType { get; set; } = "";
+
+    /// <summary>授权编码；业务侧权限过滤预留。</summary>
+    [SooColumn(Name = "auth_code", Length = 200)]
+    public string AuthCode { get; set; } = "";
+
+    /// <summary>授权主体 Id；业务侧权限过滤预留。</summary>
+    [SooColumn(Name = "auth_id", Length = 64)]
+    public string AuthId { get; set; } = "";
+
     [SooColumn(Name = "created_at")]
     public DateTime? CreatedAt { get; set; }
 }

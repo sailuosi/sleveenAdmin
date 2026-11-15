@@ -58,6 +58,9 @@ public class SailCategoryService
         existing.SortOrder = row.SortOrder;
         existing.Remark = row.Remark ?? "";
         existing.Code = row.Code;
+        existing.AuthType = row.AuthType ?? "";
+        existing.AuthCode = row.AuthCode ?? "";
+        existing.AuthId = row.AuthId ?? "";
         repo.Update(existing);
         return existing;
     }
