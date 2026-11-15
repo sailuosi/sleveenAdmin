@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?><bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sf="http://www.sailflow.com/schema/sf" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd" id="bpmn-diagram">
+  <bpmn:process id="Process_d334770c0fae4a049030a41bccbc3d23" isExecutable="true" sf:code="demoflow" sf:version="1">
+    <bpmn:startEvent id="StartEvent_1" name="开始">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Task_1" name="组长审批">
+      <bpmn:incoming>Flow_1</bpmn:incoming>
+      <bpmn:outgoing>Flow_2</bpmn:outgoing>
+      <bpmn:outgoing>Flow_4</bpmn:outgoing>
+      <bpmn:extensionElements><sf:AssigneeResolve Type="ApproverPick" Params="" type="ApproverPick" params=""/><sf:LeaveJudge Type="Collaborate" Params="{&quot;completeRate&quot;:1}" type="Collaborate" params="{&quot;completeRate&quot;:1}"/><sf:ButtonsSetting json="[{&quot;id&quot;:&quot;Approve&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;通过&quot;},{&quot;id&quot;:&quot;Reject&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;驳回&quot;},{&quot;id&quot;:&quot;SendBack&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;退回&quot;},{&quot;id&quot;:&quot;SignForward&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;加签&quot;},{&quot;id&quot;:&quot;Transfer&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;转办&quot;},{&quot;id&quot;:&quot;Consult&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;沟通&quot;},{&quot;id&quot;:&quot;Acknowledge&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;阅办&quot;},{&quot;id&quot;:&quot;RecallConsult&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;收回沟通&quot;},{&quot;id&quot;:&quot;Copyto&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;抄送&quot;},{&quot;id&quot;:&quot;Withdraw&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;撤回&quot;},{&quot;id&quot;:&quot;Resend&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;重发&quot;},{&quot;id&quot;:&quot;Jump&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;跳转&quot;},{&quot;id&quot;:&quot;Close&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;关闭&quot;},{&quot;id&quot;:&quot;Terminate&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;终止&quot;},{&quot;id&quot;:&quot;Discard&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;作废&quot;},{&quot;id&quot;:&quot;Revise&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;修订&quot;},{&quot;id&quot;:&quot;Reverse&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;反转&quot;}]"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:task id="Task_2" name="登记">
+      <bpmn:incoming>Flow_3</bpmn:incoming>
+      <bpmn:incoming>Flow_4</bpmn:incoming>
+      <bpmn:outgoing>Flow_5</bpmn:outgoing>
+      <bpmn:extensionElements><sf:AssigneeResolve Type="ApproverPick" Params="" type="ApproverPick" params=""/><sf:LeaveJudge Type="Collaborate" Params="{&quot;completeRate&quot;:1}" type="Collaborate" params="{&quot;completeRate&quot;:1}"/><sf:ButtonsSetting json="[{&quot;id&quot;:&quot;Approve&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;通过&quot;},{&quot;id&quot;:&quot;Reject&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;驳回&quot;},{&quot;id&quot;:&quot;SendBack&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;退回&quot;},{&quot;id&quot;:&quot;SignForward&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;加签&quot;},{&quot;id&quot;:&quot;Transfer&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;转办&quot;},{&quot;id&quot;:&quot;Consult&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;沟通&quot;},{&quot;id&quot;:&quot;Acknowledge&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;阅办&quot;},{&quot;id&quot;:&quot;RecallConsult&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;收回沟通&quot;},{&quot;id&quot;:&quot;Copyto&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;抄送&quot;},{&quot;id&quot;:&quot;Withdraw&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;撤回&quot;},{&quot;id&quot;:&quot;Resend&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;重发&quot;},{&quot;id&quot;:&quot;Jump&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;跳转&quot;},{&quot;id&quot;:&quot;Close&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;关闭&quot;},{&quot;id&quot;:&quot;Terminate&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;终止&quot;},{&quot;id&quot;:&quot;Discard&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;作废&quot;},{&quot;id&quot;:&quot;Revise&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;修订&quot;},{&quot;id&quot;:&quot;Reverse&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;反转&quot;}]"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:endEvent id="EndEvent_1" name="结束">
+      <bpmn:incoming>Flow_5</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:task id="Task_3" name="班长审批">
+      <bpmn:incoming>Flow_2</bpmn:incoming>
+      <bpmn:outgoing>Flow_3</bpmn:outgoing>
+      <bpmn:extensionElements><sf:AssigneeResolve Type="ApproverPick" Params="" type="ApproverPick" params=""/><sf:LeaveJudge Type="Collaborate" Params="{&quot;completeRate&quot;:1}" type="Collaborate" params="{&quot;completeRate&quot;:1}"/><sf:ButtonsSetting json="[{&quot;id&quot;:&quot;Approve&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;通过&quot;},{&quot;id&quot;:&quot;Reject&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;驳回&quot;},{&quot;id&quot;:&quot;SendBack&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;退回&quot;},{&quot;id&quot;:&quot;SignForward&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;加签&quot;},{&quot;id&quot;:&quot;Transfer&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;转办&quot;},{&quot;id&quot;:&quot;Consult&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;沟通&quot;},{&quot;id&quot;:&quot;Acknowledge&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;阅办&quot;},{&quot;id&quot;:&quot;RecallConsult&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;收回沟通&quot;},{&quot;id&quot;:&quot;Copyto&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;抄送&quot;},{&quot;id&quot;:&quot;Withdraw&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;撤回&quot;},{&quot;id&quot;:&quot;Resend&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;重发&quot;},{&quot;id&quot;:&quot;Jump&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;跳转&quot;},{&quot;id&quot;:&quot;Close&quot;,&quot;enable&quot;:true,&quot;displayName&quot;:&quot;关闭&quot;},{&quot;id&quot;:&quot;Terminate&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;终止&quot;},{&quot;id&quot;:&quot;Discard&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;作废&quot;},{&quot;id&quot;:&quot;Revise&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;修订&quot;},{&quot;id&quot;:&quot;Reverse&quot;,&quot;enable&quot;:false,&quot;displayName&quot;:&quot;反转&quot;}]"/></bpmn:extensionElements>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="Task_3"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_3" targetRef="Task_2"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_1" targetRef="Task_2"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_2" targetRef="EndEvent_1"/>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_d334770c0fae4a049030a41bccbc3d23">
+      <bpmndi:BPMNShape id="StartEvent_1_di" bpmnElement="StartEvent_1">
+        <dc:Bounds x="87.39395904541016" y="118.0142822265625" width="36" height="36"/>
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="95.39395904541016" y="161.0142822265625" width="22" height="14"/>
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_1_di" bpmnElement="Task_1">
+        <dc:Bounds x="237.68331909179688" y="90.64079284667969" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_2_di" bpmnElement="Task_2">
+        <dc:Bounds x="438.92529296875" y="82.3705825805664" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="683.1942138671875" y="91.96525573730469" width="36" height="36"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_3_di" bpmnElement="Task_3">
+        <dc:Bounds x="227.34555053710938" y="220.20755004882812" width="100" height="80"/>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1">
+        <di:waypoint x="123.38614367188859" y="135.48391219845624"/>
+        <di:waypoint x="237.68331909179688" y="136.0142822265625"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2">
+        <di:waypoint x="277.3455505371094" y="170.6407928466797"/>
+        <di:waypoint x="287.6833190917969" y="220.20755004882812"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3">
+        <di:waypoint x="327.3455505371094" y="220.20755004882812"/>
+        <di:waypoint x="438.92529296875" y="162.3705825805664"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4">
+        <di:waypoint x="337.6833190917969" y="122.3705825805664"/>
+        <di:waypoint x="438.92529296875" y="130.6407928466797"/>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5">
+        <di:waypoint x="538.92529296875" y="109.96525573730469"/>
+        <di:waypoint x="683.2248740946818" y="111.01541198293903"/>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

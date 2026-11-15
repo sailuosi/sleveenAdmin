@@ -1,0 +1,334 @@
+using System.Globalization;
+using System.Text.Json;
+using mooSQL.data;
+using sailflow.engine.Entity;
+using sailflow.hub.Form;
+using SleveenAdmin.Sailflow.Entity;
+
+namespace SleveenAdmin.Sailflow.Hosting;
+
+/// <summary>
+/// 产品侧种子：分类 / 表单 / 流程定义 / meta。
+/// 数据来源：sleveen-admin App_Data/sailflow.sqlite 快照（samples/seed）。
+/// 按业务键幂等；已有行不覆盖。
+/// </summary>
+public static class SailProductSeed
+{
+    public const string CategoryCode = "demo1";
+    public const string CategoryId = "6b82cb309d3d412abc67367a842882ff";
+
+    public const string FormId = "6b5a060a-d38d-40f4-818a-4ea4432ec91c";
+    public const string FormCode = "askpost";
+
+    public const string HelloProcessId = "sail-seed-hello";
+    public const string HelloProcessCode = "SEED_HELLO";
+
+    public const string DemoProcessId = "Process_d334770c0fae4a049030a41bccbc3d23";
+    public const string DemoProcessDefId = "ef915570-b9ce-495f-becc-329bf07fefab";
+    public const string DemoProcessCode = "demoflow";
+
+    public const string HelloMetaId = "c68deea4fb674764955120471b7db18d";
+    public const string DemoMetaId = "afa08ced46164304a1659f08e1ef08fd";
+
+    const string DefaultExtraJson =
+        "{\"allowCancelRunningProcess\":true,\"allowWithdrawTask\":false,\"processIdRule\":{\"enable\":false,\"prefix\":\"\",\"infix\":\"\",\"postfix\":\"\",\"length\":5},\"autoApprovalType\":0,\"titleSetting\":{\"enable\":false,\"title\":\"\"},\"summarySetting\":{\"enable\":false,\"summary\":[]},\"processBeforeTriggerSetting\":null,\"processAfterTriggerSetting\":null,\"taskBeforeTriggerSetting\":null,\"taskAfterTriggerSetting\":null,\"printTemplateSetting\":{\"enable\":false,\"template\":\"\"}}";
+
+    /// <summary>写入分类、求职表单、Hello/演示流程定义及 meta；返回新插入行数。</summary>
+    public static int EnsureAll(SQLBuilder kit)
+    {
+        ArgumentNullException.ThrowIfNull(kit);
+        var n = 0;
+        n += EnsureCategory(kit);
+        n += EnsureAskPostForm(kit);
+        n += EnsureHelloProcess(kit);
+        n += EnsureDemoProcess(kit);
+        n += EnsureMeta(kit, HelloMetaId, HelloProcessId, "1");
+        n += EnsureMeta(kit, DemoMetaId, DemoProcessId, "1");
+        return n;
+    }
+
+    static int EnsureCategory(SQLBuilder kit)
+    {
+        var exists = kit.countBy<SailProcessCategoryEntity>((c, t) =>
+        {
+            c.where(() => t.Code, CategoryCode);
+        });
+        if (exists > 0)
+            return 0;
+
+        kit.useRepo<SailProcessCategoryEntity>().Insert(new SailProcessCategoryEntity
+        {
+            Id = CategoryId,
+            Code = CategoryCode,
+            Name = "演示分类",
+            SortOrder = 1,
+            Remark = "种子：来自 sailflow.sqlite",
+            CreatedAt = DateTime.UtcNow
+        });
+        return 1;
+    }
+
+    static int EnsureAskPostForm(SQLBuilder kit)
+    {
+        var exists = kit.countBy<FormEntity>((c, t) =>
+        {
+            c.where(() => t.FormId, FormId);
+        });
+        if (exists > 0)
+            return 0;
+
+        exists = kit.countBy<FormEntity>((c, t) =>
+        {
+            c.where(() => t.FormCode, FormCode);
+        });
+        if (exists > 0)
+            return 0;
+
+        var form = LoadAskPostForm() ?? BuildFallbackAskPostForm();
+        form.FormId = string.IsNullOrWhiteSpace(form.FormId) ? FormId : form.FormId;
+        form.FormCode = string.IsNullOrWhiteSpace(form.FormCode) ? FormCode : form.FormCode;
+        form.Version ??= "1";
+        form.CreatedDate ??= DateTime.UtcNow;
+        form.LastUpdatedDate ??= form.CreatedDate;
+        kit.useRepo<FormEntity>().Insert(form);
+        return 1;
+    }
+
+    static int EnsureHelloProcess(SQLBuilder kit)
+    {
+        var exists = kit.countBy<ProcessEntity>((c, t) =>
+        {
+            c.where(() => t.ProcessId, HelloProcessId);
+        });
+        if (exists > 0)
+            return 0;
+
+        return InsertProcesses(kit, new List<ProcessEntity>
+        {
+            new()
+            {
+                ProcessId = HelloProcessId,
+                ProcessName = "Sail Seed Hello",
+                ProcessCode = HelloProcessCode,
+                Version = "1",
+                Status = 1,
+                AppType = CategoryCode,
+                XmlFileName = "seed-hello.xml",
+                XmlContent = MinimalHelloBpmn(),
+                StartType = 0,
+                EndType = 0,
+                Description = "最小种子流程（可删）",
+                CreatedDateTime = DateTime.UtcNow
+            }
+        });
+    }
+
+    static int EnsureDemoProcess(SQLBuilder kit)
+    {
+        var exists = kit.countBy<ProcessEntity>((c, t) =>
+        {
+            c.where(() => t.ProcessId, DemoProcessId);
+        });
+        if (exists > 0)
+            return 0;
+
+        exists = kit.countBy<ProcessEntity>((c, t) =>
+        {
+            c.where(() => t.ProcessCode, DemoProcessCode);
+        });
+        if (exists > 0)
+            return 0;
+
+        var xml = ReadSeedText("demoflow.bpmn");
+        if (string.IsNullOrWhiteSpace(xml))
+            return 0;
+
+        return InsertProcesses(kit, new List<ProcessEntity>
+        {
+            new()
+            {
+                ProcessDefId = DemoProcessDefId,
+                ProcessId = DemoProcessId,
+                ProcessName = "演示流程",
+                ProcessCode = DemoProcessCode,
+                Version = "1",
+                Status = 1,
+                AppType = CategoryCode,
+                XmlFileName = "demoflow.bpmn",
+                XmlContent = xml,
+                Icon = "",
+                Description = "演示",
+                CreatedDateTime = DateTime.UtcNow,
+                UpdatedDateTime = DateTime.UtcNow
+            }
+        });
+    }
+
+    static int EnsureMeta(SQLBuilder kit, string metaId, string processId, string version)
+    {
+        var exists = kit.countBy<SailProcessMetaEntity>((c, t) =>
+        {
+            c.where(() => t.ProcessId, processId);
+            c.where(() => t.Version, version);
+        });
+        if (exists > 0)
+            return 0;
+
+        kit.useRepo<SailProcessMetaEntity>().Insert(new SailProcessMetaEntity
+        {
+            Id = metaId,
+            ProcessId = processId,
+            Version = version,
+            FormType = 10,
+            FormId = FormId,
+            FormCustomCreatePath = "",
+            FormCustomViewPath = "",
+            Visible = 1,
+            StartUserType = 0,
+            StartUserIds = "[]",
+            StartDeptIds = "[]",
+            ManagerUserIds = "[]",
+            ExtraJson = DefaultExtraJson,
+            UpdatedAt = DateTime.UtcNow
+        });
+        return 1;
+    }
+
+    static int InsertProcesses(SQLBuilder kit, List<ProcessEntity> rows)
+    {
+        var prev = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+            return kit.insertList(rows);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = prev;
+            Thread.CurrentThread.CurrentCulture = prev;
+        }
+    }
+
+    static FormEntity? LoadAskPostForm()
+    {
+        var json = ReadSeedText("askpost.form.json");
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+        return new FormEntity
+        {
+            FormId = GetStr(root, "ff_id") ?? FormId,
+            FormName = GetStr(root, "ff_name") ?? "求职表单",
+            FormCode = GetStr(root, "ff_code") ?? FormCode,
+            Version = GetStr(root, "ff_version") ?? "1",
+            FieldSummary = GetStr(root, "ff_fld_summary") ?? "[]",
+            TemplateContent = GetStr(root, "ff_template") ?? "{}",
+            HTMLContent = GetStr(root, "ff_html") ?? "[]",
+            Description = GetStr(root, "ff_description") ?? "",
+            CreatedDate = DateTime.UtcNow,
+            LastUpdatedDate = DateTime.UtcNow
+        };
+    }
+
+    static FormEntity BuildFallbackAskPostForm() => new()
+    {
+        FormId = FormId,
+        FormName = "求职表单",
+        FormCode = FormCode,
+        Version = "1",
+        FieldSummary = "[\"F9aqmwg7hka8abc\",\"F4vqmwg7hlfwaec\",\"Flbimwg7hmm9ahc\"]",
+        TemplateContent =
+            "{\"form\":{\"inline\":false,\"hideRequiredAsterisk\":false,\"labelPosition\":\"right\",\"size\":\"default\",\"labelWidth\":\"100px\"},\"resetBtn\":{\"show\":false,\"innerText\":\"重置\"},\"submitBtn\":{\"show\":true,\"innerText\":\"提交\"}}",
+        HTMLContent =
+            "[\"{\\\"type\\\":\\\"input\\\",\\\"field\\\":\\\"F9aqmwg7hka8abc\\\",\\\"title\\\":\\\"姓名\\\",\\\"info\\\":\\\"\\\",\\\"$required\\\":false,\\\"_fc_id\\\":\\\"id_F320mwg7hka8acc\\\",\\\"name\\\":\\\"ref_Fiebmwg7hka8adc\\\",\\\"display\\\":true,\\\"hidden\\\":false,\\\"_fc_drag_tag\\\":\\\"input\\\"}\",\"{\\\"type\\\":\\\"input\\\",\\\"field\\\":\\\"F4vqmwg7hlfwaec\\\",\\\"title\\\":\\\"简介\\\",\\\"info\\\":\\\"\\\",\\\"$required\\\":false,\\\"props\\\":{\\\"type\\\":\\\"textarea\\\"},\\\"_fc_id\\\":\\\"id_Fxuumwg7hlfwafc\\\",\\\"name\\\":\\\"ref_Fx88mwg7hlfwagc\\\",\\\"display\\\":true,\\\"hidden\\\":false,\\\"_fc_drag_tag\\\":\\\"textarea\\\"}\",\"{\\\"type\\\":\\\"input\\\",\\\"field\\\":\\\"Flbimwg7hmm9ahc\\\",\\\"title\\\":\\\"意向\\\",\\\"info\\\":\\\"\\\",\\\"$required\\\":false,\\\"_fc_id\\\":\\\"id_F9s0mwg7hmm9aic\\\",\\\"name\\\":\\\"ref_F4bomwg7hmm9ajc\\\",\\\"display\\\":true,\\\"hidden\\\":false,\\\"_fc_drag_tag\\\":\\\"input\\\"}\"]",
+        Description = "",
+        CreatedDate = DateTime.UtcNow,
+        LastUpdatedDate = DateTime.UtcNow
+    };
+
+    static string? GetStr(JsonElement root, string name) =>
+        root.TryGetProperty(name, out var p) && p.ValueKind == JsonValueKind.String ? p.GetString() : null;
+
+    static string? ReadSeedText(string fileName)
+    {
+        foreach (var dir in SeedDirs())
+        {
+            var path = Path.Combine(dir, fileName);
+            if (File.Exists(path))
+                return File.ReadAllText(path);
+        }
+        return null;
+    }
+
+    static IEnumerable<string> SeedDirs()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var list = new List<string>();
+        void Add(string? d)
+        {
+            if (string.IsNullOrWhiteSpace(d)) return;
+            var full = Path.GetFullPath(d);
+            if (seen.Add(full))
+                list.Add(full);
+        }
+
+        Add(Path.Combine(AppContext.BaseDirectory, "samples", "seed"));
+        var asm = typeof(SailProductSeed).Assembly.Location;
+        if (!string.IsNullOrWhiteSpace(asm))
+            Add(Path.Combine(Path.GetDirectoryName(asm)!, "samples", "seed"));
+        Add(Path.Combine(Directory.GetCurrentDirectory(), "samples", "seed"));
+        return list;
+    }
+
+    static string MinimalHelloBpmn() =>
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+        "<bpmn:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+        "xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" " +
+        "xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" " +
+        "xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" " +
+        "xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" " +
+        "xmlns:sf=\"http://www.sailflow.com/schema/sf\" " +
+        "id=\"Definitions_SailSeed\" targetNamespace=\"http://bpmn.io/schema/bpmn\">" +
+        "<bpmn:process id=\"Process_1\" name=\"Sail Seed Hello\" isExecutable=\"true\" " +
+        "sf:code=\"SEED_HELLO\" sf:version=\"1\">" +
+        "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\">" +
+        "<bpmn:outgoing>Flow_start_task</bpmn:outgoing>" +
+        "</bpmn:startEvent>" +
+        "<bpmn:userTask id=\"UserTask_1\" name=\"Hello Task\">" +
+        "<bpmn:incoming>Flow_start_task</bpmn:incoming>" +
+        "<bpmn:outgoing>Flow_task_end</bpmn:outgoing>" +
+        "<bpmn:extensionElements>" +
+        "<sf:assigneeResolve type=\"ApproverPick\" params=\"\" />" +
+        "<sf:leaveJudge type=\"Collaborate\" params=\"{&quot;completeRate&quot;:1}\" />" +
+        "</bpmn:extensionElements>" +
+        "</bpmn:userTask>" +
+        "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\">" +
+        "<bpmn:incoming>Flow_task_end</bpmn:incoming>" +
+        "</bpmn:endEvent>" +
+        "<bpmn:sequenceFlow id=\"Flow_start_task\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
+        "<bpmn:sequenceFlow id=\"Flow_task_end\" sourceRef=\"UserTask_1\" targetRef=\"EndEvent_1\" />" +
+        "</bpmn:process>" +
+        "<bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">" +
+        "<bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"Process_1\">" +
+        "<bpmndi:BPMNShape id=\"StartEvent_1_di\" bpmnElement=\"StartEvent_1\">" +
+        "<dc:Bounds x=\"180\" y=\"160\" width=\"36\" height=\"36\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNShape id=\"UserTask_1_di\" bpmnElement=\"UserTask_1\">" +
+        "<dc:Bounds x=\"280\" y=\"138\" width=\"100\" height=\"80\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNShape id=\"EndEvent_1_di\" bpmnElement=\"EndEvent_1\">" +
+        "<dc:Bounds x=\"450\" y=\"160\" width=\"36\" height=\"36\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNEdge id=\"Flow_start_task_di\" bpmnElement=\"Flow_start_task\">" +
+        "<di:waypoint x=\"216\" y=\"178\" /><di:waypoint x=\"280\" y=\"178\" />" +
+        "</bpmndi:BPMNEdge>" +
+        "<bpmndi:BPMNEdge id=\"Flow_task_end_di\" bpmnElement=\"Flow_task_end\">" +
+        "<di:waypoint x=\"380\" y=\"178\" /><di:waypoint x=\"450\" y=\"178\" />" +
+        "</bpmndi:BPMNEdge>" +
+        "</bpmndi:BPMNPlane>" +
+        "</bpmndi:BPMNDiagram>" +
+        "</bpmn:definitions>";
+}

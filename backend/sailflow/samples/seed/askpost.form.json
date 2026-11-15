@@ -1,0 +1,12 @@
+{
+  "ff_id": "6b5a060a-d38d-40f4-818a-4ea4432ec91c",
+  "ff_name": "求职表单",
+  "ff_code": "askpost",
+  "ff_version": "1",
+  "ff_fld_summary": "[\"F9aqmwg7hka8abc\",\"F4vqmwg7hlfwaec\",\"Flbimwg7hmm9ahc\"]",
+  "ff_template": "{\"form\":{\"inline\":false,\"hideRequiredAsterisk\":false,\"labelPosition\":\"right\",\"size\":\"default\",\"labelWidth\":\"100px\"},\"resetBtn\":{\"show\":false,\"innerText\":\"重置\"},\"submitBtn\":{\"show\":true,\"innerText\":\"提交\"}}",
+  "ff_html": "[\"{\\\"type\\\":\\\"input\\\",\\\"field\\\":\\\"F9aqmwg7hka8abc\\\",\\\"title\\\":\\\"姓名\\\",\\\"info\\\":\\\"\\\",\\\"$required\\\":false,\\\"_fc_id\\\":\\\"id_F320mwg7hka8acc\\\",\\\"name\\\":\\\"ref_Fiebmwg7hka8adc\\\",\\\"display\\\":true,\\\"hidden\\\":false,\\\"_fc_drag_tag\\\":\\\"input\\\"}\",\"{\\\"type\\\":\\\"input\\\",\\\"field\\\":\\\"F4vqmwg7hlfwaec\\\",\\\"title\\\":\\\"简介\\\",\\\"info\\\":\\\"\\\",\\\"$required\\\":false,\\\"props\\\":{\\\"type\\\":\\\"textarea\\\"},\\\"_fc_id\\\":\\\"id_Fxuumwg7hlfwafc\\\",\\\"name\\\":\\\"ref_Fx88mwg7hlfwagc\\\",\\\"display\\\":true,\\\"hidden\\\":false,\\\"_fc_drag_tag\\\":\\\"textarea\\\"}\",\"{\\\"type\\\":\\\"input\\\",\\\"field\\\":\\\"Flbimwg7hmm9ahc\\\",\\\"title\\\":\\\"意向\\\",\\\"info\\\":\\\"\\\",\\\"$required\\\":false,\\\"_fc_id\\\":\\\"id_F9s0mwg7hmm9aic\\\",\\\"name\\\":\\\"ref_F4bomwg7hmm9ajc\\\",\\\"display\\\":true,\\\"hidden\\\":false,\\\"_fc_drag_tag\\\":\\\"input\\\"}\"]",
+  "ff_description": "",
+  "ff_crt_time": "2026-11-14 17:31:56.1711133",
+  "ff_upd_time": "2026-11-14 17:31:56.1711654"
+}
