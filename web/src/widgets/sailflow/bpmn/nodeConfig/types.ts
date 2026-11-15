@@ -5,6 +5,7 @@ export type SailNodePolicy = {
   /** 1人工 2自动通过 3自动拒绝 */
   approveType: number;
   /** 拒绝：1结束流程 2驳回到指定节点 */
+  /** 1=Terminate 2=Specified 3=Previous(默认) 4=Starter */
   rejectHandlerType: number;
   returnNodeId: string;
   /** 审批人为空：1自动通过 2自动拒绝（产品默认） 3指定人 4转管理员 */
@@ -102,7 +103,7 @@ export type SailNodeConfigModel = {
 export function defaultNodePolicy(): SailNodePolicy {
   return {
     approveType: 1,
-    rejectHandlerType: 1,
+    rejectHandlerType: 3,
     returnNodeId: '',
     assignEmptyHandlerType: 2,
     assignEmptyUserIds: [],

@@ -282,14 +282,19 @@
 
         <!-- 9 拒绝 / 空人 / 同人 / 签名 / 意见 / 跳过 / 超时 -->
         <el-card shadow="never" class="sf-node-config__card">
-          <template #header><span class="sf-node-config__h">审批人拒绝时</span></template>
+          <template #header><span class="sf-node-config__h">审批人拒绝时（极简驳回，不选手/选人）</span></template>
           <el-radio-group v-model="model.policy.rejectHandlerType" class="sf-node-config__col">
-            <el-radio :value="1">结束流程</el-radio>
-            <el-radio :value="2">驳回到指定节点</el-radio>
+            <el-radio :value="3">退回上一节点（默认）</el-radio>
+            <el-radio :value="4">退回发起节点</el-radio>
+            <el-radio :value="1">终止流程</el-radio>
+            <el-radio :value="2">退回指定节点</el-radio>
           </el-radio-group>
           <el-form-item v-if="model.policy.rejectHandlerType === 2" label="驳回节点 Id" class="mt">
-            <el-input v-model="model.policy.returnNodeId" clearable placeholder="ActivityId" />
+            <el-input v-model="model.policy.returnNodeId" clearable placeholder="ActivityId（历史已办节点）" />
           </el-form-item>
+          <p class="sf-node-config__hint">
+            驳回由引擎按配置自动落点；与「退回」不同——退回可选手动目标与再发送方式。
+          </p>
         </el-card>
 
         <el-card shadow="never" class="sf-node-config__card">

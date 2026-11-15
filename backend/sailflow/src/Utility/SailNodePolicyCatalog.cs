@@ -8,7 +8,13 @@ namespace SleveenAdmin.Sailflow.Utility;
 public sealed class SailNodePolicyDto
 {
     public int ApproveType { get; set; } = 1;
-    public int RejectHandlerType { get; set; } = 1;
+
+    /// <summary>
+    /// 驳回落点：1=Terminate 2=Specified 3=Previous（默认）4=Starter。
+    /// 见 <see cref="SailRejectModeMapper"/>。
+    /// </summary>
+    public int RejectHandlerType { get; set; } = SailRejectModeMapper.DefaultType;
+
     public string ReturnNodeId { get; set; } = "";
     public int AssignEmptyHandlerType { get; set; } = 2;
     public List<string> AssignEmptyUserIds { get; set; } = new();
@@ -66,7 +72,7 @@ public static class SailNodePolicyCatalog
         return new SailNodePolicyDto
         {
             ApproveType = raw.ApproveType != 0 ? raw.ApproveType : d.ApproveType,
-            RejectHandlerType = raw.RejectHandlerType != 0 ? raw.RejectHandlerType : d.RejectHandlerType,
+            RejectHandlerType = NormalizeRejectHandlerType(raw.RejectHandlerType),
             ReturnNodeId = raw.ReturnNodeId ?? d.ReturnNodeId,
             AssignEmptyHandlerType = raw.AssignEmptyHandlerType != 0
                 ? raw.AssignEmptyHandlerType
@@ -215,6 +221,15 @@ public static class SailNodePolicyCatalog
     }
 
     static string EscapeXPath(string id) => id.Replace("'", "&apos;");
+
+    /// <summary>0/未知 → Previous(3)；合法 1–4 原样。</summary>
+    static int NormalizeRejectHandlerType(int raw) =>
+        raw is SailRejectModeMapper.TypeTerminate
+            or SailRejectModeMapper.TypeSpecified
+            or SailRejectModeMapper.TypePrevious
+            or SailRejectModeMapper.TypeStarter
+            ? raw
+            : SailRejectModeMapper.DefaultType;
 
     static SailNodePolicyDto Clone(SailNodePolicyDto d) => new()
     {
