@@ -9,12 +9,6 @@ export type FlowCommandContextPayload = {
   BizChannel?: string;
   BizPK?: string;
   BizCode?: string;
-  /** @deprecated 用 BizChannel；引擎仍兼容反序列化 */
-  AppName?: string;
-  /** @deprecated 用 BizPK */
-  AppInstanceId?: string;
-  /** @deprecated 用 BizCode */
-  AppInstanceCode?: string;
   ProcessId?: string;
   ProcessCode?: string;
   Version?: string;

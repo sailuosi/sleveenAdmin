@@ -178,8 +178,8 @@ async function onForceEnd(row) {
   try {
     await terminateProcess({
       ProcessInstanceId: id,
-      AppInstanceId: String(pick(row, 'appInstanceId', 'AppInstanceId') || ''),
-      AppName: String(pick(row, 'appName', 'AppName') || ''),
+      BizPK: String(pick(row, 'bizPK', 'BizPK') || ''),
+      BizChannel: String(pick(row, 'bizChannel', 'BizChannel') || ''),
       ProcessId: String(pick(row, 'processId', 'ProcessId') || ''),
       Version: String(pick(row, 'version', 'Version') || '')
     });

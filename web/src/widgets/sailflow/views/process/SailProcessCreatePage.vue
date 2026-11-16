@@ -495,11 +495,8 @@ async function submit() {
       Version: version,
       BizChannel: channel,
       BizPK: instanceId,
-      AppName: channel,
-      AppInstanceId: instanceId,
-      // 约定：BizCode/AppInstanceCode 存 formId，办理页 Workbench 可回取表单
+      // 约定：BizCode 存 formId，办理页 Workbench 可回取表单
       BizCode: selectedFormId.value || undefined,
-      AppInstanceCode: selectedFormId.value || undefined,
       Conditions: conditions,
       StartUnitId: startUnitId.value.trim() || undefined,
       StartUnitCode: startUnitCode.value.trim() || undefined,

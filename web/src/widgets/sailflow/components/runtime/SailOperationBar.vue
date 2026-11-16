@@ -1054,20 +1054,11 @@ function buildRunner(extra?: Partial<FlowCommandContextPayload>): FlowCommandCon
     ...formValuesToConditionsForSubmit(props.formValues, props.fieldModes),
     ...(comment.value ? { comment: comment.value } : {})
   };
-  const bizChannel = String(
-    pickField(t, 'BizChannel', 'bizChannel', 'AppName', 'appName') || ''
-  );
-  const bizPk = String(
-    pickField(t, 'BizPK', 'bizPK', 'AppInstanceId', 'appInstanceId') || ''
-  );
   return {
     UserId: userId.value,
     UserName: userName.value,
-    BizChannel: bizChannel,
-    BizPK: bizPk,
-    // 兼容旧字段（引擎 FlowCommandContext.AppName/AppInstanceId 会回写 Biz*）
-    AppName: bizChannel,
-    AppInstanceId: bizPk,
+    BizChannel: String(pickField(t, 'BizChannel', 'bizChannel') || ''),
+    BizPK: String(pickField(t, 'BizPK', 'bizPK') || ''),
     ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
     Version: String(pickField(t, 'Version', 'version') || '1'),
     TaskId: String(pickField(t, 'TaskId', 'taskId', 'Id', 'id') || '').trim() || null,
@@ -1515,7 +1506,7 @@ async function onCopyto() {
       ),
       ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
       ProcessName: String(pickField(pi || {}, 'ProcessName', 'processName') || ''),
-      AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),
+      BizPK: String(pickField(t, 'BizPK', 'bizPK') || ''),
       TaskId: String(pickField(t, 'TaskId', 'taskId', 'Id', 'id') || ''),
       TaskName: String(pickField(t, 'ActivityName', 'activityName') || ''),
       StartUserId: String(pickField(pi || {}, 'CreatedUserId', 'createdUserId') || ''),

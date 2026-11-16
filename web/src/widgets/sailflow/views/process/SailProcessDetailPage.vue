@@ -489,8 +489,8 @@ async function probeNextActivityTree() {
       TaskId: String(pickField(t, 'TaskId', 'taskId', 'Id', 'id') || ''),
       ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
       Version: String(pickField(t, 'Version', 'version') || '1'),
-      AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),
-      AppName: String(pickField(t, 'AppName', 'appName') || ''),
+      BizPK: String(pickField(t, 'BizPK', 'bizPK') || ''),
+      BizChannel: String(pickField(t, 'BizChannel', 'bizChannel') || ''),
       UserId: userId.value,
       UserName: userName.value,
       Conditions: Object.fromEntries(
