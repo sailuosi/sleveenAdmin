@@ -1,3 +1,4 @@
+using sailflow.engine.Common;
 using sailflow.engine.Result;
 using sailflow.engine.Service;
 
@@ -45,6 +46,8 @@ public sealed class SailFormBizHost(
         if (!string.IsNullOrWhiteSpace(ctx.Error))
             return (ctx, null);
 
+        EnsureDefaultFirstHopPerformers(ctx);
+
         var exec = await wf.StartProcessAsync(ctx.ToRunner(), ct).ConfigureAwait(false);
         if (exec.Status == WfExecutedStatus.Success
             && !string.IsNullOrWhiteSpace(exec.ProcessInstanceIdStarted))
@@ -53,6 +56,44 @@ public sealed class SailFormBizHost(
             handler.OnStarted(ctx);
         }
         return (ctx, exec);
+    }
+
+    /// <summary>
+    /// ApproverPick 等首跳需 NextActivityPerformers；未指定时默认当前用户到首个人工节点。
+    /// </summary>
+    void EnsureDefaultFirstHopPerformers(SailFormBizContext ctx)
+    {
+        if (ctx.NextActivityPerformers is { Count: > 0 })
+            return;
+        if (string.IsNullOrWhiteSpace(ctx.UserId) || string.IsNullOrWhiteSpace(ctx.ProcessId))
+            return;
+
+        try
+        {
+            var ver = string.IsNullOrWhiteSpace(ctx.Version) ? "1" : ctx.Version;
+            var tasks = wf.GetTaskActivityList(ctx.ProcessId, ver);
+            var first = tasks?.FirstOrDefault(a => !string.IsNullOrWhiteSpace(a?.ActivityId));
+            if (first == null)
+            {
+                var act = wf.GetFirstActivity(ctx.ProcessId, ver);
+                if (act == null || string.IsNullOrWhiteSpace(act.ActivityId))
+                    return;
+                first = act;
+            }
+
+            var list = new PerformerList
+            {
+                new Performer(ctx.UserId.Trim(), string.IsNullOrWhiteSpace(ctx.UserName) ? ctx.UserId : ctx.UserName)
+            };
+            ctx.NextActivityPerformers = new Dictionary<string, PerformerList>
+            {
+                [first.ActivityId!] = list
+            };
+        }
+        catch
+        {
+            /* 定义缺失时交给引擎报错，不在此吞业务异常语义 */
+        }
     }
 
     public void NotifyAfterOperation(string? BizChannel, string buttonId, SailFormBizContext? seed = null)

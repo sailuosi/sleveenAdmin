@@ -1,3 +1,4 @@
+using mooSQL.data;
 using sailflow.engine.Common;
 using sailflow.engine.Event;
 
@@ -46,6 +47,15 @@ public sealed class SailFormBizContext
     public EventFireTypeEnum? FinishEvent { get; set; }
     public string? Error { get; set; }
 
+    /// <summary>
+    /// Sync Hook 同事务 kit（来自 <c>FlowHookContext.Kit</c>）。
+    /// OnFinish 回写业务表时必须用此连接，勿另开 <c>UseRunSQL</c>，否则 SQLite 会死锁。
+    /// </summary>
+    public SQLBuilder? Kit { get; set; }
+
+    /// <summary>发起首跳办理人；空则 Host 可按首个人工节点默认填当前用户。</summary>
+    public IDictionary<string, PerformerList>? NextActivityPerformers { get; set; }
+
     public FlowCommandContext ToRunner()
     {
         var runner = new FlowCommandContext
@@ -54,7 +64,8 @@ public sealed class SailFormBizContext
             UserName = UserName,
             ProcessId = ProcessId,
             Version = string.IsNullOrWhiteSpace(Version) ? "1" : Version,
-            Conditions = Conditions.Count > 0 ? new Dictionary<string, string>(Conditions) : null
+            Conditions = Conditions.Count > 0 ? new Dictionary<string, string>(Conditions) : null,
+            NextActivityPerformers = NextActivityPerformers
         };
         runner.ApplyBizData(new BizDataDto
         {

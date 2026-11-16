@@ -31,7 +31,8 @@ public sealed class SailLeaveStatusHook : IFlowHook
             FormCode = SailLeaveStatus.BizChannel,
             BizChannel = ctx.BizChannel,
             BizPK = ctx.BizPK,
-            FinishEvent = ctx.EventType
+            FinishEvent = ctx.EventType,
+            Kit = ctx.Kit
         });
     }
 }

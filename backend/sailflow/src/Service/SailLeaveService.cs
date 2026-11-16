@@ -33,10 +33,10 @@ public class SailLeaveService
         _sail.UseRunSQL().useRepo<SailLeaveEntity>().Update(row);
     }
 
-    public SailLeaveEntity? Get(string id)
+    public SailLeaveEntity? Get(string id, SQLBuilder? kit = null)
     {
         if (string.IsNullOrWhiteSpace(id)) return null;
-        return _sail.UseRunSQL().useRepo<SailLeaveEntity>().GetById(id);
+        return Sql(kit).useRepo<SailLeaveEntity>().GetById(id);
     }
 
     public List<SailLeaveEntity> ListByUser(string? userId, int limit = 100)
@@ -48,14 +48,17 @@ public class SailLeaveService
         return clip.select(t).queryList().Take(Math.Max(1, limit)).ToList();
     }
 
-    public int ApplyStatusByBizPK(string bizPK, int status)
+    /// <param name="kit">Sync Hook 同事务 kit；非空时走 kit，避免与主流转事务死锁。</param>
+    public int ApplyStatusByBizPK(string bizPK, int status, SQLBuilder? kit = null)
     {
         if (string.IsNullOrWhiteSpace(bizPK)) return 0;
-        var row = Get(bizPK);
+        var row = Get(bizPK, kit);
         if (row == null) return 0;
         if (row.Status == status) return 0;
         row.Status = status;
-        Update(row);
+        Sql(kit).useRepo<SailLeaveEntity>().Update(row);
         return 1;
     }
+
+    SQLBuilder Sql(SQLBuilder? kit) => kit ?? _sail.UseRunSQL();
 }

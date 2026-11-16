@@ -86,7 +86,7 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
             _ => 0
         };
         if (status <= 0) return;
-        leave.ApplyStatusByBizPK(ctx.BizPK, status);
+        leave.ApplyStatusByBizPK(ctx.BizPK, status, ctx.Kit);
     }
 
     static LeaveSubmitPayload ParsePayload(string? json)

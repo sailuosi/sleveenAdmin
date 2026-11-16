@@ -30,6 +30,12 @@ public static class SailProductSeed
     public const string HelloMetaId = "c68deea4fb674764955120471b7db18d";
     public const string DemoMetaId = "afa08ced46164304a1659f08e1ef08fd";
 
+    /// <summary>UAT·G：双人工节点，可退回上一 UserTask。</summary>
+    public const string UatGProcessId = "sail-uat-g";
+    public const string UatAProcessId = "sail-uat-a";
+    public const string UatBProcessId = "sail-uat-b";
+    public const string UatCProcessId = "sail-uat-c";
+
     const string DefaultExtraJson =
         "{\"allowCancelRunningProcess\":true,\"allowWithdrawTask\":false,\"processIdRule\":{\"enable\":false,\"prefix\":\"\",\"infix\":\"\",\"postfix\":\"\",\"length\":5},\"autoApprovalType\":0,\"titleSetting\":{\"enable\":false,\"title\":\"\"},\"summarySetting\":{\"enable\":false,\"summary\":[]},\"processBeforeTriggerSetting\":null,\"processAfterTriggerSetting\":null,\"taskBeforeTriggerSetting\":null,\"taskAfterTriggerSetting\":null,\"printTemplateSetting\":{\"enable\":false,\"template\":\"\"}}";
 
@@ -42,9 +48,46 @@ public static class SailProductSeed
         n += EnsureAskPostForm(kit);
         n += EnsureHelloProcess(kit);
         n += EnsureDemoProcess(kit);
+        n += EnsureUatProcess(kit, UatGProcessId, "SEED_UAT_G", "UAT G 双节点退回", UatGBpmn());
+        n += EnsureUatProcess(kit, UatAProcessId, "SEED_UAT_A", "UAT A 空人同人超时", UatABpmn());
+        n += EnsureUatProcess(kit, UatBProcessId, "SEED_UAT_B", "UAT B 终止作废", UatBBpmn());
+        n += EnsureUatProcess(kit, UatCProcessId, "SEED_UAT_C", "UAT C 字段权限", UatCBpmn());
         n += EnsureMeta(kit, HelloMetaId, HelloProcessId, "1");
         n += EnsureMeta(kit, DemoMetaId, DemoProcessId, "1");
+        n += EnsureMeta(kit, "uatg-meta-000000000000000000000001", UatGProcessId, "1");
+        n += EnsureMeta(kit, "uata-meta-000000000000000000000001", UatAProcessId, "1");
+        n += EnsureMeta(kit, "uatb-meta-000000000000000000000001", UatBProcessId, "1");
+        n += EnsureMeta(kit, "uatc-meta-000000000000000000000001", UatCProcessId, "1");
         return n;
+    }
+
+    static int EnsureUatProcess(SQLBuilder kit, string processId, string code, string name, string xml)
+    {
+        var exists = kit.countBy<ProcessEntity>((c, t) =>
+        {
+            c.where(() => t.ProcessId, processId);
+        });
+        if (exists > 0)
+            return 0;
+
+        return InsertProcesses(kit, new List<ProcessEntity>
+        {
+            new()
+            {
+                ProcessId = processId,
+                ProcessName = name,
+                ProcessCode = code,
+                Version = "1",
+                Status = 1,
+                AppType = CategoryCode,
+                XmlFileName = processId + ".bpmn",
+                XmlContent = xml,
+                StartType = 0,
+                EndType = 0,
+                Description = "联调验收专用（可删）",
+                CreatedDateTime = DateTime.UtcNow
+            }
+        });
     }
 
     static int EnsureCategory(SQLBuilder kit)
@@ -331,4 +374,113 @@ public static class SailProductSeed
         "</bpmndi:BPMNPlane>" +
         "</bpmndi:BPMNDiagram>" +
         "</bpmn:definitions>";
+
+    static string BpmnShell(string processId, string code, string name, string body) =>
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+        "<bpmn:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
+        "xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" " +
+        "xmlns:bpmndi=\"http://www.omg.org/spec/BPMN/20100524/DI\" " +
+        "xmlns:dc=\"http://www.omg.org/spec/DD/20100524/DC\" " +
+        "xmlns:di=\"http://www.omg.org/spec/DD/20100524/DI\" " +
+        "xmlns:sf=\"http://www.sailflow.com/schema/sf\" " +
+        "id=\"Definitions_" + processId + "\" targetNamespace=\"http://bpmn.io/schema/bpmn\">" +
+        "<bpmn:process id=\"" + processId + "\" name=\"" + name + "\" isExecutable=\"true\" " +
+        "sf:code=\"" + code + "\" sf:version=\"1\">" +
+        body +
+        "</bpmn:process>" +
+        "<bpmndi:BPMNDiagram id=\"BPMNDiagram_1\"><bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"" +
+        processId + "\"/></bpmndi:BPMNDiagram>" +
+        "</bpmn:definitions>";
+
+    static string Ext(string assignee, string leave, string? buttonsJson, string? policyJson)
+    {
+        var sb = "<bpmn:extensionElements>";
+        sb += "<sf:assigneeResolve type=\"" + assignee + "\" params=\"\" />";
+        sb += "<sf:leaveJudge type=\"" + leave + "\" params=\"{&quot;completeRate&quot;:1}\" />";
+        if (!string.IsNullOrWhiteSpace(buttonsJson))
+            sb += "<sf:ButtonsSetting json=\"" + buttonsJson.Replace("\"", "&quot;") + "\" />";
+        if (!string.IsNullOrWhiteSpace(policyJson))
+            sb += "<sf:NodePolicy json=\"" + policyJson.Replace("\"", "&quot;") + "\" />";
+        sb += "</bpmn:extensionElements>";
+        return sb;
+    }
+
+    static string UatGBpmn()
+    {
+        var pick = "ApproverPick";
+        var body =
+            "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
+            "<bpmn:userTask id=\"UserTask_A\" name=\"一级审批\">" +
+            "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
+            Ext(pick, "Collaborate", null, null) +
+            "</bpmn:userTask>" +
+            "<bpmn:userTask id=\"UserTask_B\" name=\"二级审批\">" +
+            "<bpmn:incoming>f2</bpmn:incoming><bpmn:outgoing>f3</bpmn:outgoing>" +
+            Ext(pick, "Collaborate", null, null) +
+            "</bpmn:userTask>" +
+            "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f3</bpmn:incoming></bpmn:endEvent>" +
+            "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_A\" />" +
+            "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_A\" targetRef=\"UserTask_B\" />" +
+            "<bpmn:sequenceFlow id=\"f3\" sourceRef=\"UserTask_B\" targetRef=\"EndEvent_1\" />";
+        return BpmnShell(UatGProcessId, "SEED_UAT_G", "UAT G 双节点退回", body);
+    }
+
+    static string UatABpmn()
+    {
+        // 空人=2 拒绝推进；短超时启用 Type=2 自动同意（联调可再改库）
+        var policy =
+            "{\"approveType\":1,\"assignEmptyHandlerType\":2,\"assignStartUserHandlerType\":1," +
+            "\"timeoutHandlerEnable\":true,\"timeoutHandlerType\":2,\"timeDuration\":1,\"timeUnit\":1," +
+            "\"maxRemindCount\":1,\"signEnable\":false,\"fieldsPermission\":[]}";
+        var body =
+            "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
+            "<bpmn:userTask id=\"UserTask_1\" name=\"策略节点\">" +
+            "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
+            Ext("ApproverPick", "Collaborate", null, policy) +
+            "</bpmn:userTask>" +
+            "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
+            "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
+            "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_1\" targetRef=\"EndEvent_1\" />";
+        return BpmnShell(UatAProcessId, "SEED_UAT_A", "UAT A 空人同人超时", body);
+    }
+
+    static string UatBBpmn()
+    {
+        var buttons =
+            "[{\"id\":\"Approve\",\"enable\":true,\"displayName\":\"通过\"}," +
+            "{\"id\":\"Terminate\",\"enable\":true,\"displayName\":\"终止\"}," +
+            "{\"id\":\"Discard\",\"enable\":true,\"displayName\":\"作废\"}]";
+        var body =
+            "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
+            "<bpmn:userTask id=\"UserTask_1\" name=\"管理闸\">" +
+            "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
+            Ext("ApproverPick", "Collaborate", buttons, null) +
+            "</bpmn:userTask>" +
+            "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
+            "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
+            "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_1\" targetRef=\"EndEvent_1\" />";
+        return BpmnShell(UatBProcessId, "SEED_UAT_B", "UAT B 终止作废", body);
+    }
+
+    static string UatCBpmn()
+    {
+        var policy =
+            "{\"approveType\":1,\"assignEmptyHandlerType\":2,\"signEnable\":true,\"reasonRequire\":false," +
+            "\"fieldsPermission\":[" +
+            "{\"field\":\"F9aqmwg7hka8abc\",\"title\":\"姓名\",\"permission\":\"editable\"}," +
+            "{\"field\":\"F4vqmwg7hlfwaec\",\"title\":\"简介\",\"permission\":\"readonly\"}," +
+            "{\"field\":\"Flbimwg7hmm9ahc\",\"title\":\"意向\",\"permission\":\"hidden\"}," +
+            "{\"field\":\"mask_demo\",\"title\":\"脱敏\",\"permission\":\"masked\"}" +
+            "]}";
+        var body =
+            "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
+            "<bpmn:userTask id=\"UserTask_1\" name=\"字段权限\">" +
+            "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
+            Ext("ApproverPick", "Collaborate", null, policy) +
+            "</bpmn:userTask>" +
+            "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
+            "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
+            "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_1\" targetRef=\"EndEvent_1\" />";
+        return BpmnShell(UatCProcessId, "SEED_UAT_C", "UAT C 字段权限", body);
+    }
 }

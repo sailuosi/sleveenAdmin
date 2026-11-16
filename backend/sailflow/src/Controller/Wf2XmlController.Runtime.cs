@@ -44,6 +44,7 @@ public partial class Wf2XmlController
         try
         {
             SailAuthIdentity.BindRunner(User, runner);
+            EnsureRunnerActivityInstanceId(runner);
             var exec = await _workflowService.RunProcessAsync(runner, HttpContext.RequestAborted);
             PersistRunnerConditions(runner, exec);
             return FromExecuted(exec);
@@ -156,6 +157,7 @@ public partial class Wf2XmlController
                 return ResponseResult.Error("Runner is required.");
 
             SailAuthIdentity.BindRunner(User, req.Runner);
+            EnsureRunnerActivityInstanceId(req.Runner);
             var result = await _operationDispatcher.ExecuteAsync(new SailOperationContext
             {
                 ButtonId = req.ButtonId.Trim(),
@@ -928,11 +930,31 @@ public partial class Wf2XmlController
     {
         if (exec == null || exec.Status != WfExecutedStatus.Success)
             return;
+        EnsureRunnerActivityInstanceId(runner);
         var piId = SailProcessVariableHelper.ResolveProcessInstanceId(
             _workflowService,
             runner,
             exec.ProcessInstanceIdStarted);
         SailProcessVariableHelper.PersistConditions(_workflowService, runner, piId, _logger);
+    }
+
+    /// <summary>写意见 act 键前补齐 ActivityInstanceId（优先 Runner，否则办结前 TaskView）。</summary>
+    void EnsureRunnerActivityInstanceId(FlowCommandContext? runner)
+    {
+        if (runner == null || !string.IsNullOrWhiteSpace(runner.ActivityInstanceId))
+            return;
+        if (string.IsNullOrWhiteSpace(runner.TaskId))
+            return;
+        try
+        {
+            var actId = _workflowService.GetTaskView(runner.TaskId)?.ActivityInstanceId;
+            if (!string.IsNullOrWhiteSpace(actId))
+                runner.ActivityInstanceId = actId.Trim();
+        }
+        catch
+        {
+            /* ignore */
+        }
     }
 
     List<RemovableAssigneeDto> BuildOpenAssignees(TaskViewEntity task)
