@@ -487,14 +487,18 @@ async function submit() {
       (formRef.value?.getValue?.() as Record<string, unknown> | undefined) || formValues.value;
     formValues.value = rawForm || {};
     const conditions = formValuesToConditions(rawForm);
+    const channel = appName.value || 'Sailflow';
     const payload: Parameters<typeof startProcess>[0] = {
       UserId: userId.value,
       UserName: userName.value,
       ProcessId: processId,
       Version: version,
-      AppName: appName.value || 'Sailflow',
+      BizChannel: channel,
+      BizPK: instanceId,
+      AppName: channel,
       AppInstanceId: instanceId,
-      // 约定：AppInstanceCode 存 formId，办理页 Workbench 可回取表单
+      // 约定：BizCode/AppInstanceCode 存 formId，办理页 Workbench 可回取表单
+      BizCode: selectedFormId.value || undefined,
       AppInstanceCode: selectedFormId.value || undefined,
       Conditions: conditions,
       StartUnitId: startUnitId.value.trim() || undefined,

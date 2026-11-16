@@ -1054,11 +1054,20 @@ function buildRunner(extra?: Partial<FlowCommandContextPayload>): FlowCommandCon
     ...formValuesToConditionsForSubmit(props.formValues, props.fieldModes),
     ...(comment.value ? { comment: comment.value } : {})
   };
+  const bizChannel = String(
+    pickField(t, 'BizChannel', 'bizChannel', 'AppName', 'appName') || ''
+  );
+  const bizPk = String(
+    pickField(t, 'BizPK', 'bizPK', 'AppInstanceId', 'appInstanceId') || ''
+  );
   return {
     UserId: userId.value,
     UserName: userName.value,
-    AppName: String(pickField(t, 'AppName', 'appName') || ''),
-    AppInstanceId: String(pickField(t, 'AppInstanceId', 'appInstanceId') || ''),
+    BizChannel: bizChannel,
+    BizPK: bizPk,
+    // 兼容旧字段（引擎 FlowCommandContext.AppName/AppInstanceId 会回写 Biz*）
+    AppName: bizChannel,
+    AppInstanceId: bizPk,
     ProcessId: String(pickField(t, 'ProcessId', 'processId') || ''),
     Version: String(pickField(t, 'Version', 'version') || '1'),
     TaskId: String(pickField(t, 'TaskId', 'taskId', 'Id', 'id') || '').trim() || null,

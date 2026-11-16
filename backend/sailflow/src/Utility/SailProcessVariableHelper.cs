@@ -58,7 +58,9 @@ public static class SailProcessVariableHelper
             return;
 
         string? actId = null;
-        if (!string.IsNullOrWhiteSpace(runner.TaskId))
+        if (!string.IsNullOrWhiteSpace(runner.ActivityInstanceId))
+            actId = runner.ActivityInstanceId.Trim();
+        if (string.IsNullOrWhiteSpace(actId) && !string.IsNullOrWhiteSpace(runner.TaskId))
         {
             try
             {
@@ -69,6 +71,7 @@ public static class SailProcessVariableHelper
                 /* ignore */
             }
         }
+        // 办结后 TaskView 可能已无 ActivityInstanceId：回落全局 comment/sign 键仍写入，供时间线按活动补齐前再被覆盖
         if (string.IsNullOrWhiteSpace(actId))
             return;
 
@@ -198,6 +201,46 @@ public static class SailProcessVariableHelper
             }
         }
         return map;
+    }
+
+    /// <summary>
+    /// 无按活动键时，把全局 comment/signPicUrl 挂到最近办结的人工活动（兼容落库时 Task 已无 ActivityInstanceId）。
+    /// </summary>
+    public static void AttachGlobalOpinionFallback(
+        Dictionary<string, ActivityOpinionDto> map,
+        Dictionary<string, string>? formValues,
+        IEnumerable<ActivityInstanceEntity>? activities)
+    {
+        if (map == null || map.Count > 0 || formValues == null || activities == null)
+            return;
+
+        string? comment = null;
+        string? sign = null;
+        foreach (var kv in formValues)
+        {
+            if (string.Equals(kv.Key, "comment", StringComparison.OrdinalIgnoreCase))
+                comment = kv.Value;
+            else if (string.Equals(kv.Key, "signPicUrl", StringComparison.OrdinalIgnoreCase))
+                sign = kv.Value;
+        }
+        if (string.IsNullOrWhiteSpace(comment) && string.IsNullOrWhiteSpace(sign))
+            return;
+
+        // ActivityType 4=UserTask；ActivityState 4=Completed（与 TaskView 一致）
+        var hit = activities
+            .Where(a => a != null && !string.IsNullOrWhiteSpace(a.ActivityInstanceId))
+            .Where(a => a.ActivityType == 4 && a.ActivityState == 4)
+            .OrderByDescending(a => a.EndedDateTime ?? a.CreatedDateTime)
+            .FirstOrDefault();
+        if (hit == null)
+            return;
+
+        map[hit.ActivityInstanceId!] = new ActivityOpinionDto
+        {
+            ActivityInstanceId = hit.ActivityInstanceId!,
+            Comment = comment,
+            SignPicUrl = sign
+        };
     }
 
     /// <summary>从执行结果或 runner 解析实例 Id。</summary>
