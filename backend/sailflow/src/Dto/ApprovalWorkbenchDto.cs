@@ -34,6 +34,17 @@ public class ApprovalWorkbenchDto
     /// <summary>§G：退回源活动实例 Id（有则 HasBackSrc=true）。</summary>
     public string? BackSrcActInstanceId { get; set; }
 
+    /// <summary>
+    /// §G：退回人 UserId（取自 BackSrc 活动的 EndedUserId，勿用 CreatedUser*）。
+    /// </summary>
+    public string? BackSrcUserId { get; set; }
+
+    /// <summary>§G：退回人显示名。</summary>
+    public string? BackSrcUserName { get; set; }
+
+    /// <summary>当前节点未办结、可减签的办理人（不含本人）。</summary>
+    public List<RemovableAssigneeDto> RemovableAssignees { get; set; } = new();
+
     /// <summary>§J 维①：Prev | Starter | History（来自节点 NodePolicy）。</summary>
     public string SendBackTarget { get; set; } = "Starter";
 
@@ -57,6 +68,13 @@ public class ApprovalWorkbenchDto
 
     /// <summary>流程摘要（变量 __sail_summary__）。</summary>
     public string? Summary { get; set; }
+}
+
+public sealed class RemovableAssigneeDto
+{
+    public string TaskId { get; set; } = "";
+    public string UserId { get; set; } = "";
+    public string UserName { get; set; } = "";
 }
 
 /// <summary>Workbench 下发的 Extra 运行时字段（避免整包泄漏 URL 密钥时可再收紧）。</summary>

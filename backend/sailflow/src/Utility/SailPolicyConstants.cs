@@ -21,6 +21,12 @@ public static class SailPolicyConstants
 
     public static string ActiveSkipUserName { get; set; } = PolicySkipUserName;
 
+    /// <summary>
+    /// 是否继续扫遗留魔法 skip 待办兜底。默认 false（R10 收口，只留 AutoApprove 锚点）。
+    /// 配置 <c>Sail:PolicySkip:LegacyDrain=true</c> 可临时打开。
+    /// </summary>
+    public static bool LegacySkipDrainEnabled { get; set; }
+
     public static bool IsSkipUser(string? userId) =>
         !string.IsNullOrWhiteSpace(userId)
         && (string.Equals(userId, ActiveSkipUserId, StringComparison.OrdinalIgnoreCase)

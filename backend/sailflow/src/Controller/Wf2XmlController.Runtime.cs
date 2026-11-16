@@ -1,6 +1,7 @@
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using mooSQL.data;
 using sailflow.biz.query;
 using sailflow.engine.Entity;
 using sailflow.engine.Manager;
@@ -76,6 +77,21 @@ public partial class Wf2XmlController
         {
             SailAuthIdentity.BindRunner(User, runner);
             return FromExecuted(await _workflowService.TransferProcessAsync(runner, HttpContext.RequestAborted));
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult.Error(ex.Message);
+        }
+    }
+
+    /// <summary>POST api/Wf2Xml/RemoveAssigneeProcess · 减签</summary>
+    [HttpPost]
+    public async Task<ResponseResult> RemoveAssigneeProcess([FromBody] FlowCommandContext runner)
+    {
+        try
+        {
+            SailAuthIdentity.BindRunner(User, runner);
+            return FromExecuted(await _workflowService.RemoveAssigneeProcessAsync(runner, HttpContext.RequestAborted));
         }
         catch (Exception ex)
         {
@@ -592,11 +608,34 @@ public partial class Wf2XmlController
                     {
                         dto.HasBackSrc = true;
                         dto.BackSrcActInstanceId = ai.BackSrcActInstanceId;
+                        // 退回人：BackSrc 活动办结人（EndedUser*），禁止用 CreatedUser*
+                        var backSrc = dto.ActivityInstances.FirstOrDefault(a =>
+                                          a.ActivityInstanceId == ai.BackSrcActInstanceId)
+                                      ?? _workflowService.GetActivityInstance(ai.BackSrcActInstanceId);
+                        if (backSrc != null)
+                        {
+                            dto.BackSrcUserId = string.IsNullOrWhiteSpace(backSrc.EndedUserId)
+                                ? null
+                                : backSrc.EndedUserId;
+                            dto.BackSrcUserName = string.IsNullOrWhiteSpace(backSrc.EndedUserName)
+                                ? null
+                                : backSrc.EndedUserName;
+                        }
                     }
                 }
                 catch
                 {
                     /* 退回源探测失败不阻断办理 */
+                }
+
+                // 减签候选人：同 ActivityInstance 未办结 Waiting 任务（不含当前办理人）
+                try
+                {
+                    dto.RemovableAssignees = BuildRemovableAssignees(task);
+                }
+                catch
+                {
+                    dto.RemovableAssignees = new List<RemovableAssigneeDto>();
                 }
 
                 // 节点办理按钮 + NodePolicy（§J 两维）
@@ -866,6 +905,34 @@ public partial class Wf2XmlController
         SailProcessVariableHelper.PersistConditions(_workflowService, runner, piId, _logger);
     }
 
+    List<RemovableAssigneeDto> BuildRemovableAssignees(TaskViewEntity task)
+    {
+        var list = new List<RemovableAssigneeDto>();
+        if (string.IsNullOrWhiteSpace(task.ActivityInstanceId) || string.IsNullOrWhiteSpace(task.ProcessInstanceId))
+            return list;
+
+        var clip = _sail.UseRunSQL().useClip();
+        clip.from<TaskEntity>(out var t)
+            .where(() => t.ProcessInstanceId, task.ProcessInstanceId)
+            .where(() => t.ActivityInstanceId, task.ActivityInstanceId)
+            .where(() => t.TaskState, (short)TaskStateEnum.Waiting);
+        var waiting = clip.select(t).queryList() ?? new List<TaskEntity>();
+        foreach (var row in waiting)
+        {
+            if (string.IsNullOrWhiteSpace(row.TaskId) || string.IsNullOrWhiteSpace(row.SignId))
+                continue;
+            if (string.Equals(row.SignId, task.SignId, StringComparison.OrdinalIgnoreCase))
+                continue;
+            list.Add(new RemovableAssigneeDto
+            {
+                TaskId = row.TaskId,
+                UserId = row.SignId,
+                UserName = row.SignName ?? row.SignId
+            });
+        }
+        return list;
+    }
+
     void ApplyExtraWorkbenchState(ApprovalWorkbenchDto dto, TaskViewEntity? task)
     {
         try
@@ -977,7 +1044,7 @@ public partial class Wf2XmlController
     }
 
     static bool IsConsultLockedButton(string? id) =>
-        id is "Approve" or "Reject" or "SendBack" or "SignForward" or "Transfer"
+        id is "Approve" or "Reject" or "SendBack" or "SignForward" or "RemoveAssignee" or "Transfer"
             or "Revise" or "Resend" or "Jump" or "Close";
 
     private static ResponseResult FromExecuted(WfExecutedResult wfResult)

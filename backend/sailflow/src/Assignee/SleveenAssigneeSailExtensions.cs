@@ -145,6 +145,11 @@ public static class SleveenAssigneeSailExtensions
         else if (!string.IsNullOrWhiteSpace(uid)
                  && !string.Equals(uid, SailPolicyConstants.PolicySkipUserId, StringComparison.OrdinalIgnoreCase))
             SailPolicyConstants.ActiveSkipUserName = uid!;
+
+        var legacy = configuration?["Sail:PolicySkip:LegacyDrain"]?.Trim();
+        if (string.Equals(legacy, "true", StringComparison.OrdinalIgnoreCase)
+            || legacy == "1")
+            SailPolicyConstants.LegacySkipDrainEnabled = true;
     }
 
     static string[] SplitIds(string raw) =>

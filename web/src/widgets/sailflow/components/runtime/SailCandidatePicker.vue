@@ -97,15 +97,22 @@ const useRemote = computed(() => !useInline.value);
 
 const placeholderText = computed(() => {
   if (props.placeholder) return props.placeholder;
-  if (props.required) return useRemote.value ? '必选：搜索并指定办理人' : '必选：请指定下一办理人';
-  return useRemote.value ? '可选：搜索办理人' : '可选：覆盖默认候选人';
+  if (props.required) return useRemote.value ? '必选：搜索并指定下一节点审批人' : '必选：请指定下一节点审批人';
+  return useRemote.value ? '可选：搜索下一节点审批人' : '可选：覆盖默认下一节点审批人';
 });
 
 const hint = computed(() => {
-  if (!props.required) return '';
-  if (useInline.value && !(props.inlineUsers?.length || 0)) return '暂无候选人，请检查角色配置';
-  if (useRemote.value && !innerIds.value.length) return '请输入关键字搜索人员';
-  return '';
+  if (innerIds.value.length) {
+    return `已选 ${innerIds.value.length} 人作为下一个节点的审批人`;
+  }
+  if (!props.required) {
+    return useInline.value
+      ? '可不选：将按节点候选人策略自动带人'
+      : '可不选：提交后按算人策略解析下一节点审批人';
+  }
+  if (useInline.value && !(props.inlineUsers?.length || 0)) return '暂无候选人，请检查角色/算人配置';
+  if (useRemote.value) return '请搜索并指定下一个节点的审批人';
+  return '请指定下一个节点的审批人';
 });
 
 const options = computed(() => {

@@ -57,15 +57,55 @@
           </template>
           <div class="sf-op-pop">
             <el-form label-position="top" @submit.prevent>
-              <el-form-item label="办理意见">
+              <el-form-item :label="reasonRequire ? '办理意见（必填）' : '办理意见'">
                 <el-input
                   v-model="comment"
                   type="textarea"
                   :rows="3"
-                  placeholder="请输入办理意见（可选）"
+                  :placeholder="reasonRequire ? '请输入办理意见' : '请输入办理意见（可选）'"
                 />
+                <div class="sf-op-pop__phrases">
+                  <el-button
+                    v-for="p in commonPhrases"
+                    :key="p"
+                    link
+                    type="primary"
+                    size="small"
+                    @click="comment = p"
+                  >
+                    {{ p }}
+                  </el-button>
+                </div>
+              </el-form-item>
+              <el-form-item v-if="signEnable" label="签名" required>
+                <div class="sf-op-pop__sign">
+                  <el-image
+                    v-if="signPicUrl"
+                    :src="signPicUrl"
+                    fit="contain"
+                    class="sf-op-pop__sign-img"
+                  />
+                  <el-input
+                    v-model="signPicUrl"
+                    clearable
+                    placeholder="签名图片 URL"
+                  />
+                  <el-button
+                    link
+                    type="primary"
+                    size="small"
+                    :loading="signLoading"
+                    @click="loadMySignature"
+                  >
+                    使用个人中心电子签名
+                  </el-button>
+                </div>
+                <div class="sf-op-pop__hint">节点要求签名；通过时写入 Conditions.signPicUrl</div>
               </el-form-item>
               <el-form-item v-if="nextNodes.length" label="下一节点" required>
+                <div class="sf-op-pop__hint" style="margin-bottom: 6px">
+                  请确认下一节点；需要人工选人时在下方选择办理人
+                </div>
                 <div v-if="nextNodes.length === 1" class="sf-op-pop__plain">
                   {{ nodeName(nextNodes[0]) }}
                 </div>
@@ -155,6 +195,18 @@
                   :rows="3"
                   placeholder="请输入驳回意见"
                 />
+                <div class="sf-op-pop__phrases">
+                  <el-button
+                    v-for="p in rejectPhrases"
+                    :key="p"
+                    link
+                    type="danger"
+                    size="small"
+                    @click="rejectComment = p"
+                  >
+                    {{ p }}
+                  </el-button>
+                </div>
               </el-form-item>
               <div class="sf-op-pop__footer">
                 <el-button @click="rejectVisible = false">取消</el-button>
@@ -181,6 +233,14 @@
           @click="signVisible = true"
         >
           {{ btnLabel('SignForward') }}
+        </el-button>
+        <el-button
+          v-if="btnOn('RemoveAssignee') && !consultPending && removableAssignees.length"
+          plain
+          :loading="loading"
+          @click="removeVisible = true"
+        >
+          {{ btnLabel('RemoveAssignee') }}
         </el-button>
         <el-button
           v-if="btnOn('Transfer') && !consultPending"
@@ -306,6 +366,40 @@
       <template #footer>
         <el-button @click="sendBackVisible = false">取消</el-button>
         <el-button type="primary" :loading="loading" @click="onSendBack">确认退回</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 减签 -->
+    <el-dialog
+      v-model="removeVisible"
+      :title="btnLabel('RemoveAssignee')"
+      width="480px"
+      destroy-on-close
+    >
+      <el-form label-width="90px">
+        <el-form-item label="减签人员" required>
+          <el-select
+            v-model="removeUserIds"
+            multiple
+            filterable
+            style="width: 100%"
+            placeholder="选择要移除的未办结办理人"
+          >
+            <el-option
+              v-for="u in removableAssignees"
+              :key="u.UserId || u.userId"
+              :label="`${u.UserName || u.userName || u.UserId || u.userId}`"
+              :value="String(u.UserId || u.userId)"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="意见">
+          <el-input v-model="removeComment" type="textarea" :rows="2" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="removeVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="onRemoveAssignee">确认减签</el-button>
       </template>
     </el-dialog>
 
@@ -499,6 +593,7 @@ import {
 } from '@sail/api/runtime';
 import { loadHostCandidateUsers, type HostCandidateUser } from '@sail/adapters/hostUsers';
 import { useSailCurrentUser } from '@sail/adapters/currentUser';
+import { apiSysUserBaseInfoGet } from '@/widgets/sysext/api/system/sysuserapi.js';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
 import { formValuesToConditionsForSubmit } from '@sail/utils/formCreate';
 import {
@@ -537,6 +632,19 @@ const props = withDefaults(
     /** 发起人侧沟通未反馈完 */
     consultPending?: boolean;
     openParticipantCount?: number;
+    /** NodePolicy.signEnable */
+    signEnable?: boolean;
+    /** NodePolicy.reasonRequire */
+    reasonRequire?: boolean;
+    /** Workbench.RemovableAssignees */
+    removableAssignees?: Array<{
+      TaskId?: string;
+      taskId?: string;
+      UserId?: string;
+      userId?: string;
+      UserName?: string;
+      userName?: string;
+    }>;
   }>(),
   {
     canHandle: true,
@@ -550,7 +658,10 @@ const props = withDefaults(
     fieldModes: null,
     assigneeRole: null,
     consultPending: false,
-    openParticipantCount: 0
+    openParticipantCount: 0,
+    signEnable: false,
+    reasonRequire: false,
+    removableAssignees: () => []
   }
 );
 
@@ -560,8 +671,44 @@ const { userId, userName } = useSailCurrentUser();
 const loading = ref(false);
 const comment = ref('');
 const rejectComment = ref('');
+const signPicUrl = ref('');
+const signLoading = ref(false);
 const approveVisible = ref(false);
 const rejectVisible = ref(false);
+const removeVisible = ref(false);
+const removeUserIds = ref<string[]>([]);
+const removeComment = ref('');
+const commonPhrases = ['同意', '拟同意', '情况属实', '请按制度办理'];
+const rejectPhrases = ['不同意', '请补充材料', '退回修改', '不符合要求'];
+const signEnable = computed(() => !!props.signEnable);
+const reasonRequire = computed(() => !!props.reasonRequire);
+const removableAssignees = computed(() => props.removableAssignees || []);
+
+async function loadMySignature() {
+  signLoading.value = true;
+  try {
+    const res = await apiSysUserBaseInfoGet();
+    const row = (res as any)?.data?.result ?? (res as any)?.result ?? res ?? {};
+    const url = String(
+      pickField(row, 'signature', 'Signature', 'signPicUrl', 'SignPicUrl') || ''
+    ).trim();
+    if (!url) {
+      ElMessage.warning('个人中心尚未上传电子签名，请先到用户中心设置');
+      return;
+    }
+    signPicUrl.value = url;
+  } catch (e: unknown) {
+    ElMessage.error(e instanceof Error ? e.message : '加载签名失败');
+  } finally {
+    signLoading.value = false;
+  }
+}
+
+watch(approveVisible, v => {
+  if (v && signEnable.value && !signPicUrl.value) {
+    void loadMySignature();
+  }
+});
 const selectedActivityId = ref('');
 const selectedUserIds = ref<string[]>([]);
 const nextGroupId = ref('');
@@ -863,6 +1010,14 @@ async function onApprove() {
       return;
     }
   }
+  if (reasonRequire.value && !comment.value.trim()) {
+    ElMessage.warning('请输入办理意见');
+    return;
+  }
+  if (signEnable.value && !signPicUrl.value.trim()) {
+    ElMessage.warning('本节点需要签名');
+    return;
+  }
   if (nextNodes.value.length && !selectedActivityId.value) {
     ElMessage.warning('请选择下一节点');
     return;
@@ -889,8 +1044,46 @@ async function onApprove() {
     // 结束等非人工节点：引擎用 NextActivityPerformers.ContainsKey 匹配后续，须占位键（可空列表）
     extra.NextActivityPerformers = { [selectedActivityId.value]: [] };
   }
-  const ok = await execButton('Approve', buildRunner(extra), '已通过');
-  if (ok) approveVisible.value = false;
+  const runner = buildRunner(extra);
+  if (signPicUrl.value.trim()) {
+    runner.Conditions = {
+      ...(runner.Conditions || {}),
+      signPicUrl: signPicUrl.value.trim()
+    };
+  }
+  const ok = await execButton('Approve', runner, '已通过');
+  if (ok) {
+    approveVisible.value = false;
+    signPicUrl.value = '';
+  }
+}
+
+async function onRemoveAssignee() {
+  if (!removeUserIds.value.length) {
+    ElMessage.warning('请选择要减签的人员');
+    return;
+  }
+  const activityId =
+    pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'remove';
+  const pool = removableAssignees.value.map(u => ({
+    UserId: String(u.UserId || u.userId || ''),
+    UserName: String(u.UserName || u.userName || u.UserId || u.userId || '')
+  }));
+  const runner = buildRunner({
+    NextActivityPerformers: withNextPerformers(String(activityId), removeUserIds.value, pool)
+  });
+  if (removeComment.value.trim()) {
+    runner.Conditions = {
+      ...(runner.Conditions || {}),
+      comment: removeComment.value.trim()
+    };
+  }
+  const ok = await execButton('RemoveAssignee', runner, '已减签');
+  if (ok) {
+    removeVisible.value = false;
+    removeUserIds.value = [];
+    removeComment.value = '';
+  }
 }
 
 async function onReject() {
@@ -1284,5 +1477,30 @@ onMounted(async () => {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 8px;
+}
+.sf-op-pop__phrases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 6px;
+}
+.sf-op-pop__hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  line-height: 1.4;
+}
+.sf-op-pop__sign {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.sf-op-pop__sign-img {
+  width: 160px;
+  height: 56px;
+  border: 1px solid var(--el-border-color-lighter);
+  border-radius: 4px;
+  background: #fff;
 }
 </style>

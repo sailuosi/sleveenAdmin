@@ -53,6 +53,7 @@
 | 修订 / 反转 | 可用（默认可关） | `ReviseProcess` / `ReverseProcess`；设计器按钮默认关闭 |
 | 办理按钮设置 | 可用 | 节点 `sf:ButtonsSetting`；Workbench 下发；办理条 enable+显示名；见 [sailflow-buttons-capability.md](./sailflow-buttons-capability.md) |
 | 转办 | 可用 | `TransferProcess` + 办理条；委派仍暂缓 |
+| 减签 | 可用 | `RemoveAssigneeProcess` + 码表/Handler；Workbench `RemovableAssignees`；办理条弹窗 |
 | 实例标题 / 摘要 | 可用 | Extra 标题模板 → `pi_title`；摘要变量 `__sail_summary__`；列表优先 Title |
 | 流程编码规则 | 可用 | Extra.`processIdRule` → `sf_process_id_seq`；写入 BizCode / `__sail_process_no__` |
 | 流程级自动去重 | 可用 | Extra.`autoApprovalType` 1/2 → AutoApprove 入队（与 NodePolicy 同人正交） |
@@ -64,7 +65,7 @@
 | 能力 | 成熟度 | 说明 |
 |------|--------|------|
 | BPMN 设计器（`sf:`） | 可用 | Performers、AI、RuleTask、Variables、Multisign、Forms、通知、**办理按钮**… |
-| 待办人 ConfigPair | 可用（引擎+面板） | `sf:assigneeResolve` / `sf:leaveJudge`；**策略化 Params 选择器**（侧栏按钮 + 节点弹窗共用） |
+| 待办人 ConfigPair | 可用（引擎+面板） | `sf:assigneeResolve` / `sf:leaveJudge`；业务向 Params 表单 + 高级 JSON 折叠；对照 [sailflow-assignee-strategy-map.md](./sailflow-assignee-strategy-map.md) |
 | 办理按钮设置 | 可用 | 属性面板列表 + **节点配置弹窗**卡片；对齐引擎 OA 命令码表 |
 | 节点配置弹窗 | 可用 | 侧栏标题齿轮打开；`SailNodeConfigPanel`（无 Dialog）+ Dialog 壳 |
 | 连接线配置弹窗 | 可用 | SequenceFlow 侧栏标题齿轮；流转条件 + GroupBehaviours |

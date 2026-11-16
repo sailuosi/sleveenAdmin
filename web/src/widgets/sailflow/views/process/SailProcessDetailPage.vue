@@ -116,6 +116,14 @@
 
           <el-tab-pane label="流转记录" name="record">
             <div class="sf-detail-page__pane">
+              <el-alert
+                v-if="nextNodeHint"
+                type="info"
+                :closable="false"
+                show-icon
+                class="sf-detail-page__next-hint"
+                :title="nextNodeHint"
+              />
               <el-timeline v-if="activityInstances.length">
                 <el-timeline-item
                   v-for="a in activityInstances"
@@ -177,6 +185,9 @@
           :assignee-role="assigneeRole"
           :consult-pending="consultPending"
           :open-participant-count="openParticipantCount"
+          :sign-enable="signEnable"
+          :reason-require="reasonRequire"
+          :removable-assignees="removableAssignees"
           @done="onDone"
         />
       </div>
@@ -280,6 +291,11 @@ const printTemplateEnable = ref(false);
 const printTemplate = ref('');
 const displaySummary = ref('');
 const cancelLoading = ref(false);
+const signEnable = ref(false);
+const reasonRequire = ref(false);
+const removableAssignees = ref<
+  Array<{ TaskId?: string; UserId?: string; UserName?: string; taskId?: string; userId?: string; userName?: string }>
+>([]);
 
 const displayTitle = computed(() => {
   return (
@@ -368,6 +384,23 @@ const canClose = computed(() => {
   return !canCancel.value;
 });
 const canJump = computed(() => processRunning.value && !!task.value);
+
+/** 流转记录旁提示：下一个节点的审批人（信息密度对齐 szkfpt） */
+const nextNodeHint = computed(() => {
+  if (!nextNodes.value.length) return '';
+  const parts = nextNodes.value.map(n => {
+    const name = String(pickField(n, 'ActivityName', 'activityName', 'Name', 'name') || pickField(n, 'ActivityId', 'activityId') || '节点');
+    const users = (pickField(n, 'Users', 'users') as Record<string, unknown>[] | undefined) || [];
+    const names = users
+      .map(u => String(pickField(u, 'UserName', 'userName', 'Account', 'account') || ''))
+      .filter(Boolean);
+    if (names.length) return `${name}：${names.join('、')}`;
+    const needs = pickField(n, 'IsNeedToBeSelectedByUser', 'isNeedToBeSelectedByUser');
+    if (needs === true || needs === 'true' || needs === 1) return `${name}：待指定办理人`;
+    return `${name}：按策略自动算人`;
+  });
+  return `下一个节点的审批人 · ${parts.join('；')}`;
+});
 
 const starterInitial = computed(() => {
   const name = String(field(processInstance.value, 'CreatedUserName', 'createdUserName') || '');
@@ -587,6 +620,20 @@ async function load() {
     );
     printTemplate.value = String(pickField(extra, 'PrintTemplate', 'printTemplate') || '');
     displaySummary.value = String(pickField(entity, 'Summary', 'summary') || '');
+
+    const policy = (pickField(entity, 'NodePolicy', 'nodePolicy') as Record<string, unknown>) || {};
+    signEnable.value = !!(
+      pickField(policy, 'SignEnable', 'signEnable') === true ||
+      pickField(policy, 'SignEnable', 'signEnable') === 'true'
+    );
+    reasonRequire.value = !!(
+      pickField(policy, 'ReasonRequire', 'reasonRequire') === true ||
+      pickField(policy, 'ReasonRequire', 'reasonRequire') === 'true'
+    );
+    const removableRaw = pickField(entity, 'RemovableAssignees', 'removableAssignees');
+    removableAssignees.value = Array.isArray(removableRaw)
+      ? (removableRaw as typeof removableAssignees.value)
+      : [];
 
     await loadProcessAssets();
   } catch (e: unknown) {
@@ -832,6 +879,9 @@ watch(() => route.query, load, { immediate: true });
 }
 .sf-detail-page__pane {
   padding: 8px 0 16px;
+}
+.sf-detail-page__next-hint {
+  margin-bottom: 12px;
 }
 .sf-detail-page__refs {
   display: flex;

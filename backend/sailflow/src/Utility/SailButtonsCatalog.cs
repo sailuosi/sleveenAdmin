@@ -21,6 +21,7 @@ public static class SailButtonsCatalog
         new() { Id = "Reject", DisplayName = "驳回", Enable = true, Engine = "RejectProcess" },
         new() { Id = "SendBack", DisplayName = "退回", Enable = true, Engine = "SendBackProcess" },
         new() { Id = "SignForward", DisplayName = "加签", Enable = true, Engine = "SignForwardProcess" },
+        new() { Id = "RemoveAssignee", DisplayName = "减签", Enable = true, Engine = "RemoveAssigneeProcess" },
         new() { Id = "Transfer", DisplayName = "转办", Enable = true, Engine = "TransferProcess" },
         new() { Id = "Consult", DisplayName = "沟通", Enable = true, Engine = "ConsultProcess" },
         new() { Id = "Acknowledge", DisplayName = "阅办", Enable = true, Engine = "AcknowledgeProcess" },

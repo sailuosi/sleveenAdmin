@@ -2,7 +2,7 @@
   <div class="sf-assignee-params">
     <template v-if="kind === 'resolve'">
       <template v-if="type === 'FixedUsers'">
-        <el-form-item label="固定用户 (Account)">
+        <el-form-item label="指定审批人">
           <el-select
             v-model="draft.userIds"
             multiple
@@ -18,7 +18,7 @@
         </el-form-item>
       </template>
       <template v-else-if="type === 'RoleGroup' || type === 'deptBoss'">
-        <el-form-item :label="type === 'deptBoss' ? '负责人角色袋 roleIds（可选）' : '角色 Id / Code'">
+        <el-form-item :label="type === 'deptBoss' ? '部门领导角色（可选）' : '审批角色'">
           <el-select
             v-model="draft.roleIds"
             multiple
@@ -27,7 +27,7 @@
             allow-create
             default-first-option
             style="width: 100%"
-            :placeholder="type === 'deptBoss' ? '空则用 Sail:DeptLeaderRoleIds' : '选择角色'"
+            :placeholder="type === 'deptBoss' ? '空则用系统部门领导角色配置' : '选择角色'"
           >
             <el-option
               v-for="r in roleOptions"
@@ -42,14 +42,14 @@
           type="info"
           :closable="false"
           show-icon
-          title="按发起人组织链找负责人；未命中可弱回落同组织其他账号"
+          title="按发起人组织链查找部门领导；未命中可弱回落同组织其他账号"
         />
       </template>
       <template v-else-if="type === 'UnitMap' || type === 'JobRelative'">
-        <el-form-item label="单位/岗位字段 unitField">
-          <el-input v-model="draft.unitField" clearable placeholder="如 companyId / jobCode" />
+        <el-form-item :label="type === 'JobRelative' ? '岗位字段' : '单位字段'">
+          <el-input v-model="draft.unitField" clearable placeholder="如表单字段 companyId / jobCode" />
         </el-form-item>
-        <el-form-item label="映射 maps（键→账号）">
+        <el-form-item label="键值映射（键 → 账号）">
           <div class="sf-assignee-params__maps">
             <div v-for="(row, i) in draft.mapRows" :key="i" class="sf-assignee-params__map-row">
               <el-input v-model="row.key" placeholder="键" />
@@ -61,11 +61,11 @@
         </el-form-item>
       </template>
       <template v-else-if="type === 'Expression'">
-        <el-form-item label="表达式 / 字段">
-          <el-input v-model="draft.expression" clearable placeholder="如 ${form.approver} / userIdsField" />
+        <el-form-item label="表单字段 / 表达式">
+          <el-input v-model="draft.expression" clearable placeholder="如 ${form.approver}" />
         </el-form-item>
-        <el-form-item label="userIdsField（可选）">
-          <el-input v-model="draft.userIdsField" clearable placeholder="从表单字段取用户列表" />
+        <el-form-item label="用户列表字段（可选）">
+          <el-input v-model="draft.userIdsField" clearable placeholder="从表单字段取多人账号列表" />
         </el-form-item>
         <el-button type="primary" link @click="emit('edit-expression')">可视化编辑表达式</el-button>
       </template>
@@ -159,12 +159,11 @@
       />
     </template>
 
-    <el-form-item v-if="showAdvanced" label="高级 Params JSON">
-      <el-input v-model="advancedJson" type="textarea" :rows="3" @change="onAdvancedBlur" />
-    </el-form-item>
-    <el-button text type="primary" @click="showAdvanced = !showAdvanced">
-      {{ showAdvanced ? '收起高级 JSON' : '高级 JSON' }}
-    </el-button>
+    <el-collapse v-model="advancedOpen" class="sf-assignee-params__adv">
+      <el-collapse-item title="高级 Params（技术 JSON）" name="adv">
+        <el-input v-model="advancedJson" type="textarea" :rows="3" @change="onAdvancedBlur" />
+      </el-collapse-item>
+    </el-collapse>
   </div>
 </template>
 
@@ -188,7 +187,7 @@ const emit = defineEmits<{
 
 const userOptions = ref<string[]>([]);
 const roleOptions = ref<Array<{ label: string; value: string }>>([]);
-const showAdvanced = ref(false);
+const advancedOpen = ref<string[]>([]);
 const advancedJson = ref('');
 
 type Draft = {
@@ -232,11 +231,11 @@ function emptyDraft(): Draft {
 }
 
 const pickHint = computed(() => {
-  if (props.type === 'StarterPick') return '发起人自选：运行时由办理人指定下一跳；通常无需 Params';
-  if (props.type === 'ApproverPick') return '发送人自选（出厂默认）：通常无需 Params';
+  if (props.type === 'StarterPick') return '发起人自选下一节点审批人；通常无需额外参数';
+  if (props.type === 'ApproverPick') return '当前审批人指定下一节点审批人（出厂默认）；通常无需额外参数';
   if (props.type === 'Preselect')
-    return '实例预选：发起时写入 sf_preselect_assignee；到达本节点时从表取人。发起可把多人塞进 NextActivityPerformers 多 key。';
-  return 'Specific：办理人由调用方传入；通常无需 Params';
+    return '发起时预选本节点办理人（写入预选表）；到达节点时从表取人';
+  return '办理人由调用方显式传入；通常无需额外参数';
 });
 
 function applyFromJson(raw: string) {
@@ -355,6 +354,15 @@ onMounted(async () => {
 <style scoped>
 .sf-assignee-hint {
   margin-bottom: 10px;
+}
+.sf-assignee-params__adv {
+  margin-top: 8px;
+  border: none;
+}
+.sf-assignee-params__adv :deep(.el-collapse-item__header) {
+  height: 36px;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 .sf-assignee-params__maps {
   display: flex;

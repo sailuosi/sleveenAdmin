@@ -37,7 +37,9 @@ public sealed class SailNodePolicyJobWorker(
                 var sail = scope.ServiceProvider.GetRequiredService<SailClient>();
                 var wf = scope.ServiceProvider.GetRequiredService<IWorkflowService>();
                 await DrainAutoApproveAnchorsAsync(sail, stoppingToken);
-                DrainLegacyPolicySkips(sail, wf, stoppingToken);
+                // R10：默认不再扫魔法 __sail_policy_skip__；仅锚点 Job。紧急回滚：Sail:PolicySkip:LegacyDrain=true
+                if (SailPolicyConstants.LegacySkipDrainEnabled)
+                    DrainLegacyPolicySkips(sail, wf, stoppingToken);
                 DrainPolicyAutoRejects(sail, wf, stoppingToken);
                 DrainTimeouts(sail, wf, stoppingToken);
             }

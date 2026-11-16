@@ -1,28 +1,46 @@
 export type SelectOpt = { label: string; value: string };
 
+/**
+ * Resolve Type 业务文案（对照 szkfpt BpmTaskCandidateStrategyEnum；value 仍为 Sail string）。
+ * 高级/少用策略排后。
+ */
 export const RESOLVE_TYPE_OPTIONS: SelectOpt[] = [
-  { label: 'Specific', value: 'Specific' },
-  { label: 'FixedUsers', value: 'FixedUsers' },
-  { label: 'RoleGroup', value: 'RoleGroup' },
-  { label: 'ProcessRelative', value: 'ProcessRelative' },
-  { label: 'StarterPick', value: 'StarterPick' },
-  { label: 'ApproverPick', value: 'ApproverPick' },
-  { label: 'Preselect（实例预选）', value: 'Preselect' },
-  { label: 'UnitMap', value: 'UnitMap' },
-  { label: 'JobRelative', value: 'JobRelative' },
-  { label: 'BusinessCallback', value: 'BusinessCallback' },
-  { label: 'Expression', value: 'Expression' },
-  { label: 'Fallback', value: 'Fallback' },
-  { label: 'Business.ClassStudents', value: 'Business.ClassStudents' },
-  { label: 'deptBoss（部门领导）', value: 'deptBoss' }
+  { label: '角色（RoleGroup）', value: 'RoleGroup' },
+  { label: '部门领导（deptBoss）', value: 'deptBoss' },
+  { label: '固定用户（FixedUsers）', value: 'FixedUsers' },
+  { label: '发起人自选（StarterPick）', value: 'StarterPick' },
+  { label: '审批人自选（ApproverPick）', value: 'ApproverPick' },
+  { label: '表单字段 / 表达式（Expression）', value: 'Expression' },
+  { label: '流程相对人（ProcessRelative）', value: 'ProcessRelative' },
+  { label: '实例预选（Preselect）', value: 'Preselect' },
+  { label: '指定传入（Specific）', value: 'Specific' },
+  { label: '单位映射（UnitMap）', value: 'UnitMap' },
+  { label: '岗位相对（JobRelative）', value: 'JobRelative' },
+  { label: '业务回调（BusinessCallback）', value: 'BusinessCallback' },
+  { label: '班级学生（Business.ClassStudents）', value: 'Business.ClassStudents' },
+  { label: '空人回落（Fallback）', value: 'Fallback' }
 ];
 
+/** szkfpt 策略码 → Sail Resolve Type（文档/面板对照；引擎不读此表） */
+export const SZKFPT_STRATEGY_TO_SAIL: Record<string, string> = {
+  ROLE: 'RoleGroup',
+  DEPT_LEADER: 'deptBoss',
+  DEPT_MEMBER: 'RoleGroup',
+  POST: 'JobRelative',
+  USER: 'FixedUsers',
+  START_USER_SELECT: 'StarterPick',
+  APPROVE_USER_SELECT: 'ApproverPick',
+  FORM_USER: 'Expression',
+  EXPRESSION: 'Expression',
+  START_USER: 'ProcessRelative'
+};
+
 export const LEAVE_TYPE_OPTIONS: SelectOpt[] = [
-  { label: 'Race', value: 'Race' },
-  { label: 'Collaborate', value: 'Collaborate' },
-  { label: 'GroupRace', value: 'GroupRace' },
-  { label: 'GroupCollaborate', value: 'GroupCollaborate' },
-  { label: 'Captain', value: 'Captain' }
+  { label: '或签（Race）', value: 'Race' },
+  { label: '会签（Collaborate）', value: 'Collaborate' },
+  { label: '组内或签（GroupRace）', value: 'GroupRace' },
+  { label: '组内会签（GroupCollaborate）', value: 'GroupCollaborate' },
+  { label: '队长关卡（Captain）', value: 'Captain' }
 ];
 
 /** 运行时选人器（与 AssigneeResolve 正交） */

@@ -53,6 +53,14 @@ export const SAIL_BUTTON_CATALOG: SailButtonDef[] = [
     defaultEnable: true
   },
   {
+    id: 'RemoveAssignee',
+    displayName: '减签',
+    engine: 'RemoveAssigneeProcess',
+    contexts: ['handle'],
+    defaultEnable: true,
+    note: '从当前多人节点移除未办结办理人；不可减最后一人'
+  },
+  {
     id: 'Transfer',
     displayName: '转办',
     engine: 'TransferProcess',

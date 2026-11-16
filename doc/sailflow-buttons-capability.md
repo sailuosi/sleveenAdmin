@@ -24,6 +24,7 @@
 | `Reject` | 驳回 | 是 | `RejectProcess` | 待办办理 | 拒绝（语义不同） |
 | `SendBack` | 退回 | 是 | `SendBackProcess` | 待办办理 | 退回 |
 | `SignForward` | 加签 | 是 | `SignForwardProcess` | 待办办理 | 加签 |
+| `RemoveAssignee` | 减签 | 是 | `RemoveAssigneeProcess` | 待办办理（会签多待办） | 减签 |
 | `Transfer` | 转办 | 是 | `TransferProcess` | 待办办理 | 转办（本节点交人、不流转） |
 | `Copyto` | 抄送 | 是 | `WfCopyto/Create`（产品表） | 待办办理 | 抄送 |
 | `Withdraw` | 撤回 | 是 | `WithdrawProcess` | 已办 | 撤回（部分） |
@@ -40,6 +41,7 @@
 | 能力 | 状态 | 说明 |
 |------|------|------|
 | 转办 `Transfer` | **已入码表** | `TransferProcess` + Host API + `ButtonsOperation` Handler；语义：个人办结 + 本节点交人、不流转；≠ 委派 |
+| 减签 `RemoveAssignee` | **已入码表** | Handler + Workbench `RemovableAssignees` + 办理条弹窗；禁减最后一人 |
 | 委派 `Delegate` | **暂缓** | 办完可回原人；与转办区分；禁止空壳 |
 | 取消 / 挂起 | **暂缓** | `CancelProcess` / `SuspendProcess`；本轮未进码表 |
 | 发起 | 不进办理条 | 属发起页 |
@@ -134,3 +136,4 @@
 | 日期 | 说明 |
 |------|------|
 | 2026-11-01 | 初版：码表、设计器、Workbench、办理条、Reverse API、本文档 |
+| 2026-11-16 | 减签 `RemoveAssignee` 入码表 + Handler + 办理条；签名/常用语办理体验 |
