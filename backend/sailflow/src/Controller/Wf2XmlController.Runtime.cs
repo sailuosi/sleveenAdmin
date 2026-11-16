@@ -202,6 +202,9 @@ public partial class Wf2XmlController
         try
         {
             SailAuthIdentity.BindRunner(User, runner);
+            var gated = SailExtraOperationGate.TryReject("Withdraw", runner, _workflowService, _processExtra);
+            if (gated != null)
+                return FromExecuted(gated);
             return FromExecuted(await _workflowService.WithdrawProcessAsync(runner, HttpContext.RequestAborted));
         }
         catch (Exception ex)
@@ -247,6 +250,9 @@ public partial class Wf2XmlController
         try
         {
             SailAuthIdentity.BindRunner(User, runner);
+            var gated = SailExtraOperationGate.TryReject("Close", runner, _workflowService, _processExtra);
+            if (gated != null)
+                return FromExecuted(gated);
             return FromExecuted(await _workflowService.CloseProcessAsync(runner, HttpContext.RequestAborted));
         }
         catch (Exception ex)
@@ -622,6 +628,9 @@ public partial class Wf2XmlController
                 ApplyConsultWorkbenchState(dto, task);
             }
 
+            // ExtraJson 运行时：闸控 / 打印 / 摘要
+            ApplyExtraWorkbenchState(dto, task);
+
             // 表单：显式 FormId → 实例 BizCode（发起写入的 formId，Guid/数字均可）
             // → 流程 meta.FormId 回落。fm_form.ff_id 已是 Guid，禁止再用 int.TryParse 拦截。
             var formId = ResolveWorkbenchFormId(query.FormId, dto, task);
@@ -678,8 +687,13 @@ public partial class Wf2XmlController
 
             // 回填发起/办理写入的流程变量 → 动态表单值
             if (!string.IsNullOrWhiteSpace(processInstanceId))
+            {
                 dto.FormValues = SailProcessVariableHelper.LoadFormValues(
                     _workflowService, processInstanceId, _logger);
+                if (dto.FormValues.TryGetValue(SailProcessExtraTemplate.SummaryVar, out var summary)
+                    && !string.IsNullOrWhiteSpace(summary))
+                    dto.Summary = summary;
+            }
 
             return ResponseResult<ApprovalWorkbenchDto>.Success(dto);
         }
@@ -850,6 +864,45 @@ public partial class Wf2XmlController
             runner,
             exec.ProcessInstanceIdStarted);
         SailProcessVariableHelper.PersistConditions(_workflowService, runner, piId, _logger);
+    }
+
+    void ApplyExtraWorkbenchState(ApprovalWorkbenchDto dto, TaskViewEntity? task)
+    {
+        try
+        {
+            var processId = task?.ProcessId
+                            ?? dto.ProcessInstance?.ProcessId;
+            var version = task?.Version
+                          ?? dto.ProcessInstance?.Version
+                          ?? "1";
+            if (string.IsNullOrWhiteSpace(processId))
+                return;
+
+            var extra = _processExtra.Get(processId, version);
+            dto.Extra = new SailProcessExtraRuntimeDto
+            {
+                AllowCancelRunningProcess = extra.AllowCancelRunningProcess,
+                AllowWithdrawTask = extra.AllowWithdrawTask,
+                AutoApprovalType = extra.AutoApprovalType,
+                PrintTemplateEnable = extra.PrintTemplateSetting.Enable,
+                PrintTemplate = extra.PrintTemplateSetting.Enable
+                    ? extra.PrintTemplateSetting.Template
+                    : null
+            };
+
+            if (!extra.AllowWithdrawTask && dto.ButtonsSetting != null)
+            {
+                foreach (var b in dto.ButtonsSetting)
+                {
+                    if (string.Equals(b.Id, "Withdraw", StringComparison.OrdinalIgnoreCase))
+                        b.Enable = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "ApplyExtraWorkbenchState failed");
+        }
     }
 
     /// <summary>

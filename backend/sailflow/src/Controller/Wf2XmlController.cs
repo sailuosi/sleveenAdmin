@@ -34,6 +34,7 @@ public partial class Wf2XmlController : ControllerBase
     private readonly SailClient _sail;
     private readonly SailOperationDispatcher _operationDispatcher;
     private readonly SailProcessMetaService _processMeta;
+    private readonly SailProcessExtraService _processExtra;
     private readonly SailUnitAccess _unitAccess;
     private readonly SailReleaseService _release;
     private readonly ILogger<Wf2XmlController> _logger;
@@ -44,6 +45,7 @@ public partial class Wf2XmlController : ControllerBase
         SailClient sail,
         SailOperationDispatcher operationDispatcher,
         SailProcessMetaService processMeta,
+        SailProcessExtraService processExtra,
         SailUnitAccess unitAccess,
         SailReleaseService release,
         ILogger<Wf2XmlController> logger)
@@ -53,6 +55,7 @@ public partial class Wf2XmlController : ControllerBase
         _sail = sail;
         _operationDispatcher = operationDispatcher;
         _processMeta = processMeta;
+        _processExtra = processExtra;
         _unitAccess = unitAccess;
         _release = release;
         _logger = logger;

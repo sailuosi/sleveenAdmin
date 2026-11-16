@@ -32,7 +32,19 @@
               <el-link type="primary" @click="goDetail(row)">查看</el-link>
             </template>
           </vccol>
-          <vccol field="appName" caption="应用" min-width="140px" type="text" />
+          <vccol field="title" caption="标题" min-width="160px" type="text">
+            <template #default="{ row }">
+              {{
+                row?.title ||
+                row?.Title ||
+                row?.processName ||
+                row?.ProcessName ||
+                row?.appName ||
+                row?.AppName ||
+                '-'
+              }}
+            </template>
+          </vccol>
           <vccol field="activityName" caption="节点" min-width="120px" type="text" />
           <vccol field="appInstanceId" caption="业务单号" min-width="140px" type="text" />
           <vccol field="endText" caption="办结说明" min-width="120px" type="text">

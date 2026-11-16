@@ -45,14 +45,19 @@
 | 任务管理 / 实例管理 | 可用 | 管理端列表壳 |
 | 通过 / 驳回 | 可用 | `RunProcess` / `RejectProcess`（语义见 §8） |
 | 下一跳选人 / 选支路 | 可用 | `GetNextActivityRoleUserTree`；可选 GroupId / GroupRole |
-| 退回 / 撤回 / 重发 / 关闭 | 可用 | 退回依赖上一跳树；关闭偏管理 |
+| 退回 / 撤回 / 重发 / 关闭 | 可用 | 退回依赖上一跳树；关闭偏管理；**撤回受 Extra.allowWithdrawTask 闸** |
+| 发起人撤销 | 可用 | Extra.`allowCancelRunningProcess`；详情头 / 我的流程 → `CloseProcess`；服务端闸 `CancelNotAllowed` |
 | 加签 | 可用 | `SignForwardProcess`，对齐会签扩展 |
 | 抄送 | 可用 | Host 产品表独立通道（`sf_proc_copyto`）；**勿**与待办人 ConfigPair / Notifier 混用 |
 | 跳转 | 可用 | `JumpProcess` + `GetTaskActivityList`；详情办理条「跳转」选目标节点与办理人 |
 | 修订 / 反转 | 可用（默认可关） | `ReviseProcess` / `ReverseProcess`；设计器按钮默认关闭 |
 | 办理按钮设置 | 可用 | 节点 `sf:ButtonsSetting`；Workbench 下发；办理条 enable+显示名；见 [sailflow-buttons-capability.md](./sailflow-buttons-capability.md) |
-| 转办 / 委派 | 暂缓 | 无独立产品语义封装；勿与芋道按钮一一对应 |
-| 简易打印 | 可用 | 详情页 `window.print` + `@media print` |
+| 转办 | 可用 | `TransferProcess` + 办理条；委派仍暂缓 |
+| 实例标题 / 摘要 | 可用 | Extra 标题模板 → `pi_title`；摘要变量 `__sail_summary__`；列表优先 Title |
+| 流程编码规则 | 可用 | Extra.`processIdRule` → `sf_process_id_seq`；写入 BizCode / `__sail_process_no__` |
+| 流程级自动去重 | 可用 | Extra.`autoApprovalType` 1/2 → AutoApprove 入队（与 NodePolicy 同人正交） |
+| Extra HTTP 通知 | 可用 | 启动/结束/任务前后 URL；BestEffort POST；`response` 回写未做 |
+| 简易打印 | 可用 | 默认 `window.print`；Extra 打印模板启用时按 HTML 模板开窗打印 |
 
 ### 3.2 设计与定义
 
@@ -69,7 +74,7 @@
 | Process 消息与信号 | 可用 | 选中流程根维护 rootElements Message/Signal |
 | 设计器工具栏 | 可用 | 对齐 n_flowable：打开/下载/预览/模拟、六向对齐、缩放、撤销/恢复/重绘；token-simulation |
 | 流程定义列表 | 可用 | 导入 / 模板 / 设计 / 启用停用 / 升级 / 删除 |
-| 四步编辑壳 | 可用 | `/sail/process-edit`：基本信息 → 表单 → 嵌入设计器 → 更多；元数据 `sf_process_meta` |
+| 四步编辑壳 | 可用 | `/sail/process-edit`：基本信息 → 表单 → 嵌入设计器 → **更多设置（ExtraJson 运行时已消费）**；元数据 `sf_process_meta` |
 | 流程分类 | 可用 | `sf_process_category` + AppType 绑定；拖拽树未做 |
 | 流程模板库 | 可用 | `/sail/templates` + `CreateProcessByTemplate` |
 | 简易流程设计器 | 暂缓 | 无无损 Sail XML 映射前不进菜单 |
@@ -277,7 +282,8 @@ Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须
 | 全量浏览器 UAT | 未关单 | 按 §9 脚本验收后把规划「待 UAT」改为已验收 |
 | Host 鉴权 | **已落地** | 业务 Controller `[Authorize]`；仅 `Probe`（ping/init-db）保持匿名 |
 | 办理条跳转 | **已落地** | 详情页 `showJump`；`GetTaskActivityList` 候选 + `JumpProcess` |
-| 转办 / 委派 | 未产品化 | 仅当引擎命令清晰后再封装，禁止伪造语义；**不**进按钮码表 |
+| 转办 | **已落地** | `TransferProcess`；委派仍暂缓 |
+| ExtraJson 运行时闭环 | **已落地** | 解析服务 + CreateHook/去重/HTTP + Workbench/Dispatcher 闸 + 标题摘要/编码/打印模板；见 §3.1 |
 | 办理按钮设置 | **已落地** | 码表含 Run/Reject/SendBack/Sign/Copy/Withdraw/Resend/Jump/Close/Revise/Reverse；见 buttons-capability |
 | 分类拖拽树 | 未做 | 列表+绑定已够最小可用 |
 | Simple 设计器 | 暂缓 | 先做 XML 映射 POC，失败则放弃主路径 |
@@ -332,3 +338,14 @@ Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须
 | 2026-11-01 | **办理按钮设置**：sf:ButtonsSetting + Workbench + 码表对齐引擎 OA 命令 |
 | 2026-11-01 | R1–R9 主干落地；缺口表改为已落地；保存前校验；Account 选人 |
 | 2026-11-01 | Host 能力包：`UseDebugConsoleHook` / `UseLeaveStatusHook` / `UsePortalScheduleTaskNotifier`；链到最佳实践文档 |
+| 2026-11-16 | **ExtraJson 运行时闭环**：Title/编码/摘要/撤回撤销闸/去重/HTTP/打印模板；`UseProcessExtraRuntime` |
+
+### ExtraJson 验收（短）
+
+1. 更多设置关撤回 → 已办无撤回；`ButtonsOperation Withdraw` → `WithdrawNotAllowed`
+2. 开撤销 → 我的流程/详情可撤销；关则服务端 `CancelNotAllowed`
+3. 自定义标题 → 实例 `Title` 与待办/我的流程列表展示
+4. 编码规则 → `BizCode` / `__sail_process_no__` 按日桶递增
+5. `autoApprovalType=2` → 连续同人自动过（AutoApprove Job）
+6. 配置流程前置 URL → 启动后 BestEffort HTTP
+7. 打印模板启用 → 详情打印开窗为模板 HTML

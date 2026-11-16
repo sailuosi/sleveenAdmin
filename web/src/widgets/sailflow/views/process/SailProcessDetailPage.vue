@@ -34,16 +34,22 @@
           <el-divider class="sf-detail-page__divider" />
           <div class="sf-detail-page__title-row">
             <h1 class="sf-detail-page__title">
-              {{
-                field(processInstance, 'ProcessName', 'processName') ||
-                field(task || processInstance, 'AppName', 'appName') ||
-                '流程办理'
-              }}
+              {{ displayTitle }}
             </h1>
             <el-tag :type="processStateTag.type" size="small" effect="light">
               {{ processStateTag.label }}
             </el-tag>
+            <el-button
+              v-if="canCancel"
+              type="danger"
+              link
+              :loading="cancelLoading"
+              @click="onCancel"
+            >
+              撤销
+            </el-button>
           </div>
+          <div v-if="displaySummary" class="sf-detail-page__summary">{{ displaySummary }}</div>
           <div class="sf-detail-page__meta">
             <div class="sf-detail-page__starter">
               <el-avatar :size="28" class="sf-detail-page__avatar">
@@ -209,8 +215,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage } from 'element-plus';
-import { getApprovalWorkbench, getNextActivityRoleUserTree } from '@sail/api/runtime';
+import { ElMessage, ElMessageBox } from 'element-plus';
+import {
+  buttonsOperation,
+  getApprovalWorkbench,
+  getNextActivityRoleUserTree
+} from '@sail/api/runtime';
 import { queryProcessFile } from '@sail/api/process';
 import { useSailCurrentUser } from '@sail/adapters/currentUser';
 import { unpackSailResult, pickField } from '@sail/utils/sailResult';
@@ -264,6 +274,22 @@ const consultPending = ref(false);
 const openParticipantCount = ref(0);
 /** §J 维②：ForwardNormal | ReturnToSender */
 const resubmitMode = ref<'ForwardNormal' | 'ReturnToSender'>('ReturnToSender');
+const allowWithdrawTask = ref(false);
+const allowCancelRunningProcess = ref(true);
+const printTemplateEnable = ref(false);
+const printTemplate = ref('');
+const displaySummary = ref('');
+const cancelLoading = ref(false);
+
+const displayTitle = computed(() => {
+  return (
+    String(field(processInstance.value, 'Title', 'title') || '') ||
+    String(field(task.value, 'Title', 'title') || '') ||
+    String(field(processInstance.value, 'ProcessName', 'processName') || '') ||
+    String(field(task.value || processInstance.value, 'AppName', 'appName', 'BizChannel', 'bizChannel') || '') ||
+    '流程办理'
+  );
+});
 
 const PROCESS_STATE: Record<number, { label: string; type: 'info' | 'success' | 'warning' | 'danger' }> = {
   0: { label: '未启动', type: 'info' },
@@ -301,10 +327,20 @@ const processStateTag = computed(() => {
 });
 
 const canWithdraw = computed(() => {
+  if (!allowWithdrawTask.value) return false;
   if (!task.value || canHandle.value) return false;
   const ended = String(pickField(task.value, 'EndedUserId', 'endedUserId') || '');
   const taskState = Number(pickField(task.value, 'TaskState', 'taskState') || 0);
   return ended === userId.value && taskState === 4 && processRunning.value;
+});
+
+/** 发起人撤销（CloseProcess + Extra.allowCancel） */
+const canCancel = computed(() => {
+  if (!allowCancelRunningProcess.value || !processRunning.value) return false;
+  const starter = String(
+    pickField(processInstance.value || {}, 'CreatedUserId', 'createdUserId') || ''
+  );
+  return !!starter && starter === userId.value;
 });
 
 /**
@@ -326,7 +362,11 @@ const showApproveByPolicy = computed(() => {
   if (!hasBackSrc.value) return true;
   return resubmitMode.value === 'ForwardNormal';
 });
-const canClose = computed(() => processRunning.value && !!task.value);
+/** 管理关闭：非发起人撤销场景；发起人走 canCancel */
+const canClose = computed(() => {
+  if (!processRunning.value || !task.value) return false;
+  return !canCancel.value;
+});
 const canJump = computed(() => processRunning.value && !!task.value);
 
 const starterInitial = computed(() => {
@@ -530,6 +570,24 @@ async function load() {
     buttonsSetting.value = Array.isArray(rawButtons)
       ? mergeButtonsSetting(rawButtons)
       : defaultButtonsSetting();
+
+    const extra = (pickField(entity, 'Extra', 'extra') as Record<string, unknown>) || {};
+    allowWithdrawTask.value = !!(
+      pickField(extra, 'AllowWithdrawTask', 'allowWithdrawTask') === true ||
+      pickField(extra, 'AllowWithdrawTask', 'allowWithdrawTask') === 'true'
+    );
+    const allowCancelRaw = pickField(extra, 'AllowCancelRunningProcess', 'allowCancelRunningProcess');
+    allowCancelRunningProcess.value =
+      allowCancelRaw === undefined || allowCancelRaw === null
+        ? true
+        : allowCancelRaw === true || allowCancelRaw === 'true';
+    printTemplateEnable.value = !!(
+      pickField(extra, 'PrintTemplateEnable', 'printTemplateEnable') === true ||
+      pickField(extra, 'PrintTemplateEnable', 'printTemplateEnable') === 'true'
+    );
+    printTemplate.value = String(pickField(extra, 'PrintTemplate', 'printTemplate') || '');
+    displaySummary.value = String(pickField(entity, 'Summary', 'summary') || '');
+
     await loadProcessAssets();
   } catch (e: unknown) {
     err.value = e instanceof Error ? e.message : String(e);
@@ -573,7 +631,83 @@ function onDone() {
   router.push({ path: '/sail/task-todo' });
 }
 
+async function onCancel() {
+  try {
+    await ElMessageBox.confirm('确认撤销该审批中的申请？', '撤销', { type: 'warning' });
+  } catch {
+    return;
+  }
+  cancelLoading.value = true;
+  try {
+    const pi = processInstance.value || {};
+    const t = task.value || {};
+    const data = await buttonsOperation({
+      ButtonId: 'Close',
+      Runner: {
+        UserId: userId.value,
+        UserName: userName.value,
+        ProcessId: String(pickField(pi, 'ProcessId', 'processId') || pickField(t, 'ProcessId', 'processId') || ''),
+        Version: String(pickField(pi, 'Version', 'version') || pickField(t, 'Version', 'version') || '1'),
+        ProcessInstanceId: String(
+          pickField(pi, 'ProcessInstanceId', 'processInstanceId', 'Id', 'id') ||
+            pickField(t, 'ProcessInstanceId', 'processInstanceId') ||
+            ''
+        ),
+        TaskId: String(pickField(t, 'TaskId', 'taskId') || '') || null,
+        BizPK: String(pickField(pi, 'BizPK', 'bizPK', 'AppInstanceId', 'appInstanceId') || ''),
+        BizChannel: String(pickField(pi, 'BizChannel', 'bizChannel', 'AppName', 'appName') || '')
+      }
+    });
+    const entity = unpackSailResult(data);
+    const status = Number(pickField(entity as any, 'Status', 'status') ?? data?.Status ?? data?.status);
+    if (status === -1 || (entity as any)?.Status === -1) {
+      throw new Error(
+        String(pickField(entity as any, 'Message', 'message') || data?.Message || data?.message || '撤销失败')
+      );
+    }
+    ElMessage.success('已撤销');
+    router.push({ path: '/sail/process-my' });
+  } catch (e: unknown) {
+    ElMessage.error(e instanceof Error ? e.message : String(e));
+  } finally {
+    cancelLoading.value = false;
+  }
+}
+
 function onPrint() {
+  if (printTemplateEnable.value && printTemplate.value.trim()) {
+    const bag: Record<string, string> = {
+      Title: displayTitle.value,
+      ProcessName: String(field(processInstance.value, 'ProcessName', 'processName') || ''),
+      Starter: String(field(processInstance.value, 'CreatedUserName', 'createdUserName') || ''),
+      ProcessInstanceId: String(
+        field(processInstance.value, 'ProcessInstanceId', 'processInstanceId', 'Id', 'id') || ''
+      ),
+      ProcessId: String(field(processInstance.value, 'ProcessId', 'processId') || ''),
+      BizCode: String(field(processInstance.value, 'BizCode', 'bizCode') || '')
+    };
+    Object.entries(formValues.value || {}).forEach(([k, v]) => {
+      bag[k] = v == null ? '' : typeof v === 'string' ? v : JSON.stringify(v);
+    });
+    let html = printTemplate.value;
+    html = html.replace(/\{([^{}]+)\}/g, (_, key: string) => {
+      const k = String(key || '').trim();
+      if (bag[k] != null) return bag[k];
+      const hit = Object.keys(bag).find(x => x.toLowerCase() === k.toLowerCase());
+      return hit ? bag[hit] : '';
+    });
+    const win = window.open('', '_blank');
+    if (!win) {
+      ElMessage.warning('浏览器拦截了打印窗口');
+      return;
+    }
+    win.document.open();
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    win.print();
+    return;
+  }
   window.print();
 }
 
@@ -649,6 +783,12 @@ watch(() => route.query, load, { immediate: true });
   font-weight: 700;
   line-height: 1.3;
   color: var(--el-text-color-primary);
+}
+.sf-detail-page__summary {
+  margin-top: 6px;
+  color: var(--el-text-color-secondary);
+  font-size: 13px;
+  line-height: 1.4;
 }
 .sf-detail-page__meta {
   display: flex;

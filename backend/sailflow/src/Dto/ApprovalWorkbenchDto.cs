@@ -51,6 +51,22 @@ public class ApprovalWorkbenchDto
 
     /// <summary>打开中的沟通参与者数量（ConsultPending 时 &gt; 0）。</summary>
     public int OpenParticipantCount { get; set; }
+
+    /// <summary>流程 ExtraJson 运行时摘要（闸控 / 打印 / 展示）。</summary>
+    public SailProcessExtraRuntimeDto? Extra { get; set; }
+
+    /// <summary>流程摘要（变量 __sail_summary__）。</summary>
+    public string? Summary { get; set; }
+}
+
+/// <summary>Workbench 下发的 Extra 运行时字段（避免整包泄漏 URL 密钥时可再收紧）。</summary>
+public sealed class SailProcessExtraRuntimeDto
+{
+    public bool AllowCancelRunningProcess { get; set; } = true;
+    public bool AllowWithdrawTask { get; set; }
+    public int AutoApprovalType { get; set; }
+    public bool PrintTemplateEnable { get; set; }
+    public string? PrintTemplate { get; set; }
 }
 
 /// <summary>工作台查询入参。</summary>

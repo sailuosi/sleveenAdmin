@@ -41,6 +41,10 @@ public static class SailflowHostSetup
             var timeoutMs = Math.Max(opts.ReadTimeoutMs, opts.ConnectTimeoutMs);
             http.Timeout = TimeSpan.FromMilliseconds(Math.Max(timeoutMs, 1000));
         });
+        services.AddHttpClient(SailProcessExtraHttpTriggerHook.HttpClientName, http =>
+        {
+            http.Timeout = TimeSpan.FromSeconds(15);
+        });
         services.AddSingleton<UnifiedReportClient>();
 
         // DBCash 经 AddMooSql 绑定；建表由宿主 PostBuild（SailHostSchemaInitializer），不在 sailflow 包内。
@@ -61,6 +65,7 @@ public static class SailflowHostSetup
                 .UseBizMirrorHook() // stub: console-only; real port later
                 .UseNodePolicyTimeoutStamp() // §A：NodePolicy 超时 → DueAt
                 .UseNodePolicyAutoApproveHook() // 发送成功 → 同人/空人/approveType 入队 AutoApprove
+                .UseProcessExtraRuntime(sp) // ExtraJson：Title/编码/摘要/去重/HTTP
                 // 立刻归档默认不挂：需要时 .UseImmediateProcessArchiveHook()（sailflow.data）
                 // 旧 UseLeaveStatusHook 已由 FormBiz 生命周期 Hook 替代
                 .UsePortalScheduleTaskNotifier(sp) // Reliable：UnifiedReport:Enabled 时 Outbox Drain + 待办推送

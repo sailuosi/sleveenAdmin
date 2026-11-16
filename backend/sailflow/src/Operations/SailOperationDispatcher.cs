@@ -1,5 +1,7 @@
 using sailflow.engine.Result;
+using sailflow.engine.Service;
 using SleveenAdmin.Sailflow.FormBiz;
+using SleveenAdmin.Sailflow.Service;
 
 namespace SleveenAdmin.Sailflow.Operations;
 
@@ -8,12 +10,18 @@ public sealed class SailOperationDispatcher
 {
     readonly Dictionary<string, ISailOperationHandler> _map;
     readonly SailFormBizHost? _formBiz;
+    readonly IWorkflowService _wf;
+    readonly SailProcessExtraService _extra;
 
     public SailOperationDispatcher(
         IEnumerable<ISailOperationHandler> handlers,
+        IWorkflowService wf,
+        SailProcessExtraService extra,
         SailFormBizHost? formBiz = null)
     {
         _formBiz = formBiz;
+        _wf = wf ?? throw new ArgumentNullException(nameof(wf));
+        _extra = extra ?? throw new ArgumentNullException(nameof(extra));
         _map = new Dictionary<string, ISailOperationHandler>(StringComparer.OrdinalIgnoreCase);
         foreach (var h in handlers)
         {
@@ -22,7 +30,6 @@ public sealed class SailOperationDispatcher
                 if (string.IsNullOrWhiteSpace(id)) continue;
                 if (_map.TryGetValue(id, out var prev))
                 {
-                    // 后注册覆盖，便于宿主定制；诊断用
                     System.Diagnostics.Debug.WriteLine(
                         $"[SailOperation] ButtonId '{id}' overridden: {prev.GetType().Name} → {h.GetType().Name}");
                 }
@@ -39,6 +46,10 @@ public sealed class SailOperationDispatcher
 
     public async Task<WfExecutedResult> ExecuteAsync(SailOperationContext ctx, CancellationToken ct = default)
     {
+        var gated = SailExtraOperationGate.TryReject(ctx.ButtonId, ctx.Runner, _wf, _extra);
+        if (gated != null)
+            return gated;
+
         var handler = Resolve(ctx.ButtonId);
         if (handler == null)
         {
@@ -49,7 +60,6 @@ public sealed class SailOperationDispatcher
             return fail;
         }
         var result = await handler.ExecuteAsync(ctx, ct);
-        // §H：办理成功后按 BizChannel 回调业务 Handler（同意/退回/取消）
         if (result.Status == WfExecutedStatus.Success && _formBiz != null)
         {
             try
@@ -78,12 +88,12 @@ public sealed class SailOperationDispatcher
     /// <summary>码表 Id × 是否已挂 Handler（探针/自检）。</summary>
     public IReadOnlyDictionary<string, bool> Probe(IEnumerable<string> buttonIds)
     {
-        var result = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        var map = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         foreach (var id in buttonIds)
         {
             if (string.IsNullOrWhiteSpace(id)) continue;
-            result[id] = _map.ContainsKey(id);
+            map[id] = Resolve(id) != null;
         }
-        return result;
+        return map;
     }
 }
