@@ -159,9 +159,12 @@ public static class SailHostSchemaInitializer
             .createTable<SailPublishedReleaseEntity>()
             .createTable<SailEffectiveSourceEntity>()
             .createTable<SailTodoPortalRecordEntity>()
-            .createTable<SailPreselectAssigneeEntity>();
+            .createTable<SailPreselectAssigneeEntity>()
+            .createTable<SailSurrogateEntity>();
         TryCreateIndex(kit, "IX_sf_preselect_pi_act", "sf_preselect_assignee",
             "process_instance_id", "activity_id");
+        TryCreateIndex(kit, "IX_sf_surrogate_grantor", "sf_surrogate",
+            "grantor_id", "enabled", "process_id");
         return wk.WorkingProgress?.ToString() ?? string.Empty;
     }
 
@@ -219,6 +222,10 @@ public static class SailHostSchemaInitializer
             pi.SubProcessDefId,
             pi.SubProcessId,
             t.EntrustedTaskId,
+            t.Weight,
+            t.ProxySignId,
+            t.EndType,
+            t.EndText,
             t.AssigneeRole,
             t.ConsultSrcTaskId,
             ai.MainActInstanceId,

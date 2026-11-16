@@ -446,6 +446,33 @@ public static class MenuSeedCatalog
             },
             new SysMenu
             {
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000084"),
+                Pid = Guid.Parse("01A1B18E-D449-750B-9536-46F87D35FBD4"),
+                Type = 2,
+                Name = "sail_surrogate",
+                Title = "我的委托",
+                Path = "/sail/surrogate",
+                Component = "widgets/sailflow/views/task/SailSurrogatePage.vue",
+                Icon = "mdi:account-switch-outline",
+                OrderNo = 4,
+                Permission = null,
+                IsHide = false,
+                CreateTime = now,
+                MenuCode = null,
+                MenuType = "1",
+                Redirect = null,
+                OutLink = null,
+                IsIframe = false,
+                IsKeepAlive = true,
+                IsAffix = false,
+                Status = 1,
+                Remark = null,
+                ExtPara = null,
+                MenuTheme = null,
+                IsApp = false
+            },
+            new SysMenu
+            {
                 Id = Guid.Parse("00000000-0000-0000-0000-000000000073"),
                 Pid = Guid.Parse("00000000-0000-0000-0000-000000000070"),
                 Type = 2,

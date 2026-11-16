@@ -55,6 +55,7 @@ public static class SailflowHostSetup
                 .UseBizData() // sailflow.data：Table 日志 Sink + 归档扩展
                 .UseDataLifecycleFromConfig(configuration) // Sail:DataLifecycle → 保留窗/冷库/日志分表
                 .UseDebugConsoleHook() // 开发核验：流程 Hook + 待办 Notifier → TP 风格控制台
+                .UseEndTextLocalize() // Host：按 EndType 写 tk_end_text（同事务 Sync）
                 .UseFlowEventFileLog() // BestEffort：流程事件 Channel → 串行写文件（可丢）
                 .UseFormBizLifecycleHook() // §H：FormCode → OnFinish（含请假 Status）
                 .UseBizMirrorHook() // stub: console-only; real port later

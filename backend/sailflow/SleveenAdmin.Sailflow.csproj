@@ -27,7 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="sailflow.biz" Version="$(SailflowBizPackageVersion)" />
+    <!-- 开发期：对接本地 sailflow 源（含 Weight/ProxySignId/EndType）；发布再切回 NuGet -->
+    <ProjectReference Include="..\..\..\sailflow\src\biz\host\sailflow.biz.csproj" />
     <ProjectReference Include="..\core\SleveenAdmin.Foundation\SleveenAdmin.Foundation.csproj" />
     <ProjectReference Include="..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
                       OutputItemType="Analyzer"

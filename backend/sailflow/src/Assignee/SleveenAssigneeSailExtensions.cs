@@ -102,6 +102,9 @@ public static class SleveenAssigneeSailExtensions
 
         pipeline.AddFilter(new NodePolicyApproveTypeFilter(), order: 0);
         pipeline.AddFilter(new SameAsStarterFilter(client), order: 10);
+        // 委托代批：业务 Filter 之后；再经 Dedup 清重复 UserId
+        pipeline.AddFilter(new SurrogateAssigneeFilter(client), order: 50);
+        pipeline.AddFilter(new sailflow.assignee.Builtin.DedupUsersFilter(), order: 60);
 
         pipeline.AnchorStore ??= new HookOutboxAutoApproveAnchorStore();
 

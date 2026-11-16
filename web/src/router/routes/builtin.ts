@@ -364,6 +364,20 @@ const builtinRoutes: CustomRoute[] = [
     ]
   },
   {
+    name: 'sail-surrogate',
+    path: '/sail/surrogate',
+    component: () => import('@/layouts/base-layout/index.vue'),
+    meta: { title: '我的委托', constant: false },
+    children: [
+      {
+        name: 'sail-surrogate-page',
+        path: '',
+        component: () => import('@sail/views/task/SailSurrogatePage.vue'),
+        meta: { title: '我的委托', constant: false }
+      }
+    ]
+  },
+  {
     name: 'sail-task-manager',
     path: '/sail/task-manager',
     component: () => import('@/layouts/base-layout/index.vue'),
