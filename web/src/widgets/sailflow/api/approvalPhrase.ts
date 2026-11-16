@@ -1,5 +1,5 @@
 /** 我的审批常用语 · sf_approval_phrase */
-import { request } from '@/utils/requestAPI6.js';
+import request from '@/utils/requestAPI6.js';
 
 export type ApprovalPhraseRow = {
   Id?: string;

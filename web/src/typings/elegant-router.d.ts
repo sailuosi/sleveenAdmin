@@ -77,6 +77,8 @@ declare module "@elegant-router/types" {
     "_widgets_sailflow_views_SailKnowledgeBasePage": "/widgets/sailflow/views/SailKnowledgeBasePage";
     "_widgets_sailflow_views_SailRuleSetPage": "/widgets/sailflow/views/SailRuleSetPage";
     "_widgets_sailflow_views_SailTemplateGalleryPage": "/widgets/sailflow/views/SailTemplateGalleryPage";
+    "_widgets_sailflow_views_task_SailApprovalPhrasePage": "/widgets/sailflow/views/task/SailApprovalPhrasePage";
+    "_widgets_sailflow_views_task_SailSurrogatePage": "/widgets/sailflow/views/task/SailSurrogatePage";
     "_widgets_sailflow_views_task_SailTaskCopytoPage": "/widgets/sailflow/views/task/SailTaskCopytoPage";
     "_widgets_sailflow_views_task_SailTaskDonePage": "/widgets/sailflow/views/task/SailTaskDonePage";
     "_widgets_sailflow_views_task_SailTaskManagerPage": "/widgets/sailflow/views/task/SailTaskManagerPage";
@@ -85,13 +87,13 @@ declare module "@elegant-router/types" {
     "_widgets_sysext_views_ccflow_CCFlowBizPage": "/widgets/sysext/views/ccflow/CCFlowBizPage";
     "_widgets_sysext_views_ccflow_CCGeneFlowPage": "/widgets/sysext/views/ccflow/CCGeneFlowPage";
     "_widgets_sysext_views_ccflow_DeptFlowConfigPage": "/widgets/sysext/views/ccflow/DeptFlowConfigPage";
-    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostDirectory": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostDirectory";
-    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostList": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostList";
-    "_widgets_sysext_views_SysPost_Page_Biz_Sys_DutyCheck": "/widgets/sysext/views/SysPost/Page/Biz_Sys_DutyCheck";
-    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostAuthEdit": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostAuthEdit";
-    "_widgets_sysext_views_SysPost_Page_Biz_Sys_UserList": "/widgets/sysext/views/SysPost/Page/Biz_Sys_UserList";
-    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostTypeSet": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostTypeSet";
-    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostTypeCheck": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostTypeCheck";
+    "_widgets_sysext_views_DivWorker_Page_Biz_AuthAdminDirectory": "/widgets/sysext/views/DivWorker/Page/Biz_AuthAdminDirectory";
+    "_widgets_sysext_views_DivWorker_Page_Biz_HH_DivWorkerList": "/widgets/sysext/views/DivWorker/Page/Biz_HH_DivWorkerList";
+    "_widgets_sysext_views_DivWorker_Page_Biz_HH_DutyItemCheck": "/widgets/sysext/views/DivWorker/Page/Biz_HH_DutyItemCheck";
+    "_widgets_sysext_views_DivWorker_Page_Biz_HumanAuthEdit": "/widgets/sysext/views/DivWorker/Page/Biz_HumanAuthEdit";
+    "_widgets_sysext_views_DivWorker_Page_Biz_HumanList": "/widgets/sysext/views/DivWorker/Page/Biz_HumanList";
+    "_widgets_sysext_views_DivWorker_Page_Biz_WorkorTypeSet": "/widgets/sysext/views/DivWorker/Page/Biz_WorkorTypeSet";
+    "_widgets_sysext_views_DivWorker_Page_Biz_WorkTypersCheck": "/widgets/sysext/views/DivWorker/Page/Biz_WorkTypersCheck";
     "_widgets_sysext_views_menu_menuPage": "/widgets/sysext/views/menu/menuPage";
     "_widgets_sysext_views_org_orglistPage": "/widgets/sysext/views/org/orglistPage";
     "_widgets_sysext_views_paotalconfig_page_ptpagePage": "/widgets/sysext/views/paotalconfig/page/ptpagePage";
@@ -124,6 +126,13 @@ declare module "@elegant-router/types" {
     "_widgets_sysext_views_sys_user_component_userCenterPage": "/widgets/sysext/views/sys/user/component/userCenterPage";
     "_widgets_sysext_views_sys_user_Page_Biz_Sys_UserList": "/widgets/sysext/views/sys/user/Page/Biz_Sys_UserList";
     "_widgets_sysext_views_sys_user_userPage": "/widgets/sysext/views/sys/user/userPage";
+    "_widgets_sysext_views_SysPost_Page_Biz_Sys_DutyCheck": "/widgets/sysext/views/SysPost/Page/Biz_Sys_DutyCheck";
+    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostAuthEdit": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostAuthEdit";
+    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostDirectory": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostDirectory";
+    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostList": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostList";
+    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostTypeCheck": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostTypeCheck";
+    "_widgets_sysext_views_SysPost_Page_Biz_Sys_PostTypeSet": "/widgets/sysext/views/SysPost/Page/Biz_Sys_PostTypeSet";
+    "_widgets_sysext_views_SysPost_Page_Biz_Sys_UserList": "/widgets/sysext/views/SysPost/Page/Biz_Sys_UserList";
   };
 
   /**

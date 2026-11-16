@@ -1,4 +1,4 @@
-import request from '@/utils/request';
+import request from '@/utils/requestAPI6.js';
 
 /** 与后端 PreselectPerformerDto 对齐 */
 export type PreselectPerformerDto = {
