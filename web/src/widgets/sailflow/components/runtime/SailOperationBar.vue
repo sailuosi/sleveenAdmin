@@ -64,18 +64,7 @@
                   :rows="3"
                   :placeholder="reasonRequire ? '请输入办理意见' : '请输入办理意见（可选）'"
                 />
-                <div class="sf-op-pop__phrases">
-                  <el-button
-                    v-for="p in commonPhrases"
-                    :key="p"
-                    link
-                    type="primary"
-                    size="small"
-                    @click="comment = p"
-                  >
-                    {{ p }}
-                  </el-button>
-                </div>
+                <SailPhrasePicker kind="approve" tone="primary" @pick="v => (comment = v)" @manage="goPhrases" />
               </el-form-item>
               <el-form-item v-if="signEnable" label="签名" required>
                 <div class="sf-op-pop__sign">
@@ -195,18 +184,12 @@
                   :rows="3"
                   placeholder="请输入驳回意见"
                 />
-                <div class="sf-op-pop__phrases">
-                  <el-button
-                    v-for="p in rejectPhrases"
-                    :key="p"
-                    link
-                    type="danger"
-                    size="small"
-                    @click="rejectComment = p"
-                  >
-                    {{ p }}
-                  </el-button>
-                </div>
+                <SailPhrasePicker
+                  kind="reject"
+                  tone="danger"
+                  @pick="v => (rejectComment = v)"
+                  @manage="goPhrases"
+                />
               </el-form-item>
               <div class="sf-op-pop__footer">
                 <el-button @click="rejectVisible = false">取消</el-button>
@@ -721,6 +704,8 @@ import {
   type SailButtonSetting
 } from '@sail/bpmn/buttonsCatalog';
 import SailCandidatePicker from '@sail/components/runtime/SailCandidatePicker.vue';
+import SailPhrasePicker from '@sail/components/runtime/SailPhrasePicker.vue';
+import { useRouter } from 'vue-router';
 import SailPreselectApproveHint from '@sail/components/preselect/SailPreselectApproveHint.vue';
 
 const props = withDefaults(
@@ -811,9 +796,12 @@ const changeUserIds = ref<string[]>([]);
 const changeComment = ref('');
 const urgeVisible = ref(false);
 const urgeUserIds = ref<string[]>([]);
-const commonPhrases = ['同意', '拟同意', '情况属实', '请按制度办理'];
-const rejectPhrases = ['不同意', '请补充材料', '退回修改', '不符合要求'];
+const router = useRouter();
 const signEnable = computed(() => !!props.signEnable);
+
+function goPhrases() {
+  router.push('/sail/approval-phrases');
+}
 const reasonRequire = computed(() => !!props.reasonRequire);
 const removableAssignees = computed(() => props.removableAssignees || []);
 const currentAssignees = computed(() => props.currentAssignees || []);

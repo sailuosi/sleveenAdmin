@@ -11,6 +11,9 @@ namespace SleveenAdmin.Sailflow.Utility;
 /// </summary>
 public static class SailProcessVariableHelper
 {
+    public const string ActCommentPrefix = "__sail.act.comment.";
+    public const string ActSignPrefix = "__sail.act.sign.";
+
     /// <summary>把 runner.Conditions 写入流程作用域变量（同名覆盖）。</summary>
     public static void PersistConditions(
         IWorkflowService wf,
@@ -27,50 +30,100 @@ public static class SailProcessVariableHelper
         {
             if (string.IsNullOrWhiteSpace(kv.Key))
                 continue;
-            // ProcessVariableManager.SaveVariable 拒绝空 Value — Host 侧跳过
             if (string.IsNullOrEmpty(kv.Value))
                 continue;
 
+            UpsertVariable(wf, runner, processInstanceId, kv.Key, kv.Value, logger);
+        }
+
+        PersistActivityOpinion(wf, runner, processInstanceId, logger);
+    }
+
+    static void PersistActivityOpinion(
+        IWorkflowService wf,
+        FlowCommandContext runner,
+        string processInstanceId,
+        ILogger? logger)
+    {
+        string? comment = null;
+        string? sign = null;
+        foreach (var kv in runner.Conditions!)
+        {
+            if (string.Equals(kv.Key, "comment", StringComparison.OrdinalIgnoreCase))
+                comment = kv.Value;
+            else if (string.Equals(kv.Key, "signPicUrl", StringComparison.OrdinalIgnoreCase))
+                sign = kv.Value;
+        }
+        if (string.IsNullOrWhiteSpace(comment) && string.IsNullOrWhiteSpace(sign))
+            return;
+
+        string? actId = null;
+        if (!string.IsNullOrWhiteSpace(runner.TaskId))
+        {
             try
             {
-                var exist = wf.GetProcessVariable(new ProcessVariableQuery
-                {
-                    VariableSceope = ProcessVariableScopeEnum.Process,
-                    ProcessInstanceId = processInstanceId,
-                    Name = kv.Key
-                });
-
-                if (exist != null && !string.IsNullOrWhiteSpace(exist.ProcessVariableId))
-                {
-                    exist.Value = kv.Value;
-                    exist.BizPK = runner.BizPK ?? exist.BizPK;
-                    exist.ProcessId = runner.ProcessId ?? exist.ProcessId;
-                    exist.UpdatedDateTime = DateTime.UtcNow;
-                    wf.SaveProcessVariable(exist);
-                }
-                else
-                {
-                    wf.SaveProcessVariable(new ProcessVariableEntity
-                    {
-                        VariableScope = ProcessVariableScopeEnum.Process.ToString(),
-                        BizPK = runner.BizPK,
-                        ProcessId = runner.ProcessId,
-                        ProcessInstanceId = processInstanceId,
-                        Name = kv.Key,
-                        Value = kv.Value,
-                        UpdatedDateTime = DateTime.UtcNow
-                    });
-                }
+                actId = wf.GetTaskView(runner.TaskId)?.ActivityInstanceId;
             }
-            catch (Exception ex)
+            catch
             {
-                // 单字段失败不阻断发起/办理，但必须可见
-                logger?.LogError(
-                    ex,
-                    "PersistConditions failed: processInstanceId={ProcessInstanceId}, name={Name}",
-                    processInstanceId,
-                    kv.Key);
+                /* ignore */
             }
+        }
+        if (string.IsNullOrWhiteSpace(actId))
+            return;
+
+        if (!string.IsNullOrWhiteSpace(comment))
+            UpsertVariable(wf, runner, processInstanceId, ActCommentPrefix + actId, comment!, logger);
+        if (!string.IsNullOrWhiteSpace(sign))
+            UpsertVariable(wf, runner, processInstanceId, ActSignPrefix + actId, sign!, logger);
+    }
+
+    static void UpsertVariable(
+        IWorkflowService wf,
+        FlowCommandContext runner,
+        string processInstanceId,
+        string name,
+        string value,
+        ILogger? logger)
+    {
+        try
+        {
+            var exist = wf.GetProcessVariable(new ProcessVariableQuery
+            {
+                VariableSceope = ProcessVariableScopeEnum.Process,
+                ProcessInstanceId = processInstanceId,
+                Name = name
+            });
+
+            if (exist != null && !string.IsNullOrWhiteSpace(exist.ProcessVariableId))
+            {
+                exist.Value = value;
+                exist.BizPK = runner.BizPK ?? exist.BizPK;
+                exist.ProcessId = runner.ProcessId ?? exist.ProcessId;
+                exist.UpdatedDateTime = DateTime.UtcNow;
+                wf.SaveProcessVariable(exist);
+            }
+            else
+            {
+                wf.SaveProcessVariable(new ProcessVariableEntity
+                {
+                    VariableScope = ProcessVariableScopeEnum.Process.ToString(),
+                    BizPK = runner.BizPK,
+                    ProcessId = runner.ProcessId,
+                    ProcessInstanceId = processInstanceId,
+                    Name = name,
+                    Value = value,
+                    UpdatedDateTime = DateTime.UtcNow
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(
+                ex,
+                "PersistConditions failed: processInstanceId={ProcessInstanceId}, name={Name}",
+                processInstanceId,
+                name);
         }
     }
 
@@ -97,7 +150,6 @@ public static class SailProcessVariableHelper
             {
                 if (row == null || string.IsNullOrWhiteSpace(row.Name))
                     continue;
-                // 流程作用域优先；同名活动变量不覆盖已有流程变量
                 var isProcess = string.Equals(
                     row.VariableScope,
                     ProcessVariableScopeEnum.Process.ToString(),
@@ -115,6 +167,36 @@ public static class SailProcessVariableHelper
                 processInstanceId);
         }
 
+        return map;
+    }
+
+    /// <summary>从流程变量抽出活动意见/签名（key=ActivityInstanceId）。</summary>
+    public static Dictionary<string, ActivityOpinionDto> LoadActivityOpinions(
+        Dictionary<string, string>? formValues)
+    {
+        var map = new Dictionary<string, ActivityOpinionDto>(StringComparer.OrdinalIgnoreCase);
+        if (formValues == null || formValues.Count == 0)
+            return map;
+
+        foreach (var kv in formValues)
+        {
+            if (kv.Key.StartsWith(ActCommentPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var id = kv.Key[ActCommentPrefix.Length..];
+                if (string.IsNullOrWhiteSpace(id)) continue;
+                if (!map.TryGetValue(id, out var op))
+                    map[id] = op = new ActivityOpinionDto { ActivityInstanceId = id };
+                op.Comment = kv.Value;
+            }
+            else if (kv.Key.StartsWith(ActSignPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var id = kv.Key[ActSignPrefix.Length..];
+                if (string.IsNullOrWhiteSpace(id)) continue;
+                if (!map.TryGetValue(id, out var op))
+                    map[id] = op = new ActivityOpinionDto { ActivityInstanceId = id };
+                op.SignPicUrl = kv.Value;
+            }
+        }
         return map;
     }
 
@@ -142,4 +224,11 @@ public static class SailProcessVariableHelper
 
         return null;
     }
+}
+
+public sealed class ActivityOpinionDto
+{
+    public string ActivityInstanceId { get; set; } = "";
+    public string? Comment { get; set; }
+    public string? SignPicUrl { get; set; }
 }

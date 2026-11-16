@@ -15,6 +15,8 @@
 ├── 我的待办                ← S1 办理闭环
 ├── 我的已办
 ├── 抄送我的                ← S3
+├── 我的委托
+├── 我的常用语
 ├── 发起流程
 ├── 我的流程
 ├── 任务管理                ← S3 管理端
@@ -36,7 +38,7 @@
 
 | 侧栏展示 | 说明 |
 |----------|------|
-| 要 | 待办、已办、抄送、发起、我的流程、任务管理、实例管理、**流程模板中心**、**单位流程配置**、流程表单、规则集、AI 模型、知识库、回调死信、请假样例、分类、报表 |
+| 要 | 待办、已办、抄送、**我的委托**、**我的常用语**、发起、我的流程、任务管理、实例管理、**流程模板中心**、**单位流程配置**、流程表单、规则集、AI 模型、知识库、回调死信、请假样例、分类、报表 |
 | 隐藏 | 流程设计器、表单设计器、流程详情、流程编辑（全屏四步向导；从「单位流程配置」点「修改/新建」进入） |
 
 ---
@@ -62,6 +64,8 @@
 | 我的待办 | `sail_task_todo` | `/sail/task-todo` | `widgets/sailflow/views/task/SailTaskTodoPage.vue` | 2 | 1 | 否 |
 | 我的已办 | `sail_task_done` | `/sail/task-done` | `widgets/sailflow/views/task/SailTaskDonePage.vue` | 2 | 2 | 否 |
 | 抄送我的 | `sail_task_copyto` | `/sail/task-copyto` | `widgets/sailflow/views/task/SailTaskCopytoPage.vue` | 2 | 3 | 否 |
+| 我的委托 | `sail_surrogate` | `/sail/surrogate` | `widgets/sailflow/views/task/SailSurrogatePage.vue` | 2 | 6 | 否 |
+| 我的常用语 | `sail_approval_phrases` | `/sail/approval-phrases` | `widgets/sailflow/views/task/SailApprovalPhrasePage.vue` | 2 | 7 | 否 |
 | 发起流程 | `sail_process_create` | `/sail/process-create` | `widgets/sailflow/views/process/SailProcessCreatePage.vue` | 2 | 4 | 否 |
 | 我的流程 | `sail_process_my` | `/sail/process-my` | `widgets/sailflow/views/process/SailProcessMyPage.vue` | 2 | 5 | 否 |
 | 任务管理 | `sail_task_manager` | `/sail/task-manager` | `widgets/sailflow/views/task/SailTaskManagerPage.vue` | 2 | 6 | 否 |
@@ -120,6 +124,8 @@
 |----------|----------|----------|
 | 我的待办 | `views/task/SailTaskTodoPage.vue` | `POST /api/Wf2Xml/QueryReadyTasks` |
 | 我的已办 | `views/task/SailTaskDonePage.vue` | `POST /api/Wf2Xml/QueryCompletedTasks` |
+| 我的委托 | `views/task/SailSurrogatePage.vue` | `/api/WfSurrogate/*` |
+| 我的常用语 | `views/task/SailApprovalPhrasePage.vue` | `/api/WfApprovalPhrase/*` |
 | 发起流程 | `views/process/SailProcessCreatePage.vue` | `GetProcessListSimple` + `StartProcess` |
 | 我的流程 | `views/process/SailProcessMyPage.vue` | `POST /api/Wf2Xml/QueryProcessInstances` |
 | 流程详情 | `views/process/SailProcessDetailPage.vue` | `GetApprovalWorkbench` + `RunProcess` / `RejectProcess` |
@@ -155,6 +161,8 @@
 sail: '流程引擎',
 sail_task_todo: '我的待办',
 sail_task_done: '我的已办',
+sail_surrogate: '我的委托',
+sail_approval_phrases: '我的常用语',
 sail_process_create: '发起流程',
 sail_process_my: '我的流程',
 sail_processes: '流程定义',

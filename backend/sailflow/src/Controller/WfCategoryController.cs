@@ -116,4 +116,28 @@ public class WfCategoryController : ControllerBase
             return ResponseResult<object>.Error(ex.Message);
         }
     }
+
+    public class SortBatchRequest
+    {
+        public List<string>? Ids { get; set; }
+    }
+
+    /// <summary>POST api/WfCategory/UpdateSortBatch · { ids: string[] }</summary>
+    [HttpPost]
+    public ResponseResult UpdateSortBatch([FromBody] SortBatchRequest? body)
+    {
+        try
+        {
+            var n = _cats.UpdateSortBatch(body?.Ids ?? [], User);
+            return ResponseResult.Success($"sorted {n}");
+        }
+        catch (SailUnitAccessException ex)
+        {
+            return ResponseResult.Error(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult.Error(ex.Message);
+        }
+    }
 }

@@ -250,7 +250,7 @@ Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须
 | 关闭 | `CloseProcess` | 管理向结束；慎用删除实例 |
 | 抄送 | 写产品抄送表 | 引擎无内置抄送箱 |
 
-意见：当前为办理条可选文本；附件可接 sleveen 统一附件范式（未强制）。
+意见：办理条可选文本 + **我的常用语**（`sf_approval_phrase` / `WfApprovalPhrase`）；流转记录回显活动意见与 `signPicUrl`。办理附件：详情页 `HHAttachPanel`（`task=SailTask`，`businessOid=TaskId|ProcessInstanceId`）。
 
 ---
 
@@ -290,10 +290,12 @@ Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须
 | 委派 | **已落地**（默认关） | `DelegateProcess` + 办理条；办完自动还回 |
 | ExtraJson 运行时闭环 | **已落地** | 解析服务 + CreateHook/去重/HTTP + Workbench/Dispatcher 闸 + 标题摘要/编码/打印模板；见 §3.1 |
 | 办理按钮设置 | **已落地** | 码表含 Run/Reject/SendBack/Sign/Copy/Withdraw/Resend/Jump/Close/Revise/Reverse；见 buttons-capability |
-| 分类拖拽树 | 未做 | 列表+绑定已够最小可用 |
+| 分类拖拽树 | 未做 | 列表上移/下移批量 `UpdateSortBatch` 已可用；完整拖树可后续 |
 | Simple 设计器 | 暂缓 | 先做 XML 映射 POC，失败则放弃主路径 |
 | 用户分组 / 监听器 / 表达式管理页 | 未做 | 仅当运行时确有消费点再开 |
-| 办理附件 | 意见已有 | 接宿主附件范式 |
+| 办理附件 | **已落地** | 详情办理区 `HHAttachPanel`；待办可传、已办只读 |
+| 我的常用语 | **已落地** | `sf_approval_phrase` + PhrasePicker；用户短语优先 |
+| 流转签名/意见 | **已落地** | Workbench `ActivityOpinions` → 时间线缩略图/意见 |
 | 真并行会签债 | 引擎演进 | 走 Sail Multisign，不照搬 NFlow MI |
 | Unit\* / StartUnit\* 落库 | **已落地** R1 | 任务 UnitId·Code·Name；实例 StartUnit\*；与 Group\* 正交 |
 | Assignee 双轨收口 | **已落地** R2 | 挂管道后不回落 Definition/旧会签；Legacy 不再推断 RoleGroup |

@@ -143,6 +143,30 @@ public class SailCategoryService
         return 1;
     }
 
+    /// <summary>按传入 Id 顺序批量写 SortOrder（10、20、…）；仅更新本人有写权限的行。</summary>
+    public int UpdateSortBatch(IReadOnlyList<string> ids, ClaimsPrincipal? user = null)
+    {
+        EnsureTable();
+        if (ids == null || ids.Count == 0) return 0;
+        var all = List(user: null);
+        var byId = all.ToDictionary(x => x.Id, StringComparer.OrdinalIgnoreCase);
+        var repo = _sail.UseRunSQL().useRepo<SailProcessCategoryEntity>();
+        var order = 10;
+        var n = 0;
+        foreach (var id in ids)
+        {
+            if (string.IsNullOrWhiteSpace(id) || !byId.TryGetValue(id.Trim(), out var row))
+                continue;
+            if (user != null)
+                _access.RequireAccess(user, row.AuthType, row.AuthId, row.AuthCode, write: true);
+            row.SortOrder = order;
+            repo.Update(row);
+            order += 10;
+            n++;
+        }
+        return n;
+    }
+
     /// <summary>将流程定义 AppType 设为分类 Code。</summary>
     public void BindProcess(string processId, string version, string? categoryCode)
     {

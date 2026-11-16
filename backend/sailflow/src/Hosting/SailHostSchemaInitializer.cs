@@ -161,13 +161,16 @@ public static class SailHostSchemaInitializer
             .createTable<SailTodoPortalRecordEntity>()
             .createTable<SailPreselectAssigneeEntity>()
             .createTable<SailSurrogateEntity>()
-            .createTable<SailProcessIdSeqEntity>();
+            .createTable<SailProcessIdSeqEntity>()
+            .createTable<SailApprovalPhraseEntity>();
         TryCreateIndex(kit, "IX_sf_preselect_pi_act", "sf_preselect_assignee",
             "process_instance_id", "activity_id");
         TryCreateIndex(kit, "IX_sf_surrogate_grantor", "sf_surrogate",
             "grantor_id", "enabled", "process_id");
         TryCreateIndex(kit, "IX_sf_process_id_seq_pid_bucket", "sf_process_id_seq",
             "process_id", "bucket");
+        TryCreateIndex(kit, "IX_sf_approval_phrase_user", "sf_approval_phrase",
+            "user_id", "enabled", "sort_order");
         return wk.WorkingProgress?.ToString() ?? string.Empty;
     }
 

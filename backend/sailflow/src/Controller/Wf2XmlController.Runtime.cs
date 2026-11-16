@@ -779,6 +779,7 @@ public partial class Wf2XmlController
             {
                 dto.FormValues = SailProcessVariableHelper.LoadFormValues(
                     _workflowService, processInstanceId, _logger);
+                dto.ActivityOpinions = SailProcessVariableHelper.LoadActivityOpinions(dto.FormValues);
                 if (dto.FormValues.TryGetValue(SailProcessExtraTemplate.SummaryVar, out var summary)
                     && !string.IsNullOrWhiteSpace(summary))
                     dto.Summary = summary;

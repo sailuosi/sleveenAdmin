@@ -92,4 +92,6 @@ public static class SeedIds
     public static readonly Guid MenuSailFormEditorId = Guid.Parse("00000000-0000-0000-0000-000000000099");
     public static readonly Guid MenuSailProcessDetailId = Guid.Parse("00000000-0000-0000-0000-00000000009A");
     public static readonly Guid MenuSailProcessEditId = Guid.Parse("00000000-0000-0000-0000-00000000009B");
+    public static readonly Guid MenuSailSurrogateId = Guid.Parse("00000000-0000-0000-0000-00000000009C");
+    public static readonly Guid MenuSailApprovalPhrasesId = Guid.Parse("00000000-0000-0000-0000-00000000009D");
 }

@@ -85,6 +85,16 @@
               />
               <el-empty v-else description="未绑定动态表单" :image-size="72" />
 
+              <div v-if="attachBizId" class="sf-detail-page__attach sf-no-print">
+                <HHAttachPanel
+                  task="SailTask"
+                  :business-oid="attachBizId"
+                  :read-only="!canHandle"
+                  title="办理附件"
+                  upload-mode="button"
+                />
+              </div>
+
               <div
                 v-if="ruleSetCodes.length || aiConfigUuids.length"
                 class="sf-detail-page__refs sf-no-print"
@@ -149,6 +159,24 @@
                     <span v-if="field(a, 'EndedDateTime', 'endedDateTime')">
                       · {{ formatTime(field(a, 'EndedDateTime', 'endedDateTime')) }}
                     </span>
+                  </div>
+                  <div
+                    v-if="activityOpinion(a)?.comment"
+                    class="sf-detail-page__tl-opinion"
+                  >
+                    审批意见：{{ activityOpinion(a)?.comment }}
+                  </div>
+                  <div
+                    v-if="activityOpinion(a)?.signPicUrl"
+                    class="sf-detail-page__tl-sign"
+                  >
+                    签名：
+                    <el-image
+                      class="sf-detail-page__tl-sign-img"
+                      :src="activityOpinion(a)?.signPicUrl"
+                      :preview-src-list="[activityOpinion(a)!.signPicUrl!]"
+                      fit="contain"
+                    />
                   </div>
                 </el-timeline-item>
               </el-timeline>
@@ -246,6 +274,7 @@ import {
 } from '@sail/bpmn/buttonsCatalog';
 import SailOperationBar from '@sail/components/runtime/SailOperationBar.vue';
 import SailFormRender from '@sail/components/runtime/SailFormRender.vue';
+import HHAttachPanel from '@/components/hh-attach/HHAttachPanel.vue';
 import { filterFormValuesByFields } from '@sail/utils/formCreate';
 
 defineOptions({ name: 'SailProcessDetailPage' });
@@ -268,6 +297,10 @@ const nextTreeSummary = ref('');
 const nextTreeJson = ref('');
 const probedNextNodes = ref<Record<string, unknown>[]>([]);
 const activityInstances = ref<Record<string, unknown>[]>([]);
+/** key=ActivityInstanceId → { comment, signPicUrl } */
+const activityOpinions = ref<
+  Record<string, { comment?: string; signPicUrl?: string }>
+>({});
 const formConf = ref('');
 const formFieldsJson = ref('');
 const formTitle = ref('');
@@ -334,6 +367,15 @@ const canHandle = computed(() => {
   const assigned = String(pickField(task.value, 'SignId', 'signId') || '');
   const state = Number(pickField(task.value, 'ActivityState', 'activityState') || 0);
   return assigned === userId.value && (state === 1 || state === 2);
+});
+
+/** 附件主键：有待办用 TaskId，否则 ProcessInstanceId */
+const attachBizId = computed(() => {
+  const tid = String(field(task.value, 'Id', 'id', 'TaskId', 'taskId') || '').trim();
+  if (tid) return tid;
+  return String(
+    field(processInstance.value, 'Id', 'id', 'ProcessInstanceId', 'processInstanceId') || ''
+  ).trim();
 });
 
 const processRunning = computed(() => {
@@ -410,6 +452,12 @@ const starterInitial = computed(() => {
   const name = String(field(processInstance.value, 'CreatedUserName', 'createdUserName') || '');
   return name ? name.slice(0, 1) : '?';
 });
+
+function activityOpinion(a: Record<string, unknown>) {
+  const id = String(field(a, 'ActivityInstanceId', 'activityInstanceId', 'Id', 'id') || '').trim();
+  if (!id) return undefined;
+  return activityOpinions.value[id];
+}
 
 function field(row: Record<string, unknown> | null | undefined, ...keys: string[]) {
   return pickField(row || undefined, ...keys) ?? '';
@@ -558,6 +606,18 @@ async function load() {
         string,
         unknown
       >[]) || [];
+    const opinionsRaw = pickField(entity, 'ActivityOpinions', 'activityOpinions');
+    const nextOpinions: Record<string, { comment?: string; signPicUrl?: string }> = {};
+    if (opinionsRaw && typeof opinionsRaw === 'object' && !Array.isArray(opinionsRaw)) {
+      Object.entries(opinionsRaw as Record<string, Record<string, unknown>>).forEach(([k, v]) => {
+        if (!k || !v || typeof v !== 'object') return;
+        nextOpinions[k] = {
+          comment: String(pickField(v, 'Comment', 'comment') || '') || undefined,
+          signPicUrl: String(pickField(v, 'SignPicUrl', 'signPicUrl') || '') || undefined
+        };
+      });
+    }
+    activityOpinions.value = nextOpinions;
     const formMeta = (pickField(entity, 'FormConf', 'formConf') as Record<string, unknown>) || null;
     if (formMeta) {
       formConf.value = String(pickField(formMeta, 'conf', 'Conf') || '');
@@ -917,6 +977,26 @@ watch(() => route.query, load, { immediate: true });
   margin-top: 4px;
   font-size: 12px;
   color: var(--el-text-color-secondary);
+}
+.sf-detail-page__tl-opinion,
+.sf-detail-page__tl-sign {
+  margin-top: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #a5a5a5;
+  background: #f8f8fa;
+  border-radius: 6px;
+}
+.sf-detail-page__tl-sign-img {
+  width: 90px;
+  height: 40px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.sf-detail-page__attach {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--el-border-color-lighter);
 }
 .sf-detail-page__footer {
   position: absolute;

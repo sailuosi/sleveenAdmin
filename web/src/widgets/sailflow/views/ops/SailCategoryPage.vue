@@ -35,8 +35,19 @@
           <el-table-column label="流程数" width="80">
             <template #default="{ row }">{{ counts[row.Code || ''] ?? 0 }}</template>
           </el-table-column>
-          <el-table-column label="操作" width="140" fixed="right">
-            <template #default="{ row }">
+          <el-table-column label="操作" width="220" fixed="right">
+            <template #default="{ row, $index }">
+              <el-button link type="primary" :disabled="$index === 0 || sorting" @click="moveRow($index, -1)">
+                上移
+              </el-button>
+              <el-button
+                link
+                type="primary"
+                :disabled="$index >= rows.length - 1 || sorting"
+                @click="moveRow($index, 1)"
+              >
+                下移
+              </el-button>
               <el-button link type="primary" @click="openEdit(row)">编辑</el-button>
               <el-button link type="danger" @click="onDelete(row)">删除</el-button>
             </template>
@@ -91,6 +102,7 @@ import {
   listCategories,
   countByCategory,
   saveCategory,
+  updateCategorySortBatch,
   type CategoryRow
 } from '@sail/api/category';
 import { getUnitScopeContext } from '@sail/api/unitScope';
@@ -101,6 +113,7 @@ defineOptions({ name: 'SailCategoryPage' });
 const router = useRouter();
 const loading = ref(false);
 const saving = ref(false);
+const sorting = ref(false);
 const err = ref('');
 const rows = ref<CategoryRow[]>([]);
 const counts = ref<Record<string, number>>({});
@@ -260,6 +273,34 @@ async function onDelete(row: CategoryRow) {
     refresh();
   } catch (e: unknown) {
     ElMessage.error(e instanceof Error ? e.message : String(e));
+  }
+}
+
+async function moveRow(index: number, delta: number) {
+  const target = index + delta;
+  if (target < 0 || target >= rows.value.length) return;
+  const next = rows.value.slice();
+  const [item] = next.splice(index, 1);
+  next.splice(target, 0, item);
+  rows.value = next;
+  const ids = next.map(r => String(r.Id || '')).filter(Boolean);
+  if (!ids.length) return;
+  sorting.value = true;
+  try {
+    const data = await updateCategorySortBatch(ids);
+    if ((data?.Status ?? data?.status) === -1) {
+      ElMessage.error(data?.Message || '排序保存失败');
+      await refresh();
+      return;
+    }
+    next.forEach((r, i) => {
+      r.SortOrder = (i + 1) * 10;
+    });
+  } catch (e: unknown) {
+    ElMessage.error(e instanceof Error ? e.message : String(e));
+    await refresh();
+  } finally {
+    sorting.value = false;
   }
 }
 

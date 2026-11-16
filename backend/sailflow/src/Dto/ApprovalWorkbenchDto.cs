@@ -71,6 +71,9 @@ public class ApprovalWorkbenchDto
 
     /// <summary>流程摘要（变量 __sail_summary__）。</summary>
     public string? Summary { get; set; }
+
+    /// <summary>活动办结意见/签名（key=ActivityInstanceId）。</summary>
+    public Dictionary<string, ActivityOpinionDto> ActivityOpinions { get; set; } = new();
 }
 
 public sealed class RemovableAssigneeDto

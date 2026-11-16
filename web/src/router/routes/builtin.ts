@@ -378,6 +378,20 @@ const builtinRoutes: CustomRoute[] = [
     ]
   },
   {
+    name: 'sail-approval-phrases',
+    path: '/sail/approval-phrases',
+    component: () => import('@/layouts/base-layout/index.vue'),
+    meta: { title: '我的常用语', constant: false },
+    children: [
+      {
+        name: 'sail-approval-phrases-page',
+        path: '',
+        component: () => import('@sail/views/task/SailApprovalPhrasePage.vue'),
+        meta: { title: '我的常用语', constant: false }
+      }
+    ]
+  },
+  {
     name: 'sail-task-manager',
     path: '/sail/task-manager',
     component: () => import('@/layouts/base-layout/index.vue'),

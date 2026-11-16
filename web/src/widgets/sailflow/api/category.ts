@@ -57,3 +57,12 @@ export function bindProcessCategory(data: {
 export function countByCategory() {
   return request({ url: '/api/WfCategory/CountByCategory', method: 'get' });
 }
+
+/** 按 Id 顺序批量写 SortOrder */
+export function updateCategorySortBatch(ids: string[]) {
+  return request({
+    url: '/api/WfCategory/UpdateSortBatch',
+    method: 'post',
+    data: { Ids: ids }
+  });
+}
