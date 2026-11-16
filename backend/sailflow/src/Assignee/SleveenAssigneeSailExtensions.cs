@@ -50,12 +50,14 @@ public static class SleveenAssigneeSailExtensions
     }
 
     /// <summary>
-    /// §A / R10：NodePolicy → EmptyActionSelector + Filter；Skip **只打锚点、不落占位人**。
+    /// §A / R10：NodePolicy → EmptyActionSelector + Filter。
+    /// 空人=1 写入策略人；同人=2 / approveType=2 保留办理人，由
+    /// <c>UseNodePolicyAutoApproveHook</c> 在发送成功后入队 AutoApprove。
     /// 同人=3：读 assignStartResolveType → 主管道 Registry（如 deptBoss）。
     /// <list type="bullet">
     /// <item><c>Sail:ProcessAdminUserIds</c> — 空人=4</item>
     /// <item><c>Sail:DeptLeaderRoleIds</c> — deptBoss 默认负责人角色袋</item>
-    /// <item><c>Sail:PolicySkip:UserId</c> — Job Runner 审计身份（默认魔法人串）</item>
+    /// <item><c>Sail:PolicySkip:UserId</c> — 空人跳过办理人 / Job 审计身份</item>
     /// </list>
     /// </summary>
     public static SailClient UseSleveenNodePolicyAssignee(

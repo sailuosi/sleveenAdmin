@@ -6,15 +6,22 @@ using SleveenAdmin.Sailflow.Utility;
 
 namespace SleveenAdmin.Sailflow.Assignee;
 
-/// <summary>空人=1：策略跳过占位 + AutoApprove 锚点。</summary>
+/// <summary>
+/// 空人=1：写入策略跳过人作为办理人（留痕迹主体）；自动通过由发送成功 Hook 入队。
+/// </summary>
 public sealed class NodePolicySkipEmptyAction : IAssigneeEmptyAction
 {
     public string Key => EmptyActionKeys.Skip;
 
     public EmptyActionResult Handle(AssigneeFilterContext ctx)
     {
-        NodePolicySkipIntent.Apply(ctx, "EmptySkip", "空人策略：自动通过");
-        return EmptyActionResult.WithPerformers(ctx.Performers);
+        var list = new PerformerList
+        {
+            new Performer(
+                SailPolicyConstants.ActiveSkipUserId,
+                SailPolicyConstants.ActiveSkipUserName)
+        };
+        return EmptyActionResult.WithPerformers(list);
     }
 }
 

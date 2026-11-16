@@ -10,7 +10,8 @@ using SleveenAdmin.Sailflow.Utility;
 namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
-/// assignStartUserHandlerType：2=同人策略跳过；3=按 NodePolicy.assignStartResolveType 走主管道 Resolver 换人。
+/// assignStartUserHandlerType：3=按 assignStartResolveType 换人。
+/// type=2 自动通过改由 <see cref="SailNodePolicyAutoApproveHook"/> 在发送成功后入队，本 Filter 不再清人/打锚点。
 /// </summary>
 public sealed class SameAsStarterFilter : IAssigneeResolveFilter
 {
@@ -23,9 +24,13 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
 
     public void Apply(AssigneeFilterContext ctx)
     {
+        if (ctx.Request != null && !ctx.Request.AllowSameAsStarterPolicy)
+            return;
+
         var type = NodePolicyAssigneeSupport.GetInt(
             ctx.PolicyBag, NodePolicyAssigneeSupport.BagAssignStart, 1);
-        if (type is 1 or 0)
+        // type=2：保留办理人，由发送成功 Hook 入队 AutoApprove
+        if (type is 1 or 0 or 2)
             return;
         if (ctx.Performers == null || ctx.Performers.Count == 0)
             return;
@@ -42,7 +47,6 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
             var starter = new WorkflowService(_sail).GetProcessInitiator(ctx.Request.ProcessInstanceId);
             if (starter == null || string.IsNullOrWhiteSpace(starter.UserId))
             {
-                // type 2/3 须能判定同人；读不到发起人 → fail-closed
                 throw new WfAssigneeException(
                     AssigneeReasonCodes.SameAsStarterResolveEmpty,
                     "SameAsStarter=" + type + " cannot load process initiator. ReasonCode="
@@ -57,15 +61,6 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
             if (string.Equals(ctx.Source, PerformerSources.Specific, StringComparison.OrdinalIgnoreCase))
                 ctx.RewroteSpecific = true;
 
-            if (type == 2)
-            {
-                NodePolicySkipIntent.Apply(ctx, "SameAsStarterSkip", "同人策略：自动通过");
-                Trace.TraceInformation(
-                    "[Assignee.Host] SameAsStarter=2 → policy skip + anchor; Activity={0}",
-                    ctx.Request.ActivityId);
-                return;
-            }
-
             if (type == 3)
                 ApplyReResolve(ctx);
         }
@@ -75,7 +70,6 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
         }
         catch (Exception ex)
         {
-            // type 2/3：禁止吞异常导致同人策略静默失效
             throw new WfAssigneeException(
                 AssigneeReasonCodes.SameAsStarterResolveEmpty,
                 "SameAsStarter=" + type + " failed: " + ex.Message
@@ -88,7 +82,6 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
     {
         var resolveType = NodePolicyAssigneeSupport.GetString(
             ctx.PolicyBag, NodePolicyAssigneeSupport.BagAssignStartResolveType);
-        // 旧图仅有 type=3、未写 Type 时默认 deptBoss（与产品「转部门负责人」同口径）
         if (string.IsNullOrWhiteSpace(resolveType))
         {
             resolveType = DeptBossAssigneeResolver.TypeCode;

@@ -5,14 +5,15 @@ using SleveenAdmin.Sailflow.Utility;
 namespace SleveenAdmin.Sailflow.Assignee;
 
 /// <summary>
-/// 策略自动通过意图（R10）：只打 AutoApprove 锚点，不落占位办理人。
-/// Mediator 见 ResultAutoApprovePending → 建活动不建待办；Job 走 RunProcessAuto。
+/// 遗留：曾用于 Filter 清 Performer + 打锚点。新产品路径由
+/// <see cref="SailNodePolicyAutoApproveHook"/> 入队，本类型仅保留 AppendAnchor 供兼容调用。
 /// </summary>
+[Obsolete("Auto-approve enqueue moved to SailNodePolicyAutoApproveHook; do not clear performers.")]
 internal static class NodePolicySkipIntent
 {
     public static void Apply(AssigneeFilterContext ctx, string strategyCode, string? reason = null)
     {
-        ctx.Performers = new PerformerList();
+        // 不再清空 Performer；仅打锚点（兼容旧调用方）
         AppendAnchor(ctx, strategyCode, reason);
     }
 
@@ -29,6 +30,11 @@ internal static class NodePolicySkipIntent
                 && string.Equals(a.ActivityId, req.ActivityId, StringComparison.OrdinalIgnoreCase)))
             return;
 
+        var preferId = ctx.Performers?.FirstOrDefault()?.UserId
+                       ?? SailPolicyConstants.ActiveSkipUserId;
+        var preferName = ctx.Performers?.FirstOrDefault()?.UserName
+                         ?? SailPolicyConstants.ActiveSkipUserName;
+
         ctx.Anchors.Add(new AutoApproveAnchor
         {
             StrategyCode = strategyCode,
@@ -38,9 +44,8 @@ internal static class NodePolicySkipIntent
             ProcessInstanceId = req.ProcessInstanceId,
             ActivityId = req.ActivityId,
             ActivityCode = req.ActivityCode,
-            // 审计用；无待办时 Job 用 RunProcessAuto + PreferUserId 作为 Runner.UserId
-            PreferUserId = SailPolicyConstants.ActiveSkipUserId,
-            PreferUserName = SailPolicyConstants.ActiveSkipUserName
+            PreferUserId = preferId,
+            PreferUserName = preferName
         });
     }
 }

@@ -60,6 +60,7 @@ public static class SailflowHostSetup
                 .UseFormBizLifecycleHook() // §H：FormCode → OnFinish（含请假 Status）
                 .UseBizMirrorHook() // stub: console-only; real port later
                 .UseNodePolicyTimeoutStamp() // §A：NodePolicy 超时 → DueAt
+                .UseNodePolicyAutoApproveHook() // 发送成功 → 同人/空人/approveType 入队 AutoApprove
                 // 立刻归档默认不挂：需要时 .UseImmediateProcessArchiveHook()（sailflow.data）
                 // 旧 UseLeaveStatusHook 已由 FormBiz 生命周期 Hook 替代
                 .UsePortalScheduleTaskNotifier(sp) // Reliable：UnifiedReport:Enabled 时 Outbox Drain + 待办推送
