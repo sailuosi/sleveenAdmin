@@ -54,6 +54,8 @@
 | 办理按钮设置 | 可用 | 节点 `sf:ButtonsSetting`；Workbench 下发；办理条 enable+显示名；见 [sailflow-buttons-capability.md](./sailflow-buttons-capability.md) |
 | 转办 | 可用 | `TransferProcess` + 办理条；委派仍暂缓 |
 | 减签 | 可用 | `RemoveAssigneeProcess` + 码表/Handler；Workbench `RemovableAssignees`；办理条弹窗 |
+| 改派 | 可用（默认关） | `ChangeAssigneeProcess`；Workbench `CurrentAssignees`；办理条编辑全集 |
+| 催办 | 可用（默认关） | `UrgeProcess`；Urged Notifier（Debug/Portal） |
 | 实例标题 / 摘要 | 可用 | Extra 标题模板 → `pi_title`；摘要变量 `__sail_summary__`；列表优先 Title |
 | 流程编码规则 | 可用 | Extra.`processIdRule` → `sf_process_id_seq`；写入 BizCode / `__sail_process_no__` |
 | 流程级自动去重 | 可用 | Extra.`autoApprovalType` 1/2 → AutoApprove 入队（与 NodePolicy 同人正交） |

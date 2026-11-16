@@ -69,6 +69,7 @@ public static class SailDevConsole
         TaskNotifyKind.Completed => "完成",
         TaskNotifyKind.Cancelled => "取消",
         TaskNotifyKind.Entrusted => "委托",
+        TaskNotifyKind.Urged => "催办",
         _ => kind.ToString()
     };
 }

@@ -188,6 +188,7 @@
           :sign-enable="signEnable"
           :reason-require="reasonRequire"
           :removable-assignees="removableAssignees"
+          :current-assignees="currentAssignees"
           @done="onDone"
         />
       </div>
@@ -294,6 +295,9 @@ const cancelLoading = ref(false);
 const signEnable = ref(false);
 const reasonRequire = ref(false);
 const removableAssignees = ref<
+  Array<{ TaskId?: string; UserId?: string; UserName?: string; taskId?: string; userId?: string; userName?: string }>
+>([]);
+const currentAssignees = ref<
   Array<{ TaskId?: string; UserId?: string; UserName?: string; taskId?: string; userId?: string; userName?: string }>
 >([]);
 
@@ -633,6 +637,10 @@ async function load() {
     const removableRaw = pickField(entity, 'RemovableAssignees', 'removableAssignees');
     removableAssignees.value = Array.isArray(removableRaw)
       ? (removableRaw as typeof removableAssignees.value)
+      : [];
+    const currentRaw = pickField(entity, 'CurrentAssignees', 'currentAssignees');
+    currentAssignees.value = Array.isArray(currentRaw)
+      ? (currentRaw as typeof currentAssignees.value)
       : [];
 
     await loadProcessAssets();

@@ -22,6 +22,9 @@ public static class SailButtonsCatalog
         new() { Id = "SendBack", DisplayName = "退回", Enable = true, Engine = "SendBackProcess" },
         new() { Id = "SignForward", DisplayName = "加签", Enable = true, Engine = "SignForwardProcess" },
         new() { Id = "RemoveAssignee", DisplayName = "减签", Enable = true, Engine = "RemoveAssigneeProcess" },
+        // 管理向：默认关；节点显式启用
+        new() { Id = "ChangeAssignee", DisplayName = "改派", Enable = false, Engine = "ChangeAssigneeProcess" },
+        new() { Id = "Urge", DisplayName = "催办", Enable = false, Engine = "UrgeProcess" },
         new() { Id = "Transfer", DisplayName = "转办", Enable = true, Engine = "TransferProcess" },
         new() { Id = "Consult", DisplayName = "沟通", Enable = true, Engine = "ConsultProcess" },
         new() { Id = "Acknowledge", DisplayName = "阅办", Enable = true, Engine = "AcknowledgeProcess" },

@@ -44,7 +44,8 @@ public static class SailDebugConsoleHookExtensions
             TaskNotifyKind.Created,
             TaskNotifyKind.Completed,
             TaskNotifyKind.Cancelled,
-            TaskNotifyKind.Entrusted
+            TaskNotifyKind.Entrusted,
+            TaskNotifyKind.Urged
         ];
     }
 

@@ -45,7 +45,8 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
         if (!_options.Enabled || ctx == null)
             return;
 
-        if (ctx.Kind is not (TaskNotifyKind.Created or TaskNotifyKind.Completed or TaskNotifyKind.Cancelled))
+        if (ctx.Kind is not (TaskNotifyKind.Created or TaskNotifyKind.Completed
+                or TaskNotifyKind.Cancelled or TaskNotifyKind.Urged))
             return;
 
         var taskInfo = BuildTaskInfo(ctx);
@@ -56,6 +57,7 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
             if (ctx.Kind == TaskNotifyKind.Created)
                 await _client.AddScheduleAsync(taskInfo, ct).ConfigureAwait(false);
             else
+                // Completed / Cancelled / Urged：更新日程；催办不改待办状态，仅推送提醒痕迹
                 await _client.UpdateScheduleAsync(taskInfo, ct).ConfigureAwait(false);
 
             TryInsertRecord(taskInfo, opType, success: true, null);

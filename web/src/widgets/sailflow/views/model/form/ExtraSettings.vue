@@ -14,6 +14,30 @@
     </el-form-item>
 
     <el-form-item>
+      <template #label><b>退回默认</b></template>
+      <div>
+        <div class="sf-edit-form__hint" style="margin-bottom: 6px">
+          流程级覆盖；留空则各节点 NodePolicy 优先
+        </div>
+        <div class="sf-extra-radios" style="margin-bottom: 8px">
+          <span class="sf-edit-form__hint">退回目标</span>
+          <el-select v-model="model.sendBackTarget" clearable placeholder="节点优先" style="width: 220px">
+            <el-option label="上一节点 Prev" value="Prev" />
+            <el-option label="发起人 Starter" value="Starter" />
+            <el-option label="历史节点 History" value="History" />
+          </el-select>
+        </div>
+        <div class="sf-extra-radios">
+          <span class="sf-edit-form__hint">再发送</span>
+          <el-select v-model="model.resubmitMode" clearable placeholder="节点优先" style="width: 260px">
+            <el-option label="返送退回人 ReturnToSender" value="ReturnToSender" />
+            <el-option label="沿出边正常发送 ForwardNormal" value="ForwardNormal" />
+          </el-select>
+        </div>
+      </div>
+    </el-form-item>
+
+    <el-form-item>
       <template #label><b>流程编码</b></template>
       <div>
         <div class="sf-extra-rule">

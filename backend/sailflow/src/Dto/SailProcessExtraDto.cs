@@ -15,6 +15,18 @@ public sealed class SailProcessExtraDto
     public SailHttpTriggerSettingDto? TaskBeforeTriggerSetting { get; set; }
     public SailHttpTriggerSettingDto? TaskAfterTriggerSetting { get; set; }
     public SailPrintTemplateSettingDto PrintTemplateSetting { get; set; } = new();
+
+    /// <summary>
+    /// 流程级退回目标默认（Prev|Starter|History）。
+    /// 非空时覆盖节点 NodePolicy.sendBackTarget；空则节点优先。
+    /// </summary>
+    public string? SendBackTarget { get; set; }
+
+    /// <summary>
+    /// 流程级再发送方式默认（ForwardNormal|ReturnToSender）。
+    /// 非空时覆盖节点 NodePolicy.resubmitMode；空则节点优先。
+    /// </summary>
+    public string? ResubmitMode { get; set; }
 }
 
 public sealed class SailProcessIdRuleDto

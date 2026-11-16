@@ -99,6 +99,36 @@ public partial class Wf2XmlController
         }
     }
 
+    /// <summary>POST api/Wf2Xml/ChangeAssigneeProcess · 改派（新全集）</summary>
+    [HttpPost]
+    public async Task<ResponseResult> ChangeAssigneeProcess([FromBody] FlowCommandContext runner)
+    {
+        try
+        {
+            SailAuthIdentity.BindRunner(User, runner);
+            return FromExecuted(await _workflowService.ChangeAssigneeProcessAsync(runner, HttpContext.RequestAborted));
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult.Error(ex.Message);
+        }
+    }
+
+    /// <summary>POST api/Wf2Xml/UrgeProcess · 催办</summary>
+    [HttpPost]
+    public async Task<ResponseResult> UrgeProcess([FromBody] FlowCommandContext runner)
+    {
+        try
+        {
+            SailAuthIdentity.BindRunner(User, runner);
+            return FromExecuted(await _workflowService.UrgeProcessAsync(runner, HttpContext.RequestAborted));
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult.Error(ex.Message);
+        }
+    }
+
     /// <summary>POST api/Wf2Xml/ButtonsOperation · 统一办理（码表 Id → Handler）</summary>
     [HttpPost]
     public async Task<ResponseResult> ButtonsOperation([FromBody] SailButtonsOperationRequest req)
@@ -628,13 +658,18 @@ public partial class Wf2XmlController
                     /* 退回源探测失败不阻断办理 */
                 }
 
-                // 减签候选人：同 ActivityInstance 未办结 Waiting 任务（不含当前办理人）
+                // 减签/改派/催办候选人：同 ActivityInstance 未办结 Waiting
                 try
                 {
-                    dto.RemovableAssignees = BuildRemovableAssignees(task);
+                    var open = BuildOpenAssignees(task);
+                    dto.CurrentAssignees = open;
+                    dto.RemovableAssignees = open
+                        .Where(a => !string.Equals(a.UserId, task.SignId, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
                 }
                 catch
                 {
+                    dto.CurrentAssignees = new List<RemovableAssigneeDto>();
                     dto.RemovableAssignees = new List<RemovableAssigneeDto>();
                 }
 
@@ -651,7 +686,7 @@ public partial class Wf2XmlController
                     dto.NodePolicy = policy;
                     dto.SendBackTarget = policy.SendBackTarget;
                     dto.ResubmitMode = policy.ResubmitMode;
-                    dto.PreviousNodes = FilterPreviousBySendBackTarget(
+                    dto.PreviousNodes = SailNodePolicyCatalog.FilterPreviousBySendBackTarget(
                         dto.PreviousNodes,
                         policy.SendBackTarget);
                 }
@@ -667,7 +702,7 @@ public partial class Wf2XmlController
                 ApplyConsultWorkbenchState(dto, task);
             }
 
-            // ExtraJson 运行时：闸控 / 打印 / 摘要
+            // ExtraJson 运行时：闸控 / 打印 / 摘要；可覆盖退回两维
             ApplyExtraWorkbenchState(dto, task);
 
             // 表单：显式 FormId → 实例 BizCode（发起写入的 formId，Guid/数字均可）
@@ -842,29 +877,6 @@ public partial class Wf2XmlController
         }
     }
 
-    /// <summary>§J 维①：按 sendBackTarget 收窄可退回节点列表。</summary>
-    static List<NodeView> FilterPreviousBySendBackTarget(List<NodeView> nodes, string? target)
-    {
-        if (nodes == null || nodes.Count == 0)
-            return nodes ?? new List<NodeView>();
-
-        switch (SailNodePolicyCatalog.NormalizeTarget(target))
-        {
-            case "Prev":
-                return nodes.Take(1).ToList();
-            case "Starter":
-            {
-                var starts = nodes.Where(n => n.ActivityType == ActivityTypeEnum.StartNode).ToList();
-                if (starts.Count > 0)
-                    return starts;
-                // 无开始事件时取列表末项（通常更靠近发起侧）
-                return new List<NodeView> { nodes[^1] };
-            }
-            default:
-                return nodes;
-        }
-    }
-
     /// <summary>从流程 BPMN 读取 sf:CandidateSelector，覆盖节点选人器元数据。</summary>
     private void ApplyCandidateSelectorsFromProcess(
         string? processId,
@@ -905,7 +917,7 @@ public partial class Wf2XmlController
         SailProcessVariableHelper.PersistConditions(_workflowService, runner, piId, _logger);
     }
 
-    List<RemovableAssigneeDto> BuildRemovableAssignees(TaskViewEntity task)
+    List<RemovableAssigneeDto> BuildOpenAssignees(TaskViewEntity task)
     {
         var list = new List<RemovableAssigneeDto>();
         if (string.IsNullOrWhiteSpace(task.ActivityInstanceId) || string.IsNullOrWhiteSpace(task.ProcessInstanceId))
@@ -920,8 +932,6 @@ public partial class Wf2XmlController
         foreach (var row in waiting)
         {
             if (string.IsNullOrWhiteSpace(row.TaskId) || string.IsNullOrWhiteSpace(row.SignId))
-                continue;
-            if (string.Equals(row.SignId, task.SignId, StringComparison.OrdinalIgnoreCase))
                 continue;
             list.Add(new RemovableAssigneeDto
             {
@@ -954,7 +964,13 @@ public partial class Wf2XmlController
                 PrintTemplateEnable = extra.PrintTemplateSetting.Enable,
                 PrintTemplate = extra.PrintTemplateSetting.Enable
                     ? extra.PrintTemplateSetting.Template
-                    : null
+                    : null,
+                SendBackTarget = string.IsNullOrWhiteSpace(extra.SendBackTarget)
+                    ? null
+                    : SailNodePolicyCatalog.NormalizeTarget(extra.SendBackTarget),
+                ResubmitMode = string.IsNullOrWhiteSpace(extra.ResubmitMode)
+                    ? null
+                    : SailNodePolicyCatalog.NormalizeResubmit(extra.ResubmitMode)
             };
 
             if (!extra.AllowWithdrawTask && dto.ButtonsSetting != null)
@@ -965,6 +981,18 @@ public partial class Wf2XmlController
                         b.Enable = false;
                 }
             }
+
+            // 流程级退回默认：Extra 非空覆盖节点；再按最终维①收窄 PreviousNodes
+            var resolved = SailSendBackPolicy.Resolve(
+                dto.SendBackTarget,
+                dto.ResubmitMode,
+                extra.SendBackTarget,
+                extra.ResubmitMode);
+            dto.SendBackTarget = resolved.SendBackTarget;
+            dto.ResubmitMode = resolved.ResubmitMode;
+            dto.PreviousNodes = SailNodePolicyCatalog.FilterPreviousBySendBackTarget(
+                dto.PreviousNodes,
+                dto.SendBackTarget);
         }
         catch (Exception ex)
         {
@@ -1044,7 +1072,8 @@ public partial class Wf2XmlController
     }
 
     static bool IsConsultLockedButton(string? id) =>
-        id is "Approve" or "Reject" or "SendBack" or "SignForward" or "RemoveAssignee" or "Transfer"
+        id is "Approve" or "Reject" or "SendBack" or "SignForward" or "RemoveAssignee"
+            or "ChangeAssignee" or "Urge" or "Transfer"
             or "Revise" or "Resend" or "Jump" or "Close";
 
     private static ResponseResult FromExecuted(WfExecutedResult wfResult)

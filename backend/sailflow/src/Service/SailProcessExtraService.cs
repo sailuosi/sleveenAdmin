@@ -5,6 +5,7 @@ using SleveenAdmin.Foundation.DI;
 using SleveenAdmin.Sailflow.Dto;
 using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Hosting;
+using SleveenAdmin.Sailflow.Utility;
 
 namespace SleveenAdmin.Sailflow.Service;
 
@@ -67,6 +68,14 @@ public class SailProcessExtraService
         dto.PrintTemplateSetting ??= new SailPrintTemplateSettingDto();
         if (dto.AutoApprovalType is < 0 or > 2)
             dto.AutoApprovalType = 0;
+        if (!string.IsNullOrWhiteSpace(dto.SendBackTarget))
+            dto.SendBackTarget = SailNodePolicyCatalog.NormalizeTarget(dto.SendBackTarget);
+        else
+            dto.SendBackTarget = null;
+        if (!string.IsNullOrWhiteSpace(dto.ResubmitMode))
+            dto.ResubmitMode = SailNodePolicyCatalog.NormalizeResubmit(dto.ResubmitMode);
+        else
+            dto.ResubmitMode = null;
         return dto;
     }
 }

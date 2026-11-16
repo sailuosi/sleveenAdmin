@@ -243,6 +243,22 @@
           {{ btnLabel('RemoveAssignee') }}
         </el-button>
         <el-button
+          v-if="btnOn('ChangeAssignee') && !consultPending"
+          plain
+          :loading="loading"
+          @click="openChangeAssignee"
+        >
+          {{ btnLabel('ChangeAssignee') }}
+        </el-button>
+        <el-button
+          v-if="btnOn('Urge') && !consultPending"
+          plain
+          :loading="loading"
+          @click="openUrge"
+        >
+          {{ btnLabel('Urge') }}
+        </el-button>
+        <el-button
           v-if="btnOn('Transfer') && !consultPending"
           plain
           :loading="loading"
@@ -400,6 +416,69 @@
       <template #footer>
         <el-button @click="removeVisible = false">取消</el-button>
         <el-button type="primary" :loading="loading" @click="onRemoveAssignee">确认减签</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 改派：新办理人全集 -->
+    <el-dialog
+      v-model="changeVisible"
+      :title="btnLabel('ChangeAssignee')"
+      width="520px"
+      destroy-on-close
+    >
+      <el-form label-width="100px">
+        <el-form-item label="办理人全集" required>
+          <el-select
+            v-model="changeUserIds"
+            multiple
+            filterable
+            style="width: 100%"
+            placeholder="编辑当前节点办理人（差量增删）"
+          >
+            <el-option
+              v-for="u in changeCandidateOptions"
+              :key="userKey(u)"
+              :label="userLabel(u)"
+              :value="userKey(u)"
+            />
+          </el-select>
+          <div class="sf-op-pop__hint">提交后按全集差量关旧/建新，不推进下一节点</div>
+        </el-form-item>
+        <el-form-item label="意见">
+          <el-input v-model="changeComment" type="textarea" :rows="2" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="changeVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="onChangeAssignee">确认改派</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 催办 -->
+    <el-dialog v-model="urgeVisible" :title="btnLabel('Urge')" width="480px" destroy-on-close>
+      <el-form label-width="90px">
+        <el-form-item label="催办对象">
+          <el-select
+            v-model="urgeUserIds"
+            multiple
+            filterable
+            clearable
+            style="width: 100%"
+            placeholder="空=催本节点全部打开待办"
+          >
+            <el-option
+              v-for="u in currentAssignees"
+              :key="u.UserId || u.userId"
+              :label="`${u.UserName || u.userName || u.UserId || u.userId}`"
+              :value="String(u.UserId || u.userId)"
+            />
+          </el-select>
+          <div class="sf-op-pop__hint">不改待办状态，仅发催办通知</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="urgeVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="onUrge">确认催办</el-button>
       </template>
     </el-dialog>
 
@@ -645,6 +724,15 @@ const props = withDefaults(
       UserName?: string;
       userName?: string;
     }>;
+    /** Workbench.CurrentAssignees（含本人） */
+    currentAssignees?: Array<{
+      TaskId?: string;
+      taskId?: string;
+      UserId?: string;
+      userId?: string;
+      UserName?: string;
+      userName?: string;
+    }>;
   }>(),
   {
     canHandle: true,
@@ -661,7 +749,8 @@ const props = withDefaults(
     openParticipantCount: 0,
     signEnable: false,
     reasonRequire: false,
-    removableAssignees: () => []
+    removableAssignees: () => [],
+    currentAssignees: () => []
   }
 );
 
@@ -678,11 +767,36 @@ const rejectVisible = ref(false);
 const removeVisible = ref(false);
 const removeUserIds = ref<string[]>([]);
 const removeComment = ref('');
+const changeVisible = ref(false);
+const changeUserIds = ref<string[]>([]);
+const changeComment = ref('');
+const urgeVisible = ref(false);
+const urgeUserIds = ref<string[]>([]);
 const commonPhrases = ['同意', '拟同意', '情况属实', '请按制度办理'];
 const rejectPhrases = ['不同意', '请补充材料', '退回修改', '不符合要求'];
 const signEnable = computed(() => !!props.signEnable);
 const reasonRequire = computed(() => !!props.reasonRequire);
 const removableAssignees = computed(() => props.removableAssignees || []);
+const currentAssignees = computed(() => props.currentAssignees || []);
+const changeCandidateOptions = computed(() => {
+  const map = new Map<string, Record<string, unknown>>();
+  for (const u of allUsers.value) {
+    const k = userKey(u as never);
+    if (k) map.set(k, u as Record<string, unknown>);
+  }
+  for (const u of currentAssignees.value) {
+    const k = String(u.UserId || u.userId || '');
+    if (!k) continue;
+    if (!map.has(k)) {
+      map.set(k, {
+        UserId: k,
+        UserName: u.UserName || u.userName || k,
+        Account: k
+      });
+    }
+  }
+  return Array.from(map.values());
+});
 
 async function loadMySignature() {
   signLoading.value = true;
@@ -1083,6 +1197,65 @@ async function onRemoveAssignee() {
     removeVisible.value = false;
     removeUserIds.value = [];
     removeComment.value = '';
+  }
+}
+
+function openChangeAssignee() {
+  changeUserIds.value = currentAssignees.value
+    .map(u => String(u.UserId || u.userId || ''))
+    .filter(Boolean);
+  changeComment.value = '';
+  changeVisible.value = true;
+}
+
+async function onChangeAssignee() {
+  if (!changeUserIds.value.length) {
+    ElMessage.warning('请至少保留一名办理人');
+    return;
+  }
+  const activityId =
+    pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'change';
+  const runner = buildRunner({
+    NextActivityPerformers: withNextPerformers(
+      String(activityId),
+      changeUserIds.value,
+      changeCandidateOptions.value
+    )
+  });
+  if (changeComment.value.trim()) {
+    runner.Conditions = {
+      ...(runner.Conditions || {}),
+      comment: changeComment.value.trim()
+    };
+  }
+  const ok = await execButton('ChangeAssignee', runner, '已改派');
+  if (ok) {
+    changeVisible.value = false;
+    changeUserIds.value = [];
+    changeComment.value = '';
+  }
+}
+
+function openUrge() {
+  urgeUserIds.value = [];
+  urgeVisible.value = true;
+}
+
+async function onUrge() {
+  const activityId =
+    pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'urge';
+  const extra: Partial<FlowCommandContextPayload> = {};
+  if (urgeUserIds.value.length) {
+    const pool = currentAssignees.value.map(u => ({
+      UserId: String(u.UserId || u.userId || ''),
+      UserName: String(u.UserName || u.userName || u.UserId || u.userId || '')
+    }));
+    extra.NextActivityPerformers = withNextPerformers(String(activityId), urgeUserIds.value, pool);
+  }
+  const ok = await execButton('Urge', buildRunner(extra), '已催办');
+  if (ok) {
+    urgeVisible.value = false;
+    urgeUserIds.value = [];
   }
 }
 

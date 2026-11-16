@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml;
+using sailflow.engine.Common;
 
 namespace SleveenAdmin.Sailflow.Utility;
 
@@ -178,6 +179,28 @@ public static class SailNodePolicyCatalog
         var s = (v ?? "").Trim();
         if (s.Equals("ForwardNormal", StringComparison.OrdinalIgnoreCase)) return "ForwardNormal";
         return "ReturnToSender";
+    }
+
+    /// <summary>§J 维①：按 sendBackTarget 收窄可退回节点列表。</summary>
+    public static List<NodeView> FilterPreviousBySendBackTarget(List<NodeView>? nodes, string? target)
+    {
+        if (nodes == null || nodes.Count == 0)
+            return nodes ?? new List<NodeView>();
+
+        switch (NormalizeTarget(target))
+        {
+            case "Prev":
+                return nodes.Take(1).ToList();
+            case "Starter":
+            {
+                var starts = nodes.Where(n => n.ActivityType == ActivityTypeEnum.StartNode).ToList();
+                if (starts.Count > 0)
+                    return starts;
+                return new List<NodeView> { nodes[^1] };
+            }
+            default:
+                return nodes;
+        }
     }
 
     /// <summary>§C：归一为 editable|readonly|hidden|masked；兼容 READ/WRITE/NONE/DESENSITIZE。</summary>

@@ -43,6 +43,9 @@ export type ProcessEditFormModel = {
   taskBeforeTriggerSetting: HttpTriggerSetting | null;
   taskAfterTriggerSetting: HttpTriggerSetting | null;
   printTemplateSetting: { enable: boolean; template: string };
+  /** 流程级退回覆盖；空=节点 NodePolicy 优先 */
+  sendBackTarget: '' | 'Prev' | 'Starter' | 'History';
+  resubmitMode: '' | 'ForwardNormal' | 'ReturnToSender';
 };
 
 export type HttpTriggerSetting = {
@@ -88,7 +91,9 @@ export function createEmptyProcessEditForm(): ProcessEditFormModel {
     processAfterTriggerSetting: null,
     taskBeforeTriggerSetting: null,
     taskAfterTriggerSetting: null,
-    printTemplateSetting: { enable: false, template: '' }
+    printTemplateSetting: { enable: false, template: '' },
+    sendBackTarget: '',
+    resubmitMode: ''
   };
 }
 
@@ -117,7 +122,9 @@ export function packExtraJson(model: ProcessEditFormModel): string {
     processAfterTriggerSetting: model.processAfterTriggerSetting,
     taskBeforeTriggerSetting: model.taskBeforeTriggerSetting,
     taskAfterTriggerSetting: model.taskAfterTriggerSetting,
-    printTemplateSetting: model.printTemplateSetting
+    printTemplateSetting: model.printTemplateSetting,
+    ...(model.sendBackTarget ? { sendBackTarget: model.sendBackTarget } : {}),
+    ...(model.resubmitMode ? { resubmitMode: model.resubmitMode } : {})
   });
 }
 
@@ -160,4 +167,10 @@ export function applyExtraJson(model: ProcessEditFormModel, extraJson: unknown) 
       ...(extra.printTemplateSetting as object)
     };
   }
+  const sbt = String(extra.sendBackTarget || '').trim();
+  model.sendBackTarget =
+    sbt === 'Prev' || sbt === 'Starter' || sbt === 'History' ? sbt : '';
+  const rsm = String(extra.resubmitMode || '').trim();
+  model.resubmitMode =
+    rsm === 'ForwardNormal' || rsm === 'ReturnToSender' ? rsm : '';
 }

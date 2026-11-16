@@ -45,10 +45,13 @@ public class ApprovalWorkbenchDto
     /// <summary>当前节点未办结、可减签的办理人（不含本人）。</summary>
     public List<RemovableAssigneeDto> RemovableAssignees { get; set; } = new();
 
-    /// <summary>§J 维①：Prev | Starter | History（来自节点 NodePolicy）。</summary>
+    /// <summary>当前节点全部未办结办理人（含本人；改派预填 / 催办候选）。</summary>
+    public List<RemovableAssigneeDto> CurrentAssignees { get; set; } = new();
+
+    /// <summary>§J 维①：Prev | Starter | History（节点优先；Extra 非空可覆盖）。</summary>
     public string SendBackTarget { get; set; } = "Starter";
 
-    /// <summary>§J 维②：ForwardNormal | ReturnToSender。</summary>
+    /// <summary>§J 维②：ForwardNormal | ReturnToSender（节点优先；Extra 非空可覆盖）。</summary>
     public string ResubmitMode { get; set; } = "ReturnToSender";
 
     /// <summary>节点产品策略摘要（空人/超时/退回两维等）。</summary>
@@ -85,6 +88,9 @@ public sealed class SailProcessExtraRuntimeDto
     public int AutoApprovalType { get; set; }
     public bool PrintTemplateEnable { get; set; }
     public string? PrintTemplate { get; set; }
+    /// <summary>流程级退回覆盖（非空才生效）。</summary>
+    public string? SendBackTarget { get; set; }
+    public string? ResubmitMode { get; set; }
 }
 
 /// <summary>工作台查询入参。</summary>

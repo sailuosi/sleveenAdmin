@@ -61,6 +61,22 @@ export const SAIL_BUTTON_CATALOG: SailButtonDef[] = [
     note: '从当前多人节点移除未办结办理人；不可减最后一人'
   },
   {
+    id: 'ChangeAssignee',
+    displayName: '改派',
+    engine: 'ChangeAssigneeProcess',
+    contexts: ['handle', 'admin'],
+    defaultEnable: false,
+    note: '管理向：NextActivityPerformers=新办理人全集（差量增删）'
+  },
+  {
+    id: 'Urge',
+    displayName: '催办',
+    engine: 'UrgeProcess',
+    contexts: ['handle', 'admin'],
+    defaultEnable: false,
+    note: '不改待办状态；空目标=催本活动全部打开待办'
+  },
+  {
     id: 'Transfer',
     displayName: '转办',
     engine: 'TransferProcess',
