@@ -23,6 +23,23 @@
         :query-context="pickerContext"
         @users-change="list => onUsersChange(t.ActivityId, list)"
       />
+      <div v-if="(picks[t.ActivityId] || []).length" class="sf-preselect-panel__weights">
+        <div
+          v-for="uid in picks[t.ActivityId]"
+          :key="uid"
+          class="sf-preselect-panel__weight-row"
+        >
+          <span class="sf-preselect-panel__weight-name">{{ labelOf(t.ActivityId, uid) }}</span>
+          <el-input-number
+            v-model="weights[t.ActivityId][uid]"
+            :min="0.0001"
+            :step="1"
+            :precision="2"
+            controls-position="right"
+            size="small"
+          />
+        </div>
+      </div>
     </div>
     <div v-if="err" class="sf-preselect-panel__err">{{ err }}</div>
   </div>
@@ -62,6 +79,8 @@ const targets = ref<PreselectTargetDto[]>([]);
 const picks = reactive<Record<string, string[]>>({});
 /** activityId → 用户行（补 UserName） */
 const userRows = reactive<Record<string, Record<string, unknown>[]>>({});
+/** activityId → userId → weight */
+const weights = reactive<Record<string, Record<string, number>>>({});
 
 const visible = computed(() => props.enabled && !!props.processId);
 const pickerContext = computed(() => ({
@@ -90,14 +109,43 @@ function userLabel(u: Record<string, unknown>) {
 
 function onUsersChange(activityId: string, list: Record<string, unknown>[]) {
   userRows[activityId] = list || [];
+  ensureWeights(activityId, picks[activityId] || []);
 }
+
+function ensureWeights(activityId: string, ids: string[]) {
+  if (!weights[activityId]) weights[activityId] = {};
+  const bag = weights[activityId];
+  for (const uid of ids) {
+    if (bag[uid] == null || !(bag[uid] > 0)) bag[uid] = 1;
+  }
+  Object.keys(bag).forEach(k => {
+    if (!ids.includes(k)) delete bag[k];
+  });
+}
+
+function labelOf(activityId: string, uid: string) {
+  const rows = userRows[activityId] || [];
+  const u = rows.find(x => userKey(x) === uid);
+  return u ? userLabel(u) : uid;
+}
+
+watch(
+  () => ({ ...picks }),
+  () => {
+    for (const t of targets.value) {
+      ensureWeights(t.ActivityId, picks[t.ActivityId] || []);
+    }
+  },
+  { deep: true }
+);
 
 async function reload() {
   err.value = '';
   targets.value = [];
   Object.keys(picks).forEach(k => delete picks[k]);
   Object.keys(userRows).forEach(k => delete userRows[k]);
-  if (!props.value || !props.processId) return;
+  Object.keys(weights).forEach(k => delete weights[k]);
+  if (!props.enabled || !props.processId) return;
 
   loading.value = true;
   try {
@@ -118,6 +166,7 @@ async function reload() {
     for (const t of targets.value) {
       picks[t.ActivityId] = [];
       userRows[t.ActivityId] = [];
+      weights[t.ActivityId] = {};
     }
   } catch (e: unknown) {
     err.value = e instanceof Error ? e.message : String(e);
@@ -142,11 +191,14 @@ function buildPerformersMap(): Record<string, PreselectPerformerDto[]> {
     const ids = picks[t.ActivityId] || [];
     if (!ids.length) continue;
     const rows = userRows[t.ActivityId] || [];
+    const wbag = weights[t.ActivityId] || {};
     map[t.ActivityId] = ids.map(uid => {
       const u = rows.find(x => userKey(x) === uid);
+      const w = Number(wbag[uid]);
       return {
         UserId: uid,
-        UserName: u ? userLabel(u) : uid
+        UserName: u ? userLabel(u) : uid,
+        Weight: w > 0 ? w : 1
       };
     });
   }
@@ -196,6 +248,22 @@ defineExpose({
 }
 .sf-preselect-panel__alert {
   margin-bottom: 0;
+}
+.sf-preselect-panel__weights {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sf-preselect-panel__weight-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sf-preselect-panel__weight-name {
+  min-width: 120px;
+  color: var(--el-text-color-regular);
+  font-size: 13px;
 }
 .sf-preselect-panel__row {
   margin-bottom: 12px;

@@ -43,6 +43,10 @@ public class SailPreselectAssigneeEntity
     [SooColumn(Name = "unit_name", Length = 128)]
     public string? UnitName { get; set; }
 
+    /// <summary>票权；默认 1。</summary>
+    [SooColumn(Name = "weight")]
+    public decimal Weight { get; set; } = 1m;
+
     [SooColumn(Name = "sort_no")]
     public int SortNo { get; set; }
 

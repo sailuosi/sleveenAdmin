@@ -10,6 +10,8 @@ export type PreselectPerformerDto = {
   UnitId?: string;
   UnitCode?: string;
   UnitName?: string;
+  /** 票权；默认 1 */
+  Weight?: number;
 };
 
 export type PreselectTargetDto = {

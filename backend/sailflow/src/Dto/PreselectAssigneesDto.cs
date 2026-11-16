@@ -44,6 +44,8 @@ public class PreselectPerformerDto
     public string? UnitId { get; set; }
     public string? UnitCode { get; set; }
     public string? UnitName { get; set; }
+    /// <summary>票权；默认 1。</summary>
+    public decimal Weight { get; set; } = 1m;
 
     public Performer ToPerformer() =>
         new(UserId?.Trim() ?? "", string.IsNullOrWhiteSpace(UserName) ? UserId?.Trim() ?? "" : UserName.Trim())
@@ -53,7 +55,8 @@ public class PreselectPerformerDto
             GroupRole = GroupRole,
             UnitId = UnitId,
             UnitCode = UnitCode,
-            UnitName = UnitName
+            UnitName = UnitName,
+            Weight = Weight > 0 ? Weight : 1m
         };
 
     public static PreselectPerformerDto From(Performer p) =>
@@ -66,6 +69,7 @@ public class PreselectPerformerDto
             GroupRole = p.GroupRole,
             UnitId = p.UnitId,
             UnitCode = p.UnitCode,
-            UnitName = p.UnitName
+            UnitName = p.UnitName,
+            Weight = p.Weight > 0 ? p.Weight : 1m
         };
 }

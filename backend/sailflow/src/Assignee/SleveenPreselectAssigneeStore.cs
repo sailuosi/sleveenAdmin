@@ -35,7 +35,8 @@ public class SleveenPreselectAssigneeStore : IPreselectAssigneeStore
                 GroupRole = row.GroupRole,
                 UnitId = row.UnitId,
                 UnitCode = row.UnitCode,
-                UnitName = row.UnitName
+                UnitName = row.UnitName,
+                Weight = row.Weight > 0 ? row.Weight : 1m
             });
         }
 
@@ -74,6 +75,7 @@ public class SleveenPreselectAssigneeStore : IPreselectAssigneeStore
                 UnitId = NullIfEmpty(p.UnitId),
                 UnitCode = NullIfEmpty(p.UnitCode),
                 UnitName = NullIfEmpty(p.UnitName),
+                Weight = p.Weight > 0 ? p.Weight : 1m,
                 SortNo = sort++,
                 UpdatedAt = now
             });

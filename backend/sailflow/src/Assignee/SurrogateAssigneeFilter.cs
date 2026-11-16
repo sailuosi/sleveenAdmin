@@ -53,10 +53,10 @@ public sealed class SurrogateAssigneeFilter : IAssigneeResolveFilter
                     continue;
                 if (string.IsNullOrWhiteSpace(row.AgentId))
                     continue;
-                if (string.Equals(row.AgentId, root.UserId, StringComparison.OrdinalIgnoreCase))
-                    continue; // 禁自委托
+                if (SurrogateMatchRules.IsSelfDelegate(root.UserId, row.AgentId))
+                    continue;
                 if (!existing.Add(row.AgentId.Trim()))
-                    continue; // 已在列表中则不重复并入
+                    continue;
 
                 var weight = row.Weight > 0 ? row.Weight : 1m;
                 ctx.Performers.Add(new Performer(row.AgentId.Trim(), row.AgentName ?? row.AgentId)
@@ -91,9 +91,6 @@ public sealed class SurrogateAssigneeFilter : IAssigneeResolveFilter
         }
     }
 
-    /// <summary>
-    /// 精确 ProcessId 优先；否则全局空 ProcessId。同作用域取 UpdatedAt/CreatedAt 最新且 enabled=1、窗内。
-    /// </summary>
     static SailSurrogateEntity? FindActiveSurrogate(
         SQLBuilder kit,
         string grantorId,
@@ -103,43 +100,7 @@ public sealed class SurrogateAssigneeFilter : IAssigneeResolveFilter
         var clip = kit.useClip();
         clip.from<SailSurrogateEntity>(out var s)
             .where(() => s.GrantorId, grantorId);
-
         var list = (clip.select(s).queryList() ?? new List<SailSurrogateEntity>()).ToList();
-        if (list.Count < 1)
-            return null;
-
-        static bool InWindow(SailSurrogateEntity r, DateTime now)
-        {
-            var flag = r.Enabled;
-            if (flag != 1)
-                return false;
-            if (r.StartAt.HasValue && r.StartAt.Value > now)
-                return false;
-            if (r.EndAt.HasValue && r.EndAt.Value < now)
-                return false;
-            return true;
-        }
-
-        var scoped = list
-            .Where(r => InWindow(r, nowUtc))
-            .ToList();
-        if (scoped.Count < 1)
-            return null;
-
-        SailSurrogateEntity? PickLatest(IEnumerable<SailSurrogateEntity> rows) =>
-            rows
-                .OrderByDescending(r => r.UpdatedAt ?? r.CreatedAt ?? DateTime.MinValue)
-                .ThenByDescending(r => r.Id)
-                .FirstOrDefault();
-
-        if (!string.IsNullOrWhiteSpace(processId))
-        {
-            var exact = PickLatest(scoped.Where(r =>
-                string.Equals(r.ProcessId?.Trim(), processId, StringComparison.OrdinalIgnoreCase)));
-            if (exact != null)
-                return exact;
-        }
-
-        return PickLatest(scoped.Where(r => string.IsNullOrWhiteSpace(r.ProcessId)));
+        return SurrogateMatchRules.PickActive(list, processId, nowUtc);
     }
 }

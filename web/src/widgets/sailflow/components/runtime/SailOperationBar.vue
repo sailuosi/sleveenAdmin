@@ -310,7 +310,7 @@
     </el-dialog>
 
     <!-- 加签 -->
-    <el-dialog v-model="signVisible" title="加签" width="480px" destroy-on-close>
+    <el-dialog v-model="signVisible" title="加签" width="520px" destroy-on-close>
       <el-form label-width="90px">
         <el-form-item label="加签类型">
           <el-radio-group v-model="signForwardType">
@@ -325,6 +325,7 @@
             filterable
             style="width: 100%"
             placeholder="选择用户"
+            @change="syncSignWeights"
           >
             <el-option
               v-for="u in allUsers"
@@ -333,6 +334,21 @@
               :value="userKey(u)"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item v-if="signUserIds.length" label="票权">
+          <div class="sf-sign-weights">
+            <div v-for="uid in signUserIds" :key="uid" class="sf-sign-weights__row">
+              <span>{{ signUserLabel(uid) }}</span>
+              <el-input-number
+                v-model="signWeights[uid]"
+                :min="0.0001"
+                :step="1"
+                :precision="2"
+                controls-position="right"
+                size="small"
+              />
+            </div>
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -473,7 +489,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import {
   buttonsOperation,
@@ -563,6 +579,8 @@ const sendBackUserIds = ref<string[]>([]);
 const signVisible = ref(false);
 const signForwardType = ref('Parallel');
 const signUserIds = ref<string[]>([]);
+/** 加签人票权；默认 1 */
+const signWeights = reactive<Record<string, number>>({});
 const transferVisible = ref(false);
 const transferUserIds = ref<string[]>([]);
 const transferComment = ref('');
@@ -768,6 +786,7 @@ type NextPerformerPayload = {
   UnitId?: string;
   UnitCode?: string;
   UnitName?: string;
+  Weight?: number;
 };
 
 function withNextPerformers(
@@ -780,7 +799,8 @@ function withNextPerformers(
     unitId?: string;
     unitCode?: string;
     unitName?: string;
-  }
+  },
+  weightByUser?: Record<string, number>
 ): Record<string, NextPerformerPayload[]> {
   const gid = group?.groupId?.trim();
   const role = group?.groupRole?.trim();
@@ -789,9 +809,11 @@ function withNextPerformers(
   const unitName = group?.unitName?.trim();
   const performers = userIds.map(uid => {
     const u = pool.find(x => userKey(x) === uid);
+    const w = Number(weightByUser?.[uid]);
     const p: NextPerformerPayload = {
       UserId: uid,
-      UserName: u ? userLabel(u) : uid
+      UserName: u ? userLabel(u) : uid,
+      Weight: w > 0 ? w : 1
     };
     if (gid) p.GroupId = gid;
     if (role) p.GroupRole = role;
@@ -915,11 +937,27 @@ async function onSendBack() {
   if (ok) sendBackVisible.value = false;
 }
 
+function syncSignWeights() {
+  const ids = signUserIds.value || [];
+  for (const uid of ids) {
+    if (signWeights[uid] == null || !(signWeights[uid] > 0)) signWeights[uid] = 1;
+  }
+  Object.keys(signWeights).forEach(k => {
+    if (!ids.includes(k)) delete signWeights[k];
+  });
+}
+
+function signUserLabel(uid: string) {
+  const u = allUsers.value.find(x => userKey(x as never) === uid);
+  return u ? userLabel(u as never) : uid;
+}
+
 async function onSignForward() {
   if (!signUserIds.value.length) {
     ElMessage.warning('请选择加签人');
     return;
   }
+  syncSignWeights();
   const activityId = String(
     pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'sign'
   );
@@ -931,7 +969,13 @@ async function onSignForward() {
         SignForwardCompareType: 'count',
         SignForwardCompleteOrder: 1
       },
-      NextActivityPerformers: withNextPerformers(activityId, signUserIds.value, allUsers.value)
+      NextActivityPerformers: withNextPerformers(
+        activityId,
+        signUserIds.value,
+        allUsers.value as never[],
+        undefined,
+        signWeights
+      )
     }),
     '已加签'
   );
@@ -1206,6 +1250,18 @@ onMounted(async () => {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+.sf-sign-weights {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sf-sign-weights__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 .sf-op-pop {
   padding: 4px 4px 0;
