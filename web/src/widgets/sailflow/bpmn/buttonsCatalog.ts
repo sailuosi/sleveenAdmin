@@ -82,7 +82,15 @@ export const SAIL_BUTTON_CATALOG: SailButtonDef[] = [
     engine: 'TransferProcess',
     contexts: ['handle'],
     defaultEnable: true,
-    note: '个人办结+本节点交人，不流转'
+    note: '个人办结+本节点交人，不流转；办完不还回'
+  },
+  {
+    id: 'Delegate',
+    displayName: '委派',
+    engine: 'DelegateProcess',
+    contexts: ['handle'],
+    defaultEnable: false,
+    note: '请他人代办；受托人办结后自动回转原人；≠ 转办'
   },
   {
     id: 'Consult',

@@ -52,7 +52,8 @@
 | 跳转 | 可用 | `JumpProcess` + `GetTaskActivityList`；详情办理条「跳转」选目标节点与办理人 |
 | 修订 / 反转 | 可用（默认可关） | `ReviseProcess` / `ReverseProcess`；设计器按钮默认关闭 |
 | 办理按钮设置 | 可用 | 节点 `sf:ButtonsSetting`；Workbench 下发；办理条 enable+显示名；见 [sailflow-buttons-capability.md](./sailflow-buttons-capability.md) |
-| 转办 | 可用 | `TransferProcess` + 办理条；委派仍暂缓 |
+| 转办 | 可用 | `TransferProcess` + 办理条；办完不还回 |
+| 委派 | 可用（默认关） | `DelegateProcess` + Handler + 办理条；办完自动还回；≠ Surrogate 出差代批 |
 | 减签 | 可用 | `RemoveAssigneeProcess` + 码表/Handler；Workbench `RemovableAssignees`；办理条弹窗 |
 | 改派 | 可用（默认关） | `ChangeAssigneeProcess`；Workbench `CurrentAssignees`；办理条编辑全集 |
 | 催办 | 可用（默认关） | `UrgeProcess`；Urged Notifier（Debug/Portal） |
@@ -285,7 +286,8 @@ Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须
 | 全量浏览器 UAT | 未关单 | 按 §9 脚本验收后把规划「待 UAT」改为已验收 |
 | Host 鉴权 | **已落地** | 业务 Controller `[Authorize]`；仅 `Probe`（ping/init-db）保持匿名 |
 | 办理条跳转 | **已落地** | 详情页 `showJump`；`GetTaskActivityList` 候选 + `JumpProcess` |
-| 转办 | **已落地** | `TransferProcess`；委派仍暂缓 |
+| 转办 | **已落地** | `TransferProcess`；办完不还回 |
+| 委派 | **已落地**（默认关） | `DelegateProcess` + 办理条；办完自动还回 |
 | ExtraJson 运行时闭环 | **已落地** | 解析服务 + CreateHook/去重/HTTP + Workbench/Dispatcher 闸 + 标题摘要/编码/打印模板；见 §3.1 |
 | 办理按钮设置 | **已落地** | 码表含 Run/Reject/SendBack/Sign/Copy/Withdraw/Resend/Jump/Close/Revise/Reverse；见 buttons-capability |
 | 分类拖拽树 | 未做 | 列表+绑定已够最小可用 |

@@ -28,6 +28,7 @@
 | `ChangeAssignee` | 改派 | **否** | `ChangeAssigneeProcess` | 待办/管理 | 改派（新全集） |
 | `Urge` | 催办 | **否** | `UrgeProcess` | 待办/管理 | 催办（不改状态） |
 | `Transfer` | 转办 | 是 | `TransferProcess` | 待办办理 | 转办（本节点交人、不流转） |
+| `Delegate` | 委派 | **否** | `DelegateProcess` | 待办办理 | 委派（办完自动还回） |
 | `Copyto` | 抄送 | 是 | `WfCopyto/Create`（产品表） | 待办办理 | 抄送 |
 | `Withdraw` | 撤回 | 是 | `WithdrawProcess` | 已办 | 撤回（部分） |
 | `Resend` | 重发 | 是 | `ResendProcess` | 已办 | Sail 特色 |
@@ -46,7 +47,7 @@
 | 减签 `RemoveAssignee` | **已入码表** | Handler + Workbench `RemovableAssignees` + 办理条弹窗；禁减最后一人 |
 | 改派 `ChangeAssignee` | **已入码表** | 默认关；Handler + `CurrentAssignees` 预填 + 办理条弹窗 |
 | 催办 `Urge` | **已入码表** | 默认关；Handler + Urged Notifier（Debug/Portal） |
-| 委派 `Delegate` | **暂缓** | 办完可回原人；与转办区分；禁止空壳 |
+| 委派 `Delegate` | **已入码表** | 默认关；Handler + 办理条单人受托；办完自动还回；Portal `Entrusted` |
 | 取消 / 挂起 | **暂缓** | `CancelProcess` / `SuspendProcess`；本轮未进码表 |
 | 发起 | 不进办理条 | 属发起页 |
 | `sf:Actions` | 另轨 | BPMN 生命周期动作，**不是** UX 操作按钮 |
@@ -142,3 +143,4 @@
 | 2026-11-01 | 初版：码表、设计器、Workbench、办理条、Reverse API、本文档 |
 | 2026-11-16 | 减签 `RemoveAssignee` 入码表 + Handler + 办理条；签名/常用语办理体验 |
 | 2026-11-16 | 改派/催办入码表（默认关）；Extra 流程级退回覆盖；J 单测矩阵 |
+| 2026-11-16 | 委派 `Delegate` 入码表（默认关）+ Handler + 办理条；Portal Entrusted |

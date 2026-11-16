@@ -267,6 +267,14 @@
           {{ btnLabel('Transfer') }}
         </el-button>
         <el-button
+          v-if="btnOn('Delegate') && !consultPending"
+          plain
+          :loading="loading"
+          @click="delegateVisible = true"
+        >
+          {{ btnLabel('Delegate') }}
+        </el-button>
+        <el-button
           v-if="btnOn('Consult')"
           plain
           :loading="loading"
@@ -559,7 +567,7 @@
       </template>
     </el-dialog>
 
-    <!-- 转办：本节点交人，不流转 -->
+    <!-- 转办：本节点交人，不流转；办完不还回 -->
     <el-dialog v-model="transferVisible" :title="btnLabel('Transfer')" width="480px" destroy-on-close>
       <el-form label-width="90px">
         <el-form-item label="转办给" required>
@@ -577,6 +585,7 @@
               :value="userKey(u)"
             />
           </el-select>
+          <div class="sf-op-pop__hint">办完不还回原办理人；需要办完还回请用「委派」</div>
         </el-form-item>
         <el-form-item label="意见">
           <el-input v-model="transferComment" type="textarea" :rows="2" placeholder="可选" />
@@ -585,6 +594,36 @@
       <template #footer>
         <el-button @click="transferVisible = false">取消</el-button>
         <el-button type="primary" :loading="loading" @click="onTransfer">确认转办</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 委派：受托人办完自动还回原人 -->
+    <el-dialog v-model="delegateVisible" :title="btnLabel('Delegate')" width="480px" destroy-on-close>
+      <el-form label-width="90px">
+        <el-form-item label="受托人" required>
+          <el-select
+            v-model="delegateUserId"
+            filterable
+            clearable
+            style="width: 100%"
+            placeholder="选择代办人（仅一人）"
+          >
+            <el-option
+              v-for="u in transferCandidates"
+              :key="userKey(u)"
+              :label="userLabel(u)"
+              :value="userKey(u)"
+            />
+          </el-select>
+          <div class="sf-op-pop__hint">办完自动还回原办理人；不还回请用「转办」</div>
+        </el-form-item>
+        <el-form-item label="意见">
+          <el-input v-model="delegateComment" type="textarea" :rows="2" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="delegateVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="onDelegate">确认委派</el-button>
       </template>
     </el-dialog>
 
@@ -843,6 +882,9 @@ const signUserIds = ref<string[]>([]);
 /** 加签人票权；默认 1 */
 const signWeights = reactive<Record<string, number>>({});
 const transferVisible = ref(false);
+const delegateVisible = ref(false);
+const delegateUserId = ref('');
+const delegateComment = ref('');
 const transferUserIds = ref<string[]>([]);
 const transferComment = ref('');
 const consultVisible = ref(false);
@@ -1378,6 +1420,32 @@ async function onTransfer() {
     transferVisible.value = false;
     transferUserIds.value = [];
     transferComment.value = '';
+  }
+}
+
+async function onDelegate() {
+  const uid = String(delegateUserId.value || '').trim();
+  if (!uid) {
+    ElMessage.warning('请选择受托人');
+    return;
+  }
+  const activityId = String(
+    pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'delegate'
+  );
+  const runner = buildRunner({
+    NextActivityPerformers: withNextPerformers(activityId, [uid], allUsers.value)
+  });
+  if (delegateComment.value.trim()) {
+    runner.Conditions = {
+      ...(runner.Conditions || {}),
+      comment: delegateComment.value.trim()
+    };
+  }
+  const ok = await execButton('Delegate', runner, '已委派');
+  if (ok) {
+    delegateVisible.value = false;
+    delegateUserId.value = '';
+    delegateComment.value = '';
   }
 }
 

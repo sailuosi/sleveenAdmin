@@ -46,15 +46,18 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
             return;
 
         if (ctx.Kind is not (TaskNotifyKind.Created or TaskNotifyKind.Completed
-                or TaskNotifyKind.Cancelled or TaskNotifyKind.Urged))
+                or TaskNotifyKind.Cancelled or TaskNotifyKind.Urged or TaskNotifyKind.Entrusted))
             return;
 
         var taskInfo = BuildTaskInfo(ctx);
-        var opType = ctx.Kind == TaskNotifyKind.Created ? OpPush : OpUpdate;
+        // Entrusted（委派建受托待办）与 Created 一样推新日程
+        var opType = ctx.Kind is TaskNotifyKind.Created or TaskNotifyKind.Entrusted
+            ? OpPush
+            : OpUpdate;
 
         try
         {
-            if (ctx.Kind == TaskNotifyKind.Created)
+            if (ctx.Kind is TaskNotifyKind.Created or TaskNotifyKind.Entrusted)
                 await _client.AddScheduleAsync(taskInfo, ct).ConfigureAwait(false);
             else
                 // Completed / Cancelled / Urged：更新日程；催办不改待办状态，仅推送提醒痕迹

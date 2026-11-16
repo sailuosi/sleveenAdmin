@@ -78,6 +78,7 @@ public static class PortalScheduleTaskNotifierExtensions
                 TaskNotifyKind.Completed,
                 TaskNotifyKind.Cancelled,
                 TaskNotifyKind.Urged,
+                TaskNotifyKind.Entrusted,
             ];
             // Drain 认领后进程内限流：有界 Channel 背压 + 双路并发 + 最小间隔削峰
             o.InProcessThrottle = new NotifyThrottleOptions

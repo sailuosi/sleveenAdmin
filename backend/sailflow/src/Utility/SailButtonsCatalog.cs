@@ -26,6 +26,8 @@ public static class SailButtonsCatalog
         new() { Id = "ChangeAssignee", DisplayName = "改派", Enable = false, Engine = "ChangeAssigneeProcess" },
         new() { Id = "Urge", DisplayName = "催办", Enable = false, Engine = "UrgeProcess" },
         new() { Id = "Transfer", DisplayName = "转办", Enable = true, Engine = "TransferProcess" },
+        // 默认关：与转办易混；办完自动回转原人
+        new() { Id = "Delegate", DisplayName = "委派", Enable = false, Engine = "DelegateProcess" },
         new() { Id = "Consult", DisplayName = "沟通", Enable = true, Engine = "ConsultProcess" },
         new() { Id = "Acknowledge", DisplayName = "阅办", Enable = true, Engine = "AcknowledgeProcess" },
         new() { Id = "RecallConsult", DisplayName = "收回沟通", Enable = true, Engine = "RecallConsultProcess" },
