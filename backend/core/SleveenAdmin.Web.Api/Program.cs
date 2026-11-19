@@ -133,6 +133,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "sleveen-admin API", Version = "v1" });
+    // Nested DTOs with the same short name (e.g. Controller+SortBatchRequest) collide on default schemaId.
+    c.CustomSchemaIds(t => (t.FullName ?? t.Name).Replace('+', '.'));
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme.",

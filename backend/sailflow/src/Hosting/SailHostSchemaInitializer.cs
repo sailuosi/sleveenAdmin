@@ -13,8 +13,9 @@ using SleveenAdmin.Sailflow.Integration.UnifiedReport;
 namespace SleveenAdmin.Sailflow.Hosting;
 
 /// <summary>
-/// 宿主侧 Schema 唯一入口：核心流程表 + AI + 产品表 + 视图/索引 + 可选种子。
+/// 宿主侧 Schema 唯一入口：核心流程表 + AI + 产品表 + 索引 + 可选种子。
 /// 建表不在 sailflow 包内；本类属于业务系统（sleveen-admin）。
+/// 任务明细读模型为 <c>TaskViewEntity</c>（Select+SooJoin），无需物理视图。
 /// </summary>
 public static class SailHostSchemaInitializer
 {
@@ -82,7 +83,6 @@ public static class SailHostSchemaInitializer
             .createTable<SailProcessCopytoEntity>();
 
         EnsureHotPathIndexes(kit);
-        EnsureTaskDetailsView(kit);
         return wk.WorkingProgress?.ToString() ?? string.Empty;
     }
 
@@ -93,26 +93,26 @@ public static class SailHostSchemaInitializer
     {
         ArgumentNullException.ThrowIfNull(kit);
 
-        TryCreateIndex(kit, "IX_wf_task_pi", "wf_task", "tk_proc_instance_id");
-        TryCreateIndex(kit, "IX_wf_task_assignee_state", "wf_task",
+        TryCreateIndex(kit, "IX_sf_task_pi", "sf_task", "tk_proc_instance_id");
+        TryCreateIndex(kit, "IX_sf_task_sign_state", "sf_task",
             "tk_sign_id", "tk_task_state", "tk_proc_instance_id");
-        TryCreateIndex(kit, "IX_wf_task_state_created", "wf_task",
+        TryCreateIndex(kit, "IX_sf_task_state_created", "sf_task",
             "tk_task_state", "tk_crt_time");
-        TryCreateIndex(kit, "IX_wf_task_state_due", "wf_task",
+        TryCreateIndex(kit, "IX_sf_task_state_due", "sf_task",
             "tk_task_state", "tk_due_at");
-        TryCreateIndex(kit, "IX_wf_task_consult_src", "wf_task",
+        TryCreateIndex(kit, "IX_sf_task_consult_src", "sf_task",
             "tk_consult_src_task_id", "tk_task_state");
-        TryCreateIndex(kit, "IX_wf_ai_pi_state", "wf_act_instance",
+        TryCreateIndex(kit, "IX_sf_ai_pi_state", "sf_act_instance",
             "ai_proc_instance_id", "ai_activity_state");
-        TryCreateIndex(kit, "IX_wf_pi_state_created", "wf_proc_instance",
+        TryCreateIndex(kit, "IX_sf_pi_state_created", "sf_proc_instance",
             "pi_process_state", "pi_crt_time");
-        TryCreateIndex(kit, "IX_wf_pi_creator_state", "wf_proc_instance",
+        TryCreateIndex(kit, "IX_sf_pi_creator_state", "sf_proc_instance",
             "pi_crt_user_id", "pi_process_state", "pi_crt_time");
-        TryCreateIndex(kit, "IX_wf_pv_pi_name", "wf_proc_variable",
+        TryCreateIndex(kit, "IX_sf_pv_pi_name", "sf_proc_variable",
             "pv_proc_instance_id", "pv_name");
-        TryCreateIndex(kit, "IX_wf_ti_pi", "wf_track",
+        TryCreateIndex(kit, "IX_sf_ti_pi", "sf_track",
             "ti_proc_instance_id");
-        TryCreateIndex(kit, "IX_wf_hook_outbox_status", "wf_hook_outbox",
+        TryCreateIndex(kit, "IX_sf_hook_outbox_status", "sf_hook_outbox",
             "ho_status", "ho_nxt_retry_at");
     }
 
@@ -172,101 +172,6 @@ public static class SailHostSchemaInitializer
         TryCreateIndex(kit, "IX_sf_approval_phrase_user", "sf_approval_phrase",
             "user_id", "enabled", "sort_order");
         return wk.WorkingProgress?.ToString() ?? string.Empty;
-    }
-
-    public static void EnsureTaskDetailsView(SQLBuilder kit)
-    {
-        ArgumentNullException.ThrowIfNull(kit);
-
-        const string viewName = "vw_wf_task_detail";
-        var ddl = kit.useDDL();
-        try
-        {
-            if (ddl.hasView(viewName))
-                ddl.doDropView(viewName);
-        }
-        catch
-        {
-            // ignore
-        }
-
-        ddl.clear()
-            .createViewFromClip(BuildTaskDetailsViewSelect, viewName)
-            .doCreateView();
-    }
-
-    static void BuildTaskDetailsViewSelect(SQLClip clip)
-    {
-        clip.from<TaskEntity>(out var t)
-            .InnerJoin<ActivityInstanceEntity>(out var ai)
-            .on(() => t.ActivityInstanceId == ai.ActivityInstanceId)
-            .InnerJoin<ProcessInstanceEntity>(out var pi)
-            .on(() => t.ProcessInstanceId == pi.ProcessInstanceId)
-            .LeftJoin<ActivityInstanceEntity>(out var mai)
-            .on(() => ai.MainActInstanceId == mai.ActivityInstanceId);
-
-        // 投影列名须与 TaskViewEntity SooColumn 一致（带表前缀后不可再混用 t./ai./pi. 同名列）。
-        clip.select(() => new
-        {
-            t.TaskId,
-            t.BizChannel,
-            t.BizPK,
-            pi.BizCode,
-            pi.Title,
-            pi.ProcessName,
-            t.ProcessInstanceId,
-            pi.ProcessId,
-            pi.Version,
-            t.ActivityId,
-            t.ActivityInstanceId,
-            ai.ActivityName,
-            ai.ActivityCode,
-            ai.ActivityType,
-            ai.WorkItemType,
-            t.TaskType,
-            pi.SubProcessType,
-            pi.SubProcessDefId,
-            pi.SubProcessId,
-            t.EntrustedTaskId,
-            t.Weight,
-            t.ProxySignId,
-            t.EndType,
-            t.EndText,
-            t.AssigneeRole,
-            t.ConsultSrcTaskId,
-            ai.MainActInstanceId,
-            ai.CompleteOrder,
-            t.SignKind,
-            t.SignId,
-            t.SignName,
-            t.Idx,
-            t.GroupId,
-            t.GroupName,
-            t.GroupRole,
-            t.UnitId,
-            t.UnitCode,
-            t.UnitName,
-            t.IsEMailSent,
-            t.IsRead,
-            t.ReadAt,
-            t.Msg,
-            t.RowPara,
-            ai.ApprovalStatus,
-            t.CreatedDateTime,
-            t.SendAt,
-            t.GotAt,
-            t.ActiveAt,
-            t.DueAt,
-            t.UpdatedDateTime,
-            t.CompletedAt,
-            t.EndedUserId,
-            t.EndedUserName,
-            t.TaskState,
-            ai.ActivityState,
-            t.RecordStatusInvalid,
-            pi.ProcessState
-        });
-        clip.select("mai.ai_activity_state AS ai_mn_activity_state");
     }
 
     /// <summary>兼容旧调用：等价于 <see cref="SailProductSeed.EnsureAll"/>。</summary>

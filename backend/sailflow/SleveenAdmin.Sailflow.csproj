@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>SleveenAdmin.Sailflow</RootNamespace>
     <AssemblyName>SleveenAdmin.Sailflow</AssemblyName>
-    <Description>Sailflow host thin layer for SleveenAdmin (controllers + DI); engine via local NuGet sailflow.biz</Description>
+    <Description>Sailflow host thin layer for SleveenAdmin (controllers + DI); engine via local ProjectReference sailflow.biz</Description>
   </PropertyGroup>
 
   <ItemGroup>

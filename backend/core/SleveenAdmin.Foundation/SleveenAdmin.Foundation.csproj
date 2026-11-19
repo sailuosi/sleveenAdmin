@@ -18,7 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="mooSQL.Ext" Version="$(MooSqlExtPackageVersion)" />
+    <!-- 开发期：本地 mooSQL 源；发布 twin 仍用 NuGet（见 *.publish.csproj） -->
+    <ProjectReference Include="..\..\..\..\moo-sqlm\mooSQL2024\ext\mooSQL.Ext.csproj" />
     <ProjectReference Include="..\..\generators\SleveenAdmin.Generators\SleveenAdmin.Generators.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />

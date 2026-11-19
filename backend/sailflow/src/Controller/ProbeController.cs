@@ -43,7 +43,6 @@ public class ProbeController : ControllerBase
 
     /// <summary>POST/GET api/sail/Probe/init-db?seed=true</summary>
     [HttpPost("init-db")]
-    [HttpGet("init-db")]
     public IActionResult InitDb([FromQuery] bool seed = true)
     {
         try

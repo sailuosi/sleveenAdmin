@@ -21,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Hangfire.MooSql" Version="$(HangfireMooSqlPackageVersion)" />
+    <!-- 开发期：本地 Hangfire.MooSql 源；发布 twin 仍用 NuGet（见 *.publish.csproj） -->
+    <ProjectReference Include="..\..\..\..\hangfire.moo-sql\src\Hangfire.MooSql\Hangfire.MooSql.csproj" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />

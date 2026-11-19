@@ -478,8 +478,9 @@
       <el-form label-width="90px">
         <el-form-item label="加签类型">
           <el-radio-group v-model="signForwardType">
-            <el-radio value="Parallel">并行</el-radio>
-            <el-radio value="Serial">串行</el-radio>
+            <el-radio value="SignForwardParallel">并加签</el-radio>
+            <el-radio value="SignForwardBefore">前加签</el-radio>
+            <el-radio value="SignForwardBehind">后加签</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="加签人" required>
@@ -865,7 +866,8 @@ const sendBackVisible = ref(false);
 const sendBackActivityId = ref('');
 const sendBackUserIds = ref<string[]>([]);
 const signVisible = ref(false);
-const signForwardType = ref('Parallel');
+/** 对齐引擎 SignForwardTypeEnum：SignForwardParallel / Before / Behind */
+const signForwardType = ref('SignForwardParallel');
 const signUserIds = ref<string[]>([]);
 /** 加签人票权；默认 1 */
 const signWeights = reactive<Record<string, number>>({});
