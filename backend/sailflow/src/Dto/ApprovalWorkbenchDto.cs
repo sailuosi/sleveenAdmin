@@ -10,6 +10,11 @@ public class ApprovalWorkbenchDto
     public TaskViewEntity? Task { get; set; }
     public ProcessInstanceEntity? ProcessInstance { get; set; }
     public List<NextActivityNodeDto> NextNodes { get; set; } = new();
+    /// <summary>
+    /// 当前任务是否为会签/加签最后一人（非 MI 子任务恒为 true）。
+    /// 非末人办理时前端应禁用下一节点选人，可直接发送完成本席。
+    /// </summary>
+    public bool IsLastTask { get; set; } = true;
     /// <summary>可退回节点（S3）。</summary>
     public List<NodeView> PreviousNodes { get; set; } = new();
     public List<ActivityInstanceEntity> ActivityInstances { get; set; } = new();

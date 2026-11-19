@@ -91,7 +91,7 @@
                 </div>
                 <div class="sf-op-pop__hint">节点要求签名；通过时写入 Conditions.signPicUrl</div>
               </el-form-item>
-              <el-form-item v-if="nextNodes.length" label="下一节点" required>
+              <el-form-item v-if="needsNextHopPick && nextNodes.length" label="下一节点" required>
                 <div class="sf-op-pop__hint" style="margin-bottom: 6px">
                   请确认下一节点；需要人工选人时在下方选择办理人
                 </div>
@@ -110,7 +110,7 @@
                 </el-radio-group>
               </el-form-item>
               <SailPreselectApproveHint
-                v-if="selectedActivityId"
+                v-if="needsNextHopPick && selectedActivityId"
                 :process-id="String(pickField(task, 'ProcessId', 'processId') || '')"
                 :version="String(pickField(task, 'Version', 'version') || '1')"
                 :process-instance-id="approveProcessInstanceId"
@@ -118,7 +118,7 @@
                 @update:skip-manual-pick="v => (preselectSkipManualPick = v)"
               />
               <el-form-item
-                v-if="selectedActivityId && selectedNeedsPerformer && !preselectSkipManualPick"
+                v-if="needsNextHopPick && selectedActivityId && selectedNeedsPerformer && !preselectSkipManualPick"
                 :label="needsManualPick ? '下一办理人（必选）' : '下一办理人'"
                 :required="needsManualPick"
               >
@@ -134,7 +134,10 @@
                   @users-change="onApprovePickerUsers"
                 />
               </el-form-item>
-              <el-collapse v-if="selectedNeedsPerformer && selectedUserIds.length" class="sf-op-pop__adv">
+              <el-collapse
+                v-if="needsNextHopPick && selectedNeedsPerformer && selectedUserIds.length"
+                class="sf-op-pop__adv"
+              >
                 <el-collapse-item title="高级：组别 / 单位" name="adv">
                   <div class="sf-op-bar__group-row">
                     <el-input v-model="nextGroupId" clearable placeholder="GroupId" />
@@ -729,6 +732,11 @@ const props = withDefaults(
     showJump?: boolean;
     /** 当前活动存在退回源（可返送）· §G */
     hasBackSrc?: boolean;
+    /**
+     * 会签/加签是否最后一人（Workbench IsLastTask）。
+     * 非末人完成本席即可，不需下一节点选人；缺省 true 兼容旧接口。
+     */
+    isLastTask?: boolean;
     /** 节点 sf:ButtonsSetting（Workbench 下发） */
     buttonsSetting?: SailButtonSetting[] | null;
     /** 办理人角色：0/null 常规；1 参与者 */
@@ -767,6 +775,7 @@ const props = withDefaults(
     showClose: false,
     showJump: false,
     hasBackSrc: false,
+    isLastTask: true,
     buttonsSetting: null,
     fieldModes: null,
     assigneeRole: null,
@@ -914,6 +923,8 @@ const resendActionLabel = computed(() =>
 
 const nextNodes = computed(() => props.nextNodes || []);
 const previousNodes = computed(() => props.previousNodes || []);
+/** 非末人（会签/加签中间席）不走出节点，无需选下一办理人 */
+const needsNextHopPick = computed(() => props.isLastTask !== false);
 
 watch(
   nextNodes,
@@ -999,8 +1010,9 @@ const approveProcessInstanceId = computed(() =>
   )
 );
 
-// 结束/网关等不需选人；anyselect/search 必选；无 Mode 时兼容旧接口
+// 结束/网关等不需选人；非末人跳过；anyselect/search 必选；无 Mode 时兼容旧接口
 const needsManualPick = computed(() => {
+  if (!needsNextHopPick.value) return false;
   if (preselectSkipManualPick.value) return false;
   if (!selectedActivityId.value || !selectedNeedsPerformer.value) return false;
   const m = selectedCandidateMode.value.toLowerCase();
@@ -1164,31 +1176,33 @@ async function onApprove() {
     ElMessage.warning('本节点需要签名');
     return;
   }
-  if (nextNodes.value.length && !selectedActivityId.value) {
-    ElMessage.warning('请选择下一节点');
-    return;
-  }
-  if (needsManualPick.value && !selectedUserIds.value.length) {
-    ElMessage.warning(candidateUsers.value.length ? '请选择下一办理人' : '暂无候选人，无法提交');
-    return;
-  }
   const extra: Partial<FlowCommandContextPayload> = {};
-  if (selectedActivityId.value && selectedUserIds.value.length) {
-    extra.NextActivityPerformers = withNextPerformers(
-      selectedActivityId.value,
-      selectedUserIds.value,
-      candidateUsers.value,
-      {
-        groupId: nextGroupId.value,
-        groupRole: nextGroupRole.value,
-        unitId: nextUnitId.value,
-        unitCode: nextUnitCode.value,
-        unitName: nextUnitName.value
-      }
-    );
-  } else if (selectedActivityId.value && !selectedNeedsPerformer.value) {
-    // 结束等非人工节点：引擎用 NextActivityPerformers.ContainsKey 匹配后续，须占位键（可空列表）
-    extra.NextActivityPerformers = { [selectedActivityId.value]: [] };
+  if (needsNextHopPick.value) {
+    if (nextNodes.value.length && !selectedActivityId.value) {
+      ElMessage.warning('请选择下一节点');
+      return;
+    }
+    if (needsManualPick.value && !selectedUserIds.value.length) {
+      ElMessage.warning(candidateUsers.value.length ? '请选择下一办理人' : '暂无候选人，无法提交');
+      return;
+    }
+    if (selectedActivityId.value && selectedUserIds.value.length) {
+      extra.NextActivityPerformers = withNextPerformers(
+        selectedActivityId.value,
+        selectedUserIds.value,
+        candidateUsers.value,
+        {
+          groupId: nextGroupId.value,
+          groupRole: nextGroupRole.value,
+          unitId: nextUnitId.value,
+          unitCode: nextUnitCode.value,
+          unitName: nextUnitName.value
+        }
+      );
+    } else if (selectedActivityId.value && !selectedNeedsPerformer.value) {
+      // 结束等非人工节点：引擎用 NextActivityPerformers.ContainsKey 匹配后续，须占位键（可空列表）
+      extra.NextActivityPerformers = { [selectedActivityId.value]: [] };
+    }
   }
   const runner = buildRunner(extra);
   if (signPicUrl.value.trim()) {

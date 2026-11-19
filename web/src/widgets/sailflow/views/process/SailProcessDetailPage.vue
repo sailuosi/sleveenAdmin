@@ -209,6 +209,7 @@
           :show-close="canClose"
           :show-jump="canJump"
           :has-back-src="hasBackSrc"
+          :is-last-task="isLastTask"
           :buttons-setting="buttonsSetting"
           :assignee-role="assigneeRole"
           :consult-pending="consultPending"
@@ -290,6 +291,8 @@ const task = ref<Record<string, unknown> | null>(null);
 const processInstance = ref<Record<string, unknown> | null>(null);
 const nextNodes = ref<Record<string, unknown>[]>([]);
 const previousNodes = ref<Record<string, unknown>[]>([]);
+/** 会签/加签是否最后一人；缺省 true 兼容旧 workbench */
+const isLastTask = ref(true);
 const nextTreeLoading = ref(false);
 const nextTreeVisible = ref(false);
 const nextTreeOk = ref(false);
@@ -601,6 +604,10 @@ async function load() {
         string,
         unknown
       >[]) || [];
+    {
+      const raw = pickField(entity, 'IsLastTask', 'isLastTask');
+      isLastTask.value = raw === false || raw === 'false' ? false : true;
+    }
     activityInstances.value =
       (pickField<Record<string, unknown>[]>(entity, 'ActivityInstances', 'activityInstances') as Record<
         string,

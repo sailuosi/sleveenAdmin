@@ -600,6 +600,15 @@ public partial class Wf2XmlController
 
             if (task != null)
             {
+                try
+                {
+                    dto.IsLastTask = _queryService.IsLastTask(task.TaskId);
+                }
+                catch
+                {
+                    dto.IsLastTask = true;
+                }
+
                 var runner = new FlowCommandContext
                 {
                     TaskId = task.TaskId,
