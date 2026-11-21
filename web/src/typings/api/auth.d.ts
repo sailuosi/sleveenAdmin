@@ -19,6 +19,8 @@ declare namespace Api {
       userId: string;
       account: string;
       userName: string;
+      avatar?: string;
+      signature?: string;
       roles: string[];
       buttons: string[];
       appVersion?: string;

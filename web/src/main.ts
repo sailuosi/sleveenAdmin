@@ -17,6 +17,7 @@ import { getLocale, setupI18n } from './locales';
 import App from './App.vue';
 import ElementPlus from 'element-plus';
 import zhCn from 'element-plus/es/locale/lang/zh-cn.mjs';
+import VueSignaturePad from 'vue-signature-pad';
 import 'element-plus/dist/index.css';
 import 'element-plus/theme-chalk/dark/css-vars.css';
 
@@ -41,6 +42,7 @@ async function setupApp() {
 
   setupAppVersionNotification();
   app.use(ElementPlus, { locale: zhCn });
+  app.use(VueSignaturePad);
   app.config.globalProperties.$message = window.$message;
   setupGlobalComponents(app);
   setupDirectives(app);

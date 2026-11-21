@@ -1,20 +1,30 @@
 import request from '@/utils/requestAPI6.js'
 
-// 查询部门信息
+function asFormData(data) {
+    if (data instanceof FormData) return data;
+    const fm = new FormData();
+    // File / Blob 直接挂 file；UploadFile 取 .raw
+    const file = data?.raw ?? data;
+    fm.append('file', file);
+    return fm;
+}
+
+// 上传头像
 export function apiSysFileUploadAvatarPostForm(data) {
     return request({
         url: '/api/sysFile/uploadAvatar',
         method: 'post',
-        headers: { 'content-type': 'multipart/form-data' },
-        data: data
+        headers: { 'Content-Type': 'multipart/form-data' },
+        data: asFormData(data)
     })
 }
 
-
+// 上传电子签名
 export function apiSysFileUploadSignaturePostForm(data) {
     return request({
         url: '/api/sysFile/uploadSignature',
         method: 'post',
-        data: data
+        headers: { 'Content-Type': 'multipart/form-data' },
+        data: asFormData(data)
     })
 }

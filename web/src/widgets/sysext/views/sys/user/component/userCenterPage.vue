@@ -33,7 +33,7 @@
 					<div class="image-signature">
 						<el-image :src="userInfos.signature" fit="contain" alt="电子签名" loading="lazy" style="width: 100%; height: 100%"> </el-image>
 					</div>
-					<el-button icon="ele-Edit" type="primary" @click="openSignDialog" v-auth="'sysFile:uploadSignature'"> 电子签名 </el-button>
+					<el-button icon="ele-Edit" type="primary" @click="openSignDialog"> 电子签名 </el-button>
 					<el-upload
 						ref="uploadSignRef"
 						action=""
@@ -45,7 +45,7 @@
 						:on-exceed="uploadSignFileExceed"
 						style="display: inline-block; margin-left: 12px; position: absolute"
 					>
-						<el-button icon="ele-UploadFilled" v-auth="'sysFile:uploadSignature'">上传手写签名</el-button>
+						<el-button icon="ele-UploadFilled">上传手写签名</el-button>
 					</el-upload>
 				</el-card>
 			</el-col>
@@ -220,12 +220,24 @@ watch(state.signOptions, () => {
 	signaturePadRef.value.signaturePad.minWidth = state.signOptions.minWidth;
 });
 
+/** requestAPI6 已解包 data；兼容 Admin.NET 的 data.result 形态 */
+function pickUploadUrl(res: any): string {
+	const row = res?.data?.result ?? res?.result ?? res ?? {};
+	const url = row.url ?? row.Url;
+	if (url) return String(url);
+	const filePath = row.filePath ?? row.FilePath ?? '';
+	const name = row.name ?? row.Name ?? '';
+	if (filePath && name) return `${filePath}/${name}`;
+	return String(filePath || name || '');
+}
+
 // 上传头像图片
 const uploadCropperImg = async (e: any) => {
 	var fm= new FormData();
 	fm.append("file",e.img);
 	var res = await apiSysFileUploadAvatarPostForm(fm);
-	userInfos.value.avatar = res.data.result?.filePath + '/' + res.data.result?.name;
+	const url = pickUploadUrl(res);
+	if (url) userInfos.value.avatar = url;
 };
 
 // 打开电子签名页面
@@ -239,7 +251,8 @@ const saveUploadSign = async () => {
 	if (isEmpty) return;
 
 	var res = await apiSysFileUploadSignaturePostForm(base64ToFile(data, userInfos.value.account + '.png'));
-	userInfos.value.signature = res.data.result?.filePath + '/' + res.data.result?.name;
+	const url = pickUploadUrl(res);
+	if (url) userInfos.value.signature = url;
 
 	clearSign();
 	state.signDialogVisible = false;
@@ -257,10 +270,9 @@ const clearSign = () => {
 
 // 上传手写电子签名
 const uploadSignFile = async (file: any) => {
-	var fm= new FormData();
-	fm.append("file",file);
-	var res = await apiSysFileUploadSignaturePostForm(fm);
-	userInfos.value.signature = res.data.result?.url + '';
+	var res = await apiSysFileUploadSignaturePostForm(file?.raw ?? file);
+	const url = pickUploadUrl(res);
+	if (url) userInfos.value.signature = url;
 };
 
 // 获得电子签名文件列表

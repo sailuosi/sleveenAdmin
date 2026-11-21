@@ -70,26 +70,36 @@
                 <div class="sf-op-pop__sign">
                   <el-image
                     v-if="signPicUrl"
-                    :src="signPicUrl"
+                    :src="signPicDisplayUrl"
                     fit="contain"
                     class="sf-op-pop__sign-img"
+                    :preview-src-list="[signPicDisplayUrl]"
                   />
-                  <el-input
-                    v-model="signPicUrl"
-                    clearable
-                    placeholder="签名图片 URL"
-                  />
-                  <el-button
-                    link
-                    type="primary"
-                    size="small"
-                    :loading="signLoading"
-                    @click="loadMySignature"
-                  >
-                    使用个人中心电子签名
-                  </el-button>
+                  <div class="sf-op-pop__sign-actions">
+                    <el-button type="primary" size="small" @click="openSignPad">
+                      手写签名
+                    </el-button>
+                    <el-button
+                      link
+                      type="primary"
+                      size="small"
+                      :loading="signLoading"
+                      @click="loadMySignature"
+                    >
+                      使用个人中心电子签名
+                    </el-button>
+                    <el-button
+                      v-if="signPicUrl"
+                      link
+                      type="info"
+                      size="small"
+                      @click="signPicUrl = ''"
+                    >
+                      清除
+                    </el-button>
+                  </div>
                 </div>
-                <div class="sf-op-pop__hint">节点要求签名；通过时写入 Conditions.signPicUrl</div>
+                <div class="sf-op-pop__hint">节点要求签名；可通过手写或个人中心签名</div>
               </el-form-item>
               <el-form-item v-if="needsNextHopPick && nextNodes.length" label="下一节点" required>
                 <div class="sf-op-pop__hint" style="margin-bottom: 6px">
@@ -684,6 +694,8 @@
         <el-button type="primary" :loading="loading" @click="onCopyto">确认抄送</el-button>
       </template>
     </el-dialog>
+
+    <SailSignPadDialog ref="signPadRef" @success="onSignPadSuccess" />
   </div>
 </template>
 
@@ -709,8 +721,10 @@ import {
 } from '@sail/bpmn/buttonsCatalog';
 import SailCandidatePicker from '@sail/components/runtime/SailCandidatePicker.vue';
 import SailPhrasePicker from '@sail/components/runtime/SailPhrasePicker.vue';
+import SailSignPadDialog from '@sail/components/runtime/SailSignPadDialog.vue';
 import { useRouter } from 'vue-router';
 import SailPreselectApproveHint from '@sail/components/preselect/SailPreselectApproveHint.vue';
+import { resolvePublicFileUrl } from '@sail/utils/publicFileUrl';
 
 const props = withDefaults(
   defineProps<{
@@ -795,7 +809,9 @@ const loading = ref(false);
 const comment = ref('');
 const rejectComment = ref('');
 const signPicUrl = ref('');
+const signPicDisplayUrl = computed(() => resolvePublicFileUrl(signPicUrl.value));
 const signLoading = ref(false);
+const signPadRef = ref<{ open: () => void } | null>(null);
 const approveVisible = ref(false);
 const rejectVisible = ref(false);
 const removeVisible = ref(false);
@@ -855,11 +871,14 @@ async function loadMySignature() {
   }
 }
 
-watch(approveVisible, v => {
-  if (v && signEnable.value && !signPicUrl.value) {
-    void loadMySignature();
-  }
-});
+function openSignPad() {
+  signPadRef.value?.open();
+}
+
+function onSignPadSuccess(url: string) {
+  signPicUrl.value = String(url || '').trim();
+}
+
 const selectedActivityId = ref('');
 const selectedUserIds = ref<string[]>([]);
 const nextGroupId = ref('');
@@ -1747,5 +1766,11 @@ onMounted(async () => {
   border: 1px solid var(--el-border-color-lighter);
   border-radius: 4px;
   background: #fff;
+}
+.sf-op-pop__sign-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
 }
 </style>

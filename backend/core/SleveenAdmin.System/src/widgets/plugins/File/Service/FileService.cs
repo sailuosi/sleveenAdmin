@@ -87,17 +87,28 @@ public sealed class FileService {
             throw new InvalidOperationException("文件删除失败");
     }
 
-    private static SysFileDto ToDto(SysFile file) => new()
+    private static SysFileDto ToDto(SysFile file)
     {
-        Id = file.Id,
-        OriginalName = file.OriginalName,
-        StoredName = file.StoredName,
-        Extension = file.Extension,
-        Size = file.Size,
-        ContentType = file.ContentType,
-        Path = file.Path,
-        Url = file.Url,
-        CreateUserId = file.CreateUserId,
-        CreateTime = file.CreateTime
-    };
+        var url = file.Url ?? string.Empty;
+        var path = file.Path ?? string.Empty;
+        // filePath + name：个人中心常拼成 filePath/name；若 Url 已是完整公开地址则优先用 Url
+        var dir = path.Contains('/') || path.Contains('\\')
+            ? path[..path.LastIndexOfAny(['/', '\\'])].Replace('\\', '/')
+            : path;
+        return new SysFileDto
+        {
+            Id = file.Id,
+            OriginalName = file.OriginalName,
+            StoredName = file.StoredName,
+            Extension = file.Extension,
+            Size = file.Size,
+            ContentType = file.ContentType,
+            Path = path,
+            Url = url,
+            FilePath = string.IsNullOrWhiteSpace(dir) ? url : dir,
+            Name = file.StoredName,
+            CreateUserId = file.CreateUserId,
+            CreateTime = file.CreateTime
+        };
+    }
 }

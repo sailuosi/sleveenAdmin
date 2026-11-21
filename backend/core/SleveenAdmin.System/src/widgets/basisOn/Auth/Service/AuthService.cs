@@ -71,6 +71,8 @@ public sealed class AuthService {
             UserId = user.Id.ToString(),
             Account = user.Account,
             UserName = user.RealName ?? user.Account,
+            Avatar = user.Avatar,
+            Signature = user.Signature,
             Roles = [],
             Buttons = buttons,
             AppVersion = release.Version,

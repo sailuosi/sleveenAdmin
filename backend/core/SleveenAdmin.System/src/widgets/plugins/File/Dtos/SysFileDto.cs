@@ -18,6 +18,12 @@ public sealed class SysFileDto
 
     public string Url { get; set; } = string.Empty;
 
+    /// <summary>兼容个人中心 Admin.NET 风格字段（与 Url/Path 同值或父路径）</summary>
+    public string FilePath { get; set; } = string.Empty;
+
+    /// <summary>兼容个人中心 Admin.NET 风格字段（存储文件名）</summary>
+    public string Name { get; set; } = string.Empty;
+
     public Guid? CreateUserId { get; set; }
 
     public DateTime CreateTime { get; set; }

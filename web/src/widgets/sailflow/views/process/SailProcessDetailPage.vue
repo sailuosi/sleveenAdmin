@@ -173,8 +173,8 @@
                     签名：
                     <el-image
                       class="sf-detail-page__tl-sign-img"
-                      :src="activityOpinion(a)?.signPicUrl"
-                      :preview-src-list="[activityOpinion(a)!.signPicUrl!]"
+                      :src="signDisplayUrl(activityOpinion(a)?.signPicUrl)"
+                      :preview-src-list="[signDisplayUrl(activityOpinion(a)?.signPicUrl)]"
                       fit="contain"
                     />
                   </div>
@@ -268,6 +268,7 @@ import { unpackSailResult, pickField } from '@sail/utils/sailResult';
 import { formatTime } from '@sail/utils/formatTime';
 import { parseProcessAssets } from '@sail/utils/parseProcessAssets';
 import { parseButtonsSettingForActivity } from '@sail/utils/parseButtonsSetting';
+import { resolvePublicFileUrl } from '@sail/utils/publicFileUrl';
 import {
   defaultButtonsSetting,
   mergeButtonsSetting,
@@ -460,6 +461,10 @@ function activityOpinion(a: Record<string, unknown>) {
   const id = String(field(a, 'ActivityInstanceId', 'activityInstanceId', 'Id', 'id') || '').trim();
   if (!id) return undefined;
   return activityOpinions.value[id];
+}
+
+function signDisplayUrl(raw?: string | null) {
+  return resolvePublicFileUrl(raw);
 }
 
 function field(row: Record<string, unknown> | null | undefined, ...keys: string[]) {

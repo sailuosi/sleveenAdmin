@@ -26,6 +26,8 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     userId: '',
     account: '',
     userName: '',
+    avatar: '',
+    signature: '',
     roles: [],
     buttons: [],
     appVersion: '',
@@ -160,8 +162,10 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     const { data: info, error } = await fetchGetUserInfo();
 
     if (!error) {
-      // update store
+      // update store（兼容 PascalCase / camelCase）
       Object.assign(userInfo, info);
+      userInfo.avatar = info?.avatar ?? (info as any)?.Avatar ?? userInfo.avatar ?? '';
+      userInfo.signature = info?.signature ?? (info as any)?.Signature ?? userInfo.signature ?? '';
       applyServerRelease({
         appVersion: info?.appVersion ?? info?.AppVersion,
         updateNotes: info?.updateNotes ?? info?.UpdateNotes,

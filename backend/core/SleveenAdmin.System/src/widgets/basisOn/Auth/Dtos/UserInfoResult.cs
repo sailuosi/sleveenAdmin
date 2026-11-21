@@ -8,6 +8,10 @@ public sealed class UserInfoResult
 
     public string UserName { get; set; } = string.Empty;
 
+    public string? Avatar { get; set; }
+
+    public string? Signature { get; set; }
+
     public IReadOnlyList<string> Roles { get; set; } = [];
 
     public IReadOnlyList<string> Buttons { get; set; } = [];

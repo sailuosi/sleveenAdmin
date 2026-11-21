@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using mooSQL.data;
 using sailflow.engine.Entity;
@@ -10,7 +11,7 @@ namespace SleveenAdmin.Sailflow.Hosting;
 /// <summary>
 /// 产品侧种子：分类 / 表单 / 流程定义 / meta。
 /// 数据来源：sleveen-admin App_Data/sailflow.sqlite 快照（samples/seed）。
-/// 按业务键幂等；已有行不覆盖。
+/// 按业务键幂等；已有行不覆盖（UAT 图 DI 空/零尺寸除外，会回写可渲染 XmlContent）。
 /// </summary>
 public static class SailProductSeed
 {
@@ -63,12 +64,21 @@ public static class SailProductSeed
 
     static int EnsureUatProcess(SQLBuilder kit, string processId, string code, string name, string xml)
     {
-        var exists = kit.countBy<ProcessEntity>((c, t) =>
+        var repo = kit.useRepo<ProcessEntity>();
+        var existing = repo.GetList(t => t.ProcessId == processId).FirstOrDefault();
+
+        if (existing != null)
         {
-            c.where(() => t.ProcessId, processId);
-        });
-        if (exists > 0)
+            // 旧种子 DI 为空或 Bounds 全 0，设计器不可见；补图时回写 XmlContent
+            if (NeedsDiagramRepair(existing.XmlContent))
+            {
+                existing.XmlContent = xml;
+                existing.UpdatedDateTime = DateTime.UtcNow;
+                repo.Update(existing);
+                return 1;
+            }
             return 0;
+        }
 
         return InsertProcesses(kit, new List<ProcessEntity>
         {
@@ -88,6 +98,17 @@ public static class SailProductSeed
                 CreatedDateTime = DateTime.UtcNow
             }
         });
+    }
+
+    /// <summary>无 Shape、或 Bounds 宽高为 0 → 设计器画布空白。</summary>
+    static bool NeedsDiagramRepair(string? xml)
+    {
+        if (string.IsNullOrWhiteSpace(xml))
+            return true;
+        if (!xml.Contains("BPMNShape", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return xml.Contains("width=\"0\"", StringComparison.Ordinal)
+               || xml.Contains("width='0'", StringComparison.Ordinal);
     }
 
     static int EnsureCategory(SQLBuilder kit)
@@ -375,7 +396,7 @@ public static class SailProductSeed
         "</bpmndi:BPMNDiagram>" +
         "</bpmn:definitions>";
 
-    static string BpmnShell(string processId, string code, string name, string body) =>
+    static string BpmnShell(string processId, string code, string name, string body, string diagramInner) =>
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
         "<bpmn:definitions xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
         "xmlns:bpmn=\"http://www.omg.org/spec/BPMN/20100524/MODEL\" " +
@@ -388,9 +409,54 @@ public static class SailProductSeed
         "sf:code=\"" + code + "\" sf:version=\"1\">" +
         body +
         "</bpmn:process>" +
-        "<bpmndi:BPMNDiagram id=\"BPMNDiagram_1\"><bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"" +
-        processId + "\"/></bpmndi:BPMNDiagram>" +
+        "<bpmndi:BPMNDiagram id=\"BPMNDiagram_1\">" +
+        "<bpmndi:BPMNPlane id=\"BPMNPlane_1\" bpmnElement=\"" + processId + "\">" +
+        diagramInner +
+        "</bpmndi:BPMNPlane>" +
+        "</bpmndi:BPMNDiagram>" +
         "</bpmn:definitions>";
+
+    /// <summary>Start → UserTask_1 → End（f1/f2），与 MinimalHello 同坐标习惯。</summary>
+    static string DiLinearOneTask() =>
+        "<bpmndi:BPMNShape id=\"StartEvent_1_di\" bpmnElement=\"StartEvent_1\">" +
+        "<dc:Bounds x=\"180\" y=\"160\" width=\"36\" height=\"36\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNShape id=\"UserTask_1_di\" bpmnElement=\"UserTask_1\">" +
+        "<dc:Bounds x=\"280\" y=\"138\" width=\"100\" height=\"80\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNShape id=\"EndEvent_1_di\" bpmnElement=\"EndEvent_1\">" +
+        "<dc:Bounds x=\"450\" y=\"160\" width=\"36\" height=\"36\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNEdge id=\"f1_di\" bpmnElement=\"f1\">" +
+        "<di:waypoint x=\"216\" y=\"178\" /><di:waypoint x=\"280\" y=\"178\" />" +
+        "</bpmndi:BPMNEdge>" +
+        "<bpmndi:BPMNEdge id=\"f2_di\" bpmnElement=\"f2\">" +
+        "<di:waypoint x=\"380\" y=\"178\" /><di:waypoint x=\"450\" y=\"178\" />" +
+        "</bpmndi:BPMNEdge>";
+
+    /// <summary>Start → UserTask_A → UserTask_B → End（f1/f2/f3）。</summary>
+    static string DiLinearTwoTasks() =>
+        "<bpmndi:BPMNShape id=\"StartEvent_1_di\" bpmnElement=\"StartEvent_1\">" +
+        "<dc:Bounds x=\"120\" y=\"160\" width=\"36\" height=\"36\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNShape id=\"UserTask_A_di\" bpmnElement=\"UserTask_A\">" +
+        "<dc:Bounds x=\"220\" y=\"138\" width=\"100\" height=\"80\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNShape id=\"UserTask_B_di\" bpmnElement=\"UserTask_B\">" +
+        "<dc:Bounds x=\"380\" y=\"138\" width=\"100\" height=\"80\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNShape id=\"EndEvent_1_di\" bpmnElement=\"EndEvent_1\">" +
+        "<dc:Bounds x=\"550\" y=\"160\" width=\"36\" height=\"36\" />" +
+        "</bpmndi:BPMNShape>" +
+        "<bpmndi:BPMNEdge id=\"f1_di\" bpmnElement=\"f1\">" +
+        "<di:waypoint x=\"156\" y=\"178\" /><di:waypoint x=\"220\" y=\"178\" />" +
+        "</bpmndi:BPMNEdge>" +
+        "<bpmndi:BPMNEdge id=\"f2_di\" bpmnElement=\"f2\">" +
+        "<di:waypoint x=\"320\" y=\"178\" /><di:waypoint x=\"380\" y=\"178\" />" +
+        "</bpmndi:BPMNEdge>" +
+        "<bpmndi:BPMNEdge id=\"f3_di\" bpmnElement=\"f3\">" +
+        "<di:waypoint x=\"480\" y=\"178\" /><di:waypoint x=\"550\" y=\"178\" />" +
+        "</bpmndi:BPMNEdge>";
 
     static string Ext(string assignee, string leave, string? buttonsJson, string? policyJson)
     {
@@ -422,7 +488,7 @@ public static class SailProductSeed
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_A\" />" +
             "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_A\" targetRef=\"UserTask_B\" />" +
             "<bpmn:sequenceFlow id=\"f3\" sourceRef=\"UserTask_B\" targetRef=\"EndEvent_1\" />";
-        return BpmnShell(UatGProcessId, "SEED_UAT_G", "UAT G 双节点退回", body);
+        return BpmnShell(UatGProcessId, "SEED_UAT_G", "UAT G 双节点退回", body, DiLinearTwoTasks());
     }
 
     static string UatABpmn()
@@ -441,7 +507,7 @@ public static class SailProductSeed
             "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
             "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_1\" targetRef=\"EndEvent_1\" />";
-        return BpmnShell(UatAProcessId, "SEED_UAT_A", "UAT A 空人同人超时", body);
+        return BpmnShell(UatAProcessId, "SEED_UAT_A", "UAT A 空人同人超时", body, DiLinearOneTask());
     }
 
     static string UatBBpmn()
@@ -459,7 +525,7 @@ public static class SailProductSeed
             "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
             "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_1\" targetRef=\"EndEvent_1\" />";
-        return BpmnShell(UatBProcessId, "SEED_UAT_B", "UAT B 终止作废", body);
+        return BpmnShell(UatBProcessId, "SEED_UAT_B", "UAT B 终止作废", body, DiLinearOneTask());
     }
 
     static string UatCBpmn()
@@ -481,6 +547,6 @@ public static class SailProductSeed
             "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
             "<bpmn:sequenceFlow id=\"f2\" sourceRef=\"UserTask_1\" targetRef=\"EndEvent_1\" />";
-        return BpmnShell(UatCProcessId, "SEED_UAT_C", "UAT C 字段权限", body);
+        return BpmnShell(UatCProcessId, "SEED_UAT_C", "UAT C 字段权限", body, DiLinearOneTask());
     }
 }

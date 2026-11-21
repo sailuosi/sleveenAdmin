@@ -5,6 +5,7 @@ using SleveenAdmin.Foundation.AspNet;
 using SleveenAdmin.Foundation.Auth;
 using SleveenAdmin.Foundation.Models;
 using SleveenAdmin.System.File.Service;
+using SleveenAdmin.System.User.Service;
 
 namespace SleveenAdmin.System.File.Controller;
 
@@ -14,8 +15,13 @@ namespace SleveenAdmin.System.File.Controller;
 public class FileController : ControllerBase
 {
     private readonly FileService _service;
+    private readonly SysUserProfileService _profile;
 
-    public FileController(FileService service) => _service = service;
+    public FileController(FileService service, SysUserProfileService profile)
+    {
+        _service = service;
+        _profile = profile;
+    }
 
     [HttpGet("page")]
     [ApiResult]
@@ -40,6 +46,62 @@ public class FileController : ControllerBase
         var userId = CurrentUser.GetUserId(User);
         var dto = await _service.UploadAsync(file, userId, cancellationToken);
         return Ok(dto);
+    }
+
+    /// <summary>上传电子签名并写回当前用户 Signature</summary>
+    [HttpPost("uploadSignature")]
+    [ApiResult]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<IActionResult> UploadSignature(IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(ApiResult.Fail("请选择签名文件"));
+
+        var userId = CurrentUser.GetUserId(User);
+        if (userId is null)
+            return Unauthorized(ApiResult.Fail("未登录", ApiResultCodes.Unauthorized));
+
+        try
+        {
+            var dto = await _service.UploadAsync(file, userId, cancellationToken);
+            var url = string.IsNullOrWhiteSpace(dto.Url)
+                ? $"{dto.FilePath}/{dto.Name}".Trim('/')
+                : dto.Url;
+            _profile.SetSignature(userId.Value, url);
+            return Ok(dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResult.Fail(ex.Message));
+        }
+    }
+
+    /// <summary>上传头像并写回当前用户 Avatar</summary>
+    [HttpPost("uploadAvatar")]
+    [ApiResult]
+    [RequestSizeLimit(10 * 1024 * 1024)]
+    public async Task<IActionResult> UploadAvatar(IFormFile file, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return BadRequest(ApiResult.Fail("请选择头像文件"));
+
+        var userId = CurrentUser.GetUserId(User);
+        if (userId is null)
+            return Unauthorized(ApiResult.Fail("未登录", ApiResultCodes.Unauthorized));
+
+        try
+        {
+            var dto = await _service.UploadAsync(file, userId, cancellationToken);
+            var url = string.IsNullOrWhiteSpace(dto.Url)
+                ? $"{dto.FilePath}/{dto.Name}".Trim('/')
+                : dto.Url;
+            _profile.SetAvatar(userId.Value, url);
+            return Ok(dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResult.Fail(ex.Message));
+        }
     }
 
     [HttpGet("download/{id:guid}")]
