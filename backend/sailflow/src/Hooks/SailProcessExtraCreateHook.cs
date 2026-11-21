@@ -20,7 +20,7 @@ public sealed class SailProcessExtraCreateHook(SailClient sail) : IProcessInstan
         if (ctx?.Instance == null || ctx.Process == null)
             return;
 
-        var extra = LoadExtra(ctx.Process.ProcessId, ctx.Process.Version);
+        var extra = LoadExtra(ctx.Kit, ctx.Process.ProcessId, ctx.Process.Version);
         var formValues = ToBagMap(ctx.Runner?.Conditions);
 
         // Title
@@ -67,19 +67,30 @@ public sealed class SailProcessExtraCreateHook(SailClient sail) : IProcessInstan
             ctx.Instance.BizCode = processNo;
     }
 
-    SailProcessExtraDto LoadExtra(string? processId, string? version)
-        => SailProcessExtraService.Parse(LoadExtraJson(processId, version));
+    SailProcessExtraDto LoadExtra(SQLBuilder? kit, string? processId, string? version)
+        => SailProcessExtraService.Parse(LoadExtraJson(kit, processId, version));
 
-    string? LoadExtraJson(string? processId, string? version)
+    string? LoadExtraJson(SQLBuilder? kit, string? processId, string? version)
     {
         if (string.IsNullOrWhiteSpace(processId))
             return null;
         var ver = string.IsNullOrWhiteSpace(version) ? "1" : version;
-        var clip = sail.UseRunSQL().useClip();
-        clip.from<SailProcessMetaEntity>(out var m);
-        clip.where(() => m.ProcessId, processId);
-        clip.where(() => m.Version, ver);
-        return clip.select(m).queryList().FirstOrDefault()?.ExtraJson;
+        // 同事务优先；无 kit 时（极少）再独立连接
+        var owned = kit == null;
+        var db = kit?.useSQL() ?? sail.UseRunSQL();
+        try
+        {
+            var clip = db.useClip();
+            clip.from<SailProcessMetaEntity>(out var m);
+            clip.where(() => m.ProcessId, processId);
+            clip.where(() => m.Version, ver);
+            return clip.select(m).queryList().FirstOrDefault()?.ExtraJson;
+        }
+        finally
+        {
+            if (owned)
+                db.Dispose();
+        }
     }
 
     static Dictionary<string, string> ToBagMap(IDictionary<string, string>? conditions)

@@ -1392,13 +1392,12 @@ async function onSignForward() {
   const activityId = String(
     pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'sign'
   );
+  // 只传子型：前/后由引擎写 Sequence+Count=席位数；并加签写 Parallel+Percentage=1。禁 count/1。
   const ok = await execButton(
     'SignForward',
     buildRunner({
       ControlParameterSheet: {
-        SignForwardType: signForwardType.value,
-        SignForwardCompareType: 'count',
-        SignForwardCompleteOrder: 1
+        SignForwardType: signForwardType.value
       },
       NextActivityPerformers: withNextPerformers(
         activityId,

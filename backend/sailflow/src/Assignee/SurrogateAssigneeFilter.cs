@@ -45,7 +45,11 @@ public sealed class SurrogateAssigneeFilter : IAssigneeResolveFilter
         var added = 0;
         try
         {
-            using var kit = _sail.UseRunSQL();
+            // 发起/办理事务内必须复用 Request.Kit，禁止另开连接（SQLite 会 SQLITE_LOCKED）
+            var owned = ctx.Request?.Kit == null;
+            var kit = ctx.Request?.Kit?.useSQL() ?? _sail.UseRunSQL();
+            try
+            {
             foreach (var root in roots)
             {
                 var row = FindActiveSurrogate(kit, root.UserId.Trim(), processId, now);
@@ -71,6 +75,12 @@ public sealed class SurrogateAssigneeFilter : IAssigneeResolveFilter
                     UnitName = root.UnitName
                 });
                 added++;
+            }
+            }
+            finally
+            {
+                if (owned)
+                    kit.Dispose();
             }
         }
         catch (Exception ex)

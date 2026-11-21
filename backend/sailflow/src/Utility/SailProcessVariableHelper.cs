@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using mooSQL.data;
 using sailflow.engine.Common;
 using sailflow.engine.Entity;
 using sailflow.engine.Service;
@@ -135,6 +136,16 @@ public static class SailProcessVariableHelper
         IWorkflowService wf,
         string? processInstanceId,
         ILogger? logger = null)
+        => LoadFormValues(wf, kit: null, processInstanceId, logger);
+
+    /// <summary>
+    /// 同事务读取流程变量。Sync 钩子须传 <paramref name="kit"/>，禁止另开连接。
+    /// </summary>
+    public static Dictionary<string, string> LoadFormValues(
+        IWorkflowService wf,
+        SQLBuilder? kit,
+        string? processInstanceId,
+        ILogger? logger = null)
     {
         var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         if (wf == null || string.IsNullOrWhiteSpace(processInstanceId))
@@ -142,10 +153,10 @@ public static class SailProcessVariableHelper
 
         try
         {
-            var list = wf.GetProcessVariableList(new ProcessVariableQuery
-            {
-                ProcessInstanceId = processInstanceId
-            });
+            var query = new ProcessVariableQuery { ProcessInstanceId = processInstanceId };
+            var list = kit != null
+                ? wf.GetProcessVariableList(kit, query)
+                : wf.GetProcessVariableList(query);
             if (list == null)
                 return map;
 

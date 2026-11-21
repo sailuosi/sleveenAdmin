@@ -44,7 +44,11 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
 
         try
         {
-            var starter = new WorkflowService(_sail).GetProcessInitiator(ctx.Request.ProcessInstanceId);
+            // 同事务读未提交实例；禁止无 kit 的 GetProcessInitiator（会另开连接锁死）
+            var kit = ctx.Request?.Kit;
+            var starter = kit != null
+                ? new WorkflowService(_sail).GetProcessInitiator(kit.useSQL(), ctx.Request.ProcessInstanceId)
+                : new WorkflowService(_sail).GetProcessInitiator(ctx.Request.ProcessInstanceId);
             if (starter == null || string.IsNullOrWhiteSpace(starter.UserId))
             {
                 throw new WfAssigneeException(

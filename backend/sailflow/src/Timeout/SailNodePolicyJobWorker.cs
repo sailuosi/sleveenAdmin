@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -21,14 +22,41 @@ namespace SleveenAdmin.Sailflow.Timeout;
 /// </summary>
 public sealed class SailNodePolicyJobWorker(
     IServiceScopeFactory scopeFactory,
+    IConfiguration configuration,
     ILogger<SailNodePolicyJobWorker> logger) : BackgroundService
 {
     static readonly ConcurrentDictionary<string, int> RemindCounts = new(StringComparer.Ordinal);
-    static readonly TimeSpan Interval = TimeSpan.FromSeconds(5);
+    static readonly ConcurrentDictionary<string, int> TimeoutAgreeFailCounts = new(StringComparer.Ordinal);
+    static readonly ConcurrentDictionary<string, int> TimeoutRejectFailCounts = new(StringComparer.Ordinal);
+    static readonly ConcurrentDictionary<string, byte> TimeoutAbandoned = new(StringComparer.OrdinalIgnoreCase);
+
+    const int DefaultIntervalSeconds = 30;
+    const int DefaultMaxAttempts = 5;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        logger.LogInformation("Sail NodePolicy job worker started (autoApprove/reject + timeout)");
+        var intervalSec = configuration.GetValue("Sail:NodePolicy:JobIntervalSeconds", DefaultIntervalSeconds);
+        if (intervalSec < 5)
+            intervalSec = 5;
+        var interval = TimeSpan.FromSeconds(intervalSec);
+        var maxAttempts = configuration.GetValue("Sail:NodePolicy:TimeoutMaxAttempts", DefaultMaxAttempts);
+        if (maxAttempts < 1)
+            maxAttempts = DefaultMaxAttempts;
+
+        logger.LogInformation(
+            "Sail NodePolicy job worker started (interval={Interval}s, timeoutMaxAttempts={Max})",
+            intervalSec, maxAttempts);
+
+        // 启动先等一轮，避免与冷启动/首发 StartProcess 抢 SQLite 写锁
+        try
+        {
+            await Task.Delay(interval, stoppingToken);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -41,7 +69,7 @@ public sealed class SailNodePolicyJobWorker(
                 if (SailPolicyConstants.LegacySkipDrainEnabled)
                     DrainLegacyPolicySkips(sail, wf, stoppingToken);
                 DrainPolicyAutoRejects(sail, wf, stoppingToken);
-                DrainTimeouts(sail, wf, stoppingToken);
+                DrainTimeouts(sail, wf, maxAttempts, stoppingToken);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -50,7 +78,7 @@ public sealed class SailNodePolicyJobWorker(
 
             try
             {
-                await Task.Delay(Interval, stoppingToken);
+                await Task.Delay(interval, stoppingToken);
             }
             catch (OperationCanceledException)
             {
@@ -68,6 +96,10 @@ public sealed class SailNodePolicyJobWorker(
             var n = await worker.ProcessPendingAsync(cancellationToken: ct).ConfigureAwait(false);
             if (n > 0)
                 logger.LogDebug("AutoApprove anchors processed={Count}", n);
+        }
+        catch (Exception ex) when (AutoApproveAnchorWorker.IsSqliteBusyOrLocked(ex))
+        {
+            logger.LogWarning("AutoApprove drain skipped (sqlite busy/locked): {Msg}", ex.Message);
         }
         catch (Exception ex)
         {
@@ -183,7 +215,7 @@ public sealed class SailNodePolicyJobWorker(
         }
     }
 
-    void DrainTimeouts(SailClient sail, IWorkflowService wf, CancellationToken ct)
+    void DrainTimeouts(SailClient sail, IWorkflowService wf, int maxAttempts, CancellationToken ct)
     {
         List<TaskEntity> dueTasks;
         try
@@ -219,9 +251,11 @@ public sealed class SailNodePolicyJobWorker(
         foreach (var task in dueTasks)
         {
             ct.ThrowIfCancellationRequested();
+            if (!string.IsNullOrWhiteSpace(task.TaskId) && TimeoutAbandoned.ContainsKey(task.TaskId))
+                continue;
             try
             {
-                HandleOverdueTask(sail, wf, task);
+                HandleOverdueTask(sail, wf, task, maxAttempts);
             }
             catch (Exception ex)
             {
@@ -230,7 +264,7 @@ public sealed class SailNodePolicyJobWorker(
         }
     }
 
-    void HandleOverdueTask(SailClient sail, IWorkflowService wf, TaskEntity task)
+    void HandleOverdueTask(SailClient sail, IWorkflowService wf, TaskEntity task, int maxAttempts)
     {
         if (string.IsNullOrWhiteSpace(task.ActivityInstanceId))
             return;
@@ -268,6 +302,14 @@ public sealed class SailNodePolicyJobWorker(
                 break;
             case 2: // 自动同意
             {
+                if (IsAbandoned(task.TaskId))
+                    return;
+                if (TimeoutAgreeFailCounts.TryGetValue(task.TaskId!, out var fails) && fails >= maxAttempts)
+                {
+                    AbandonTimeout(task.TaskId!, "agree", fails, maxAttempts, "已达最大重试次数");
+                    return;
+                }
+
                 var runner = BuildRunnerFromTask(sail, task,
                     SailPolicyConstants.TimeoutSystemUserId,
                     SailPolicyConstants.TimeoutSystemUserName);
@@ -280,11 +322,21 @@ public sealed class SailNodePolicyJobWorker(
                     : task.SignName;
                 var exec = wf.RunProcess(runner);
                 if (exec.Status != WfExecutedStatus.Success)
-                    logger.LogWarning("Timeout agree failed task={Id}: {Msg}", task.TaskId, exec.Message);
+                    RecordTimeoutFailure(task.TaskId!, TimeoutAgreeFailCounts, "agree", exec, maxAttempts);
+                else
+                    TimeoutAgreeFailCounts.TryRemove(task.TaskId!, out _);
                 break;
             }
             case 3: // 自动拒绝
             {
+                if (IsAbandoned(task.TaskId))
+                    return;
+                if (TimeoutRejectFailCounts.TryGetValue(task.TaskId!, out var fails) && fails >= maxAttempts)
+                {
+                    AbandonTimeout(task.TaskId!, "reject", fails, maxAttempts, "已达最大重试次数");
+                    return;
+                }
+
                 var runner = BuildRunnerFromTask(sail, task,
                     task.SignId,
                     task.SignName ?? SailPolicyConstants.TimeoutSystemUserName);
@@ -293,10 +345,67 @@ public sealed class SailNodePolicyJobWorker(
                 runner.DynamicVariables["sail.comment"] = "超时策略：自动拒绝";
                 var exec = wf.RejectProcess(runner);
                 if (exec.Status != WfExecutedStatus.Success)
-                    logger.LogWarning("Timeout reject failed task={Id}: {Msg}", task.TaskId, exec.Message);
+                    RecordTimeoutFailure(task.TaskId!, TimeoutRejectFailCounts, "reject", exec, maxAttempts);
+                else
+                    TimeoutRejectFailCounts.TryRemove(task.TaskId!, out _);
                 break;
             }
         }
+    }
+
+    void RecordTimeoutFailure(
+        string taskId,
+        ConcurrentDictionary<string, int> counts,
+        string kind,
+        WfExecutedResult exec,
+        int maxAttempts)
+    {
+        var msg = exec.Message ?? string.Empty;
+        var reason = exec.ReasonCode ?? string.Empty;
+        logger.LogWarning("Timeout {Kind} failed task={Id}: {Msg}", kind, taskId, msg);
+
+        if (IsNonRetryableNextHopFailure(msg, reason))
+        {
+            counts[taskId] = maxAttempts;
+            AbandonTimeout(
+                taskId,
+                kind,
+                maxAttempts,
+                maxAttempts,
+                "缺下一跳办理人（如 ApproverPick），Job 无法代选人，永久放弃重试");
+            return;
+        }
+
+        var n = counts.AddOrUpdate(taskId, 1, (_, c) => c + 1);
+        if (n >= maxAttempts)
+            AbandonTimeout(taskId, kind, n, maxAttempts, "已达最大重试次数");
+    }
+
+    void AbandonTimeout(string taskId, string kind, int count, int max, string detail)
+    {
+        if (!TimeoutAbandoned.TryAdd(taskId, 0))
+            return;
+        logger.LogWarning(
+            "Timeout {Kind} abandoned task={Id} after {Count}/{Max}: {Detail}",
+            kind, taskId, count, max, detail);
+    }
+
+    static bool IsAbandoned(string? taskId) =>
+        !string.IsNullOrWhiteSpace(taskId) && TimeoutAbandoned.ContainsKey(taskId);
+
+    /// <summary>ContinueForward 无 NextActivityPerformers 等业务错：再试仍失败。</summary>
+    static bool IsNonRetryableNextHopFailure(string message, string reasonCode)
+    {
+        if (message.Contains("没有匹配的后续流转节点", StringComparison.Ordinal)
+            || message.Contains("无法流转到下一步", StringComparison.Ordinal)
+            || message.Contains("No more next step node", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("ContinueForwardCurrentNode", StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (reasonCode.Contains("ContinueForward", StringComparison.OrdinalIgnoreCase)
+            || reasonCode.Contains("NextActivity", StringComparison.OrdinalIgnoreCase)
+            || reasonCode.Contains("ApproverPick", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
     }
 
     static bool IsLegacyTaskDue(TaskEntity task, ActivityInstanceEntity act, TimeSpan span)

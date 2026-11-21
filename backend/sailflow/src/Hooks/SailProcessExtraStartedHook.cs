@@ -13,6 +13,7 @@ namespace SleveenAdmin.Sailflow.Hooks;
 
 /// <summary>
 /// 启动成功后写 __sail_summary__ / __sail_process_no__ 流程变量（CreateHook 时尚无实例 Id）。
+/// Sync：必须复用 <see cref="FlowHookContext.Kit"/>，禁止 WorkflowService 无 kit 重载。
 /// </summary>
 public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
 {
@@ -28,14 +29,14 @@ public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
         try
         {
             var kit = ctx.Kit ?? sail.UseRunSQL();
+            var db = kit.useSQL();
             var version = string.IsNullOrWhiteSpace(ctx.Version) ? "1" : ctx.Version;
-            var extra = SailProcessExtraService.Parse(LoadExtraJson(kit, ctx.ProcessId, version));
+            var extra = SailProcessExtraService.Parse(LoadExtraJson(db, ctx.ProcessId, version));
             var wf = new WorkflowService(sail);
-            var formValues = SailProcessVariableHelper.LoadFormValues(wf, ctx.ProcessInstanceId);
+            // 同事务读变量；发起当刻 PersistConditions 尚未跑，列表常为空，靠 BizCode / Extra 仍可写
+            var formValues = SailProcessVariableHelper.LoadFormValues(wf, db, ctx.ProcessInstanceId);
 
-            // process no from conditions already persisted by Host PersistConditions after Start;
-            // also accept value already on BizCode
-            var pi = kit.useRepo<ProcessInstanceEntity, string>().GetById(ctx.ProcessInstanceId);
+            var pi = db.useRepo<ProcessInstanceEntity, string>().GetById(ctx.ProcessInstanceId);
             string? processNo = null;
             if (formValues.TryGetValue(SailProcessExtraTemplate.ProcessNoVar, out var fromVar)
                 && !string.IsNullOrWhiteSpace(fromVar))
@@ -46,12 +47,12 @@ public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
             if (!string.IsNullOrWhiteSpace(processNo)
                 && !formValues.ContainsKey(SailProcessExtraTemplate.ProcessNoVar))
             {
-                UpsertVar(wf, ctx, SailProcessExtraTemplate.ProcessNoVar, processNo!);
+                UpsertVar(wf, db, ctx, SailProcessExtraTemplate.ProcessNoVar, processNo!);
             }
 
             var summary = SailProcessExtraTemplate.BuildSummary(extra.SummarySetting, formValues);
             if (!string.IsNullOrWhiteSpace(summary))
-                UpsertVar(wf, ctx, SailProcessExtraTemplate.SummaryVar, summary);
+                UpsertVar(wf, db, ctx, SailProcessExtraTemplate.SummaryVar, summary);
         }
         catch
         {
@@ -59,7 +60,7 @@ public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
         }
     }
 
-    static string? LoadExtraJson(mooSQL.data.SQLBuilder kit, string processId, string version)
+    static string? LoadExtraJson(SQLBuilder kit, string processId, string version)
     {
         var clip = kit.useClip();
         clip.from<SailProcessMetaEntity>(out var m);
@@ -68,11 +69,17 @@ public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
         return clip.select(m).queryList().FirstOrDefault()?.ExtraJson;
     }
 
-    static void UpsertVar(IWorkflowService wf, FlowHookContext ctx, string name, string value)
+    static void UpsertVar(
+        IWorkflowService wf,
+        SQLBuilder kit,
+        FlowHookContext ctx,
+        string name,
+        string value)
     {
         if (string.IsNullOrEmpty(value))
             return;
-        var exist = wf.GetProcessVariable(new ProcessVariableQuery
+
+        var exist = wf.GetProcessVariable(kit, new ProcessVariableQuery
         {
             VariableSceope = ProcessVariableScopeEnum.Process,
             ProcessInstanceId = ctx.ProcessInstanceId,
@@ -82,11 +89,11 @@ public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
         {
             exist.Value = value;
             exist.UpdatedDateTime = DateTime.UtcNow;
-            wf.SaveProcessVariable(exist);
+            wf.SaveProcessVariable(kit, exist);
             return;
         }
 
-        wf.SaveProcessVariable(new ProcessVariableEntity
+        wf.SaveProcessVariable(kit, new ProcessVariableEntity
         {
             VariableScope = ProcessVariableScopeEnum.Process.ToString(),
             BizPK = ctx.BizPK,
