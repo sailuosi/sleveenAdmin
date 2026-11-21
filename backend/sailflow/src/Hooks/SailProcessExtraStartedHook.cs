@@ -4,6 +4,7 @@ using sailflow.engine.Common;
 using sailflow.engine.Entity;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
+using sailflow.engine.Logging;
 using sailflow.engine.Service;
 using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Service;
@@ -15,11 +16,12 @@ namespace SleveenAdmin.Sailflow.Hooks;
 /// 启动成功后写 __sail_summary__ / __sail_process_no__ 流程变量（CreateHook 时尚无实例 Id）。
 /// Sync：必须复用 <see cref="FlowHookContext.Kit"/>，禁止 WorkflowService 无 kit 重载。
 /// </summary>
-public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
+public sealed class SailProcessExtraStartedHook(SailClient sail) : FlowHookBase
 {
-    public string Name => "sail.process.extra.started";
+    public override string Name => "sail.process.extra.started";
+    public override string Title => "流程摘要与编号变量";
 
-    public void Handle(FlowHookContext ctx)
+    public override void Handle(FlowHookContext ctx)
     {
         if (ctx.EventType != EventFireTypeEnum.OnProcessStarted)
             return;
@@ -54,9 +56,13 @@ public sealed class SailProcessExtraStartedHook(SailClient sail) : IFlowHook
             if (!string.IsNullOrWhiteSpace(summary))
                 UpsertVar(wf, db, ctx, SailProcessExtraTemplate.SummaryVar, summary);
         }
-        catch
+        catch (Exception ex)
         {
             /* 摘要/编码变量失败不阻断启动 */
+            sail.Log?.Warning(
+                SailLogCategories.SyncHook,
+                "name={0} swallow PI={1}: {2}",
+                Name, ctx.ProcessInstanceId, ex.Message);
         }
     }
 

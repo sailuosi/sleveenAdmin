@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using sailflow.assignee;
 using sailflow.engine.Assignee;
 using sailflow.engine.Client;
 using sailflow.engine.Common;
+using sailflow.engine.Logging;
 using sailflow.engine.Runtime;
 using sailflow.engine.Service;
 using SleveenAdmin.Sailflow.Utility;
@@ -89,8 +89,9 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
         if (string.IsNullOrWhiteSpace(resolveType))
         {
             resolveType = DeptBossAssigneeResolver.TypeCode;
-            Trace.TraceInformation(
-                "[Assignee.Host] SameAsStarter=3 assignStartResolveType empty → default {0}",
+            _sail.Log?.Message(
+                SailLogCategories.Assignee,
+                "SameAsStarter=3 assignStartResolveType empty → default {0}",
                 resolveType);
         }
 
@@ -141,8 +142,9 @@ public sealed class SameAsStarterFilter : IAssigneeResolveFilter
 
         ctx.Performers = list;
         ctx.Source = PerformerSources.Resolver;
-        Trace.TraceInformation(
-            "[Assignee.Host] SameAsStarter=3 → Type={0} performers={1}; Activity={2}",
+        _sail.Log?.Message(
+            SailLogCategories.Assignee,
+            "SameAsStarter=3 → Type={0} performers={1}; Activity={2}",
             resolveType, list.Count, ctx.Request?.ActivityId);
     }
 }

@@ -1,8 +1,9 @@
-using System.Diagnostics;
 using mooSQL.data;
+using sailflow.engine.Client;
 using sailflow.engine.Entity;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
+using sailflow.engine.Logging;
 
 namespace SleveenAdmin.Sailflow.Hooks;
 
@@ -10,11 +11,12 @@ namespace SleveenAdmin.Sailflow.Hooks;
 /// Sync Hook：办结/旁关后按 EndType 写 Host 本地化 EndText（引擎只写 EndType）。
 /// 同事务用 ctx.Kit，勿另开连接。
 /// </summary>
-public sealed class SailEndTextLocalizeHook : IFlowHook
+public sealed class SailEndTextLocalizeHook(SailClient sail) : FlowHookBase
 {
-    public string Name => "sail.host.endtext.localize";
+    public override string Name => "sail.host.endtext.localize";
+    public override string Title => "办结文案本地化";
 
-    public void Handle(FlowHookContext ctx)
+    public override void Handle(FlowHookContext ctx)
     {
         if (ctx == null || string.IsNullOrWhiteSpace(ctx.TaskId))
             return;
@@ -53,7 +55,10 @@ public sealed class SailEndTextLocalizeHook : IFlowHook
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning("[EndText] localize failed TaskId={0}: {1}", ctx.TaskId, ex.Message);
+            sail.Log?.Warning(
+                SailLogCategories.SyncHook,
+                "name={0} TaskId={1}: {2}",
+                Name, ctx.TaskId, ex.Message);
         }
     }
 }

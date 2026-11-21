@@ -39,6 +39,7 @@ public sealed class PortalScheduleTaskNotifier : ReliableTaskNotifierBase
     }
 
     public override string Name => "portal.schedule";
+    public override string Title => "统一日程待办推送";
 
     protected override async Task SendCoreAsync(TaskNotifyContext ctx, CancellationToken ct)
     {

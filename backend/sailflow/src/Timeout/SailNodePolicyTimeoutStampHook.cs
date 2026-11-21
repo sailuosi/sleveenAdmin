@@ -5,6 +5,7 @@ using sailflow.engine.Client;
 using sailflow.engine.Common;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
+using sailflow.engine.Logging;
 using sailflow.engine.Service;
 using SleveenAdmin.Sailflow.Utility;
 
@@ -15,11 +16,12 @@ namespace SleveenAdmin.Sailflow.Timeout;
 ///（及对应活动实例 Overdue；与 Boundaries 取更严）。
 /// Sync 时必须用 <see cref="FlowHookContext.Kit"/> 同事务，禁止另开连接。
 /// </summary>
-public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
+public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : FlowHookBase
 {
-    public string Name => "sail.nodepolicy.timeout.stamp";
+    public override string Name => "sail.nodepolicy.timeout.stamp";
+    public override string Title => "节点超时打戳";
 
-    public void Handle(FlowHookContext ctx)
+    public override void Handle(FlowHookContext ctx)
     {
         if (ctx.EventType is not (
             EventFireTypeEnum.OnActivityCreated
@@ -36,9 +38,13 @@ public sealed class SailNodePolicyTimeoutStampHook(SailClient sail) : IFlowHook
             else
                 StampOnActivity(ctx);
         }
-        catch
+        catch (Exception ex)
         {
             /* 打戳失败不阻断流转 */
+            sail.Log?.Warning(
+                SailLogCategories.SyncHook,
+                "name={0} swallow PI={1}: {2}",
+                Name, ctx.ProcessInstanceId, ex.Message);
         }
     }
 

@@ -102,7 +102,7 @@ public static class SleveenAssigneeSailExtensions
         pipeline.RegisterEmptyAction(new NodePolicyAdminEmptyAction());
         pipeline.RegisterEmptyAction(new NodePolicyAutoRejectEmptyAction());
 
-        pipeline.AddFilter(new NodePolicyApproveTypeFilter(), order: 0);
+        pipeline.AddFilter(new NodePolicyApproveTypeFilter(client), order: 0);
         pipeline.AddFilter(new SameAsStarterFilter(client), order: 10);
         // 委托代批：业务 Filter 之后；再经 Dedup 清重复 UserId
         pipeline.AddFilter(new SurrogateAssigneeFilter(client), order: 50);
@@ -121,8 +121,9 @@ public static class SleveenAssigneeSailExtensions
         Action<sailflow.assignee.Job.AutoApproveAnchorOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(client);
-        System.Diagnostics.Trace.TraceWarning(
-            "[Assignee.Host] UseSleveenAssigneeAutoApproveJob: Host SailNodePolicyJobWorker already drains "
+        client.Log?.Warning(
+            sailflow.engine.Logging.SailLogCategories.Assignee,
+            "UseSleveenAssigneeAutoApproveJob: Host SailNodePolicyJobWorker already drains "
             + "AssigneeAutoApprove. Prefer 单消费者；仅在未挂 JobWorker 时启用 AutoStart.");
         return client.UseAssign(a =>
         {

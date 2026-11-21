@@ -9,7 +9,7 @@ namespace SleveenAdmin.Sailflow.Hooks;
 /// 请假样例 Status Hook（遗留）。默认宿主已改挂 <c>UseFormBizLifecycleHook</c>；
 /// 本类委托 <see cref="FormBiz.Handlers.LeaveFormBizHandler.OnFinish"/>，避免双写语义分叉。
 /// </summary>
-public sealed class SailLeaveStatusHook : IFlowHook
+public sealed class SailLeaveStatusHook : FlowHookBase
 {
     private readonly FormBiz.Handlers.LeaveFormBizHandler _handler;
 
@@ -17,9 +17,10 @@ public sealed class SailLeaveStatusHook : IFlowHook
         _handler = new FormBiz.Handlers.LeaveFormBizHandler(
             leave ?? throw new ArgumentNullException(nameof(leave)));
 
-    public string Name => "sail.demo.leave.status";
+    public override string Name => "sail.demo.leave.status";
+    public override string Title => "请假状态回写（遗留）";
 
-    public void Handle(FlowHookContext ctx)
+    public override void Handle(FlowHookContext ctx)
     {
         if (!string.Equals(ctx.BizChannel, SailLeaveStatus.BizChannel, StringComparison.OrdinalIgnoreCase))
             return;

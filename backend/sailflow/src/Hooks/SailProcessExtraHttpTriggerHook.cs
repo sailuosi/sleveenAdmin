@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 using mooSQL.data;
@@ -6,6 +5,7 @@ using sailflow.engine.Client;
 using sailflow.engine.Entity;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
+using sailflow.engine.Logging;
 using sailflow.msg.SideEffect;
 using SleveenAdmin.Sailflow.Dto;
 using SleveenAdmin.Sailflow.Entity;
@@ -40,6 +40,7 @@ public sealed class SailProcessExtraHttpTriggerHook : BestEffortFlowHookBase<Sai
     }
 
     public override string Name => "sail.process.extra.http";
+    public override string Title => "流程 Extra HTTP 通知";
 
     protected override bool TryCreatePayload(FlowHookContext ctx, out SailProcessExtraHttpPayload payload)
     {
@@ -133,7 +134,7 @@ public sealed class SailProcessExtraHttpTriggerHook : BestEffortFlowHookBase<Sai
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning("[Extra.Http] payload failed: {0}", ex.Message);
+            _sail.Log?.Warning(SailLogCategories.AsyncHook, "[Extra.Http] payload failed: {0}", ex.Message);
             return false;
         }
     }
@@ -163,14 +164,18 @@ public sealed class SailProcessExtraHttpTriggerHook : BestEffortFlowHookBase<Sai
             using var resp = await client.SendAsync(req, cancellationToken).ConfigureAwait(false);
             if (!resp.IsSuccessStatusCode)
             {
-                Trace.TraceWarning(
+                _sail.Log?.Warning(
+                    SailLogCategories.AsyncHook,
                     "[Extra.Http] {0} → {1}",
                     payload.Url, (int)resp.StatusCode);
             }
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning("[Extra.Http] send failed {0}: {1}", payload.Url, ex.Message);
+            _sail.Log?.Warning(
+                SailLogCategories.AsyncHook,
+                "[Extra.Http] send failed {0}: {1}",
+                payload.Url, ex.Message);
         }
     }
 

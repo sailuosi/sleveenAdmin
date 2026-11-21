@@ -10,6 +10,7 @@ namespace SleveenAdmin.Sailflow.Hooks;
 public sealed class SailDebugConsoleNotifier : TaskNotifyChannelBase
 {
     public override string Name => "sail.debug.console.notifier";
+    public override string Title => "调试控制台通知";
 
     /// <summary>打印失败不抛，避免拖死 Outbox。</summary>
     protected override bool RethrowFailures => false;

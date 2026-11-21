@@ -4,7 +4,7 @@ using sailflow.engine.Hooks;
 namespace SleveenAdmin.Sailflow.FormBiz;
 
 /// <summary>§H：流程终态 → 按 BizChannel(=FormCode) 调 Handler.OnFinish。</summary>
-public sealed class SailFormBizLifecycleHook : IFlowHook
+public sealed class SailFormBizLifecycleHook : FlowHookBase
 {
     readonly IReadOnlyDictionary<string, ISailFormBizHandler> _map;
 
@@ -15,9 +15,10 @@ public sealed class SailFormBizLifecycleHook : IFlowHook
             .ToDictionary(h => h.FormCode.Trim(), h => h, StringComparer.OrdinalIgnoreCase);
     }
 
-    public string Name => "sail.formbiz.lifecycle";
+    public override string Name => "sail.formbiz.lifecycle";
+    public override string Title => "表单业务终态回写";
 
-    public void Handle(FlowHookContext ctx)
+    public override void Handle(FlowHookContext ctx)
     {
         if (string.IsNullOrWhiteSpace(ctx.BizChannel)) return;
         if (!_map.TryGetValue(ctx.BizChannel, out var handler)) return;

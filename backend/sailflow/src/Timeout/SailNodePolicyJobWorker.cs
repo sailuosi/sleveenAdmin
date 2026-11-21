@@ -97,7 +97,7 @@ public sealed class SailNodePolicyJobWorker(
             if (n > 0)
                 logger.LogDebug("AutoApprove anchors processed={Count}", n);
         }
-        catch (Exception ex) when (AutoApproveAnchorWorker.IsSqliteBusyOrLocked(ex))
+        catch (Exception ex) when (IsSqliteBusyOrLocked(ex))
         {
             logger.LogWarning("AutoApprove drain skipped (sqlite busy/locked): {Msg}", ex.Message);
         }
@@ -474,5 +474,20 @@ public sealed class SailNodePolicyJobWorker(
             BizPK = task.BizPK,
             TaskId = task.TaskId
         };
+    }
+
+    static bool IsSqliteBusyOrLocked(Exception ex)
+    {
+        for (var e = ex; e != null; e = e.InnerException!)
+        {
+            var msg = e.Message ?? "";
+            if (msg.Contains("database is locked", StringComparison.OrdinalIgnoreCase)
+                || msg.Contains("SQLite Error 5", StringComparison.OrdinalIgnoreCase)
+                || msg.Contains("SQLite Error 6", StringComparison.OrdinalIgnoreCase)
+                || msg.Contains("Busy", StringComparison.OrdinalIgnoreCase)
+                   && msg.Contains("SQLite", StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+        return false;
     }
 }

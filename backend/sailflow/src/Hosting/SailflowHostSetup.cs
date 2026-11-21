@@ -10,8 +10,8 @@ using sailflow.biz.query;
 using sailflow.data.Hosting;
 using sailflow.engine.Client;
 using sailflow.engine.Hosting;
+using sailflow.engine.Logging;
 using sailflow.engine.Service;
-using sailflow.hub.Hosting;
 using sailflow.hub.Hosting;
 using SleveenAdmin.Foundation.Data;
 using SleveenAdmin.Sailflow.Assignee;
@@ -58,6 +58,10 @@ public static class SailflowHostSetup
                 .UseBizAssignees()
                 .UseBizData() // sailflow.data：Table 日志 Sink + 归档扩展
                 .UseDataLifecycleFromConfig(configuration) // Sail:DataLifecycle → 保留窗/冷库/日志分表
+                // 运行时诊断：Trace + Sleveen DevConsole 带标题块（继承 ConsoleSailLog）
+                .UseSleveenConsoleSailLog(
+                    log => log.MinimumLevel = SailLogLevel.Trace,
+                    console => console.UseColors = true)
                 .UseDebugConsoleHook() // 开发核验：流程 Hook + 待办 Notifier → TP 风格控制台
                 .UseEndTextLocalize() // Host：按 EndType 写 tk_end_text（同事务 Sync）
                 .UseFlowEventFileLog() // BestEffort：流程事件 Channel → 串行写文件（可丢）
@@ -101,8 +105,7 @@ public static class SailflowHostSetup
                 })
                 .Build();
 
-            // 临时：Sync Hook（含 sail.nodepolicy.timeout.stamp）默认 2s 过紧，放大到 20s
-            client.CapabilityOptions.SyncHookTimeoutMs = 20_000;
+            // Sync 软超时：按 FlowHookBase.TimeoutMs（默认 30s）；勿再靠放大全局掩盖锁等待
 
             // R3：UnitMap→Org/User；RoleGroup→VisitorBag/Duty；JobRelative→maps|访客袋；Account 身份键
             client.UseSleveenOrgLookups(configuration);

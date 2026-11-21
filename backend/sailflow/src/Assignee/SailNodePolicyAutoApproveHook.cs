@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using mooSQL.data;
 using sailflow.assignee;
 using sailflow.assignee.Store;
@@ -8,6 +7,7 @@ using sailflow.engine.Common;
 using sailflow.engine.Entity;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
+using sailflow.engine.Logging;
 using sailflow.engine.Service;
 using SleveenAdmin.Sailflow.Utility;
 
@@ -17,15 +17,16 @@ namespace SleveenAdmin.Sailflow.Assignee;
 /// 发送成功后按 NodePolicy 入队 AutoApprove（同人/空人/approveType）。
 /// 仅订阅 Started/Continued/Resent，自然排除 SendBack 等 OA 原语。禁止同步 RunProcess。
 /// </summary>
-public sealed class SailNodePolicyAutoApproveHook(SailClient sail) : IFlowHook
+public sealed class SailNodePolicyAutoApproveHook(SailClient sail) : FlowHookBase
 {
     public const string CommentSameAsStarter = "同人策略：自动通过";
     public const string CommentEmptySkip = "空人策略：自动通过";
     public const string CommentApproveType = "节点策略：自动通过";
 
-    public string Name => "sail.nodepolicy.autoapprove";
+    public override string Name => "sail.nodepolicy.autoapprove";
+    public override string Title => "节点策略自动通过入队";
 
-    public void Handle(FlowHookContext ctx)
+    public override void Handle(FlowHookContext ctx)
     {
         if (ctx.EventType is not (
             EventFireTypeEnum.OnProcessStarted
@@ -42,9 +43,10 @@ public sealed class SailNodePolicyAutoApproveHook(SailClient sail) : IFlowHook
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning(
-                "[Assignee.Host] AutoApproveHook failed PI={0}: {1}",
-                ctx.ProcessInstanceId, ex.Message);
+            sail.Log?.Warning(
+                SailLogCategories.SyncHook,
+                "name={0} PI={1}: {2}",
+                Name, ctx.ProcessInstanceId, ex.Message);
             /* 入队失败不阻断主发送 */
         }
     }
@@ -125,9 +127,10 @@ public sealed class SailNodePolicyAutoApproveHook(SailClient sail) : IFlowHook
             return;
 
         new HookOutboxAutoApproveAnchorStore().Enqueue(sail, anchors, ctx.Kit);
-        Trace.TraceInformation(
-            "[Assignee.Host] AutoApproveHook enqueued {0} anchor(s) PI={1} Event={2}",
-            anchors.Count, ctx.ProcessInstanceId, ctx.EventType);
+        sail.Log?.Message(
+            SailLogCategories.SyncHook,
+            "name={0} enqueued {1} anchor(s) PI={2} Event={3}",
+            Name, anchors.Count, ctx.ProcessInstanceId, ctx.EventType);
     }
 
     static List<TaskEntity> LoadReadyWaitingTasks(

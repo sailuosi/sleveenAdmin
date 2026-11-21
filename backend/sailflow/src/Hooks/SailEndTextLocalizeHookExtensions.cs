@@ -22,21 +22,33 @@ public static class SailEndTextLocalizeHookExtensions
     public static SailClientBuilder UseEndTextLocalize(this SailClientBuilder builder)
     {
         ArgumentNullException.ThrowIfNull(builder);
-        builder.AddHook(new SailEndTextLocalizeHook(), Configure);
+        builder.Services.AddFeature(new SailFeatureDescriptor
+        {
+            Name = "host.endtext.localize",
+            Phase = SailFeaturePhase.ConfigureClient,
+            Order = 520,
+            ConfigureClient = (c, _) => c.addHook(new SailEndTextLocalizeHook(c), Configure),
+        });
         return builder;
     }
 
     public static ISailCollection UseEndTextLocalize(this ISailCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
-        services.AddHook(new SailEndTextLocalizeHook(), Configure);
+        services.AddFeature(new SailFeatureDescriptor
+        {
+            Name = "host.endtext.localize",
+            Phase = SailFeaturePhase.ConfigureClient,
+            Order = 520,
+            ConfigureClient = (c, _) => c.addHook(new SailEndTextLocalizeHook(c), Configure),
+        });
         return services;
     }
 
     public static SailClient useEndTextLocalize(this SailClient client)
     {
         ArgumentNullException.ThrowIfNull(client);
-        client.addHook(new SailEndTextLocalizeHook(), Configure);
+        client.addHook(new SailEndTextLocalizeHook(client), Configure);
         return client;
     }
 }

@@ -11,11 +11,12 @@ namespace SleveenAdmin.Sailflow.Hooks;
 /// <summary>
 /// 实例落库前：写 Title；按 processIdRule 生成编码写入 BizCode（已有 BizCode 则不覆盖，编码仍入 bag）。
 /// </summary>
-public sealed class SailProcessExtraCreateHook(SailClient sail) : IProcessInstanceCreateHook
+public sealed class SailProcessExtraCreateHook(SailClient sail) : ProcessInstanceCreateHookBase
 {
-    public string Name => "sail.process.extra.create";
+    public override string Name => "sail.process.extra.create";
+    public override string Title => "实例标题与流程编码";
 
-    public void OnCreating(ProcessInstanceCreateContext ctx)
+    public override void OnCreating(ProcessInstanceCreateContext ctx)
     {
         if (ctx?.Instance == null || ctx.Process == null)
             return;

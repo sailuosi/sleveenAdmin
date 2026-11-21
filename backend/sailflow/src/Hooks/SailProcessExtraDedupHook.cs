@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using mooSQL.data;
 using sailflow.assignee;
 using sailflow.assignee.Store;
@@ -7,6 +6,7 @@ using sailflow.engine.Common;
 using sailflow.engine.Entity;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
+using sailflow.engine.Logging;
 using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Service;
 
@@ -15,14 +15,15 @@ namespace SleveenAdmin.Sailflow.Hooks;
 /// <summary>
 /// 流程级 autoApprovalType 去重：命中则入队 AutoApprove（与 NodePolicy 同人正交）。
 /// </summary>
-public sealed class SailProcessExtraDedupHook(SailClient sail) : IFlowHook
+public sealed class SailProcessExtraDedupHook(SailClient sail) : FlowHookBase
 {
     public const string CommentOnce = "流程去重：曾办过自动通过";
     public const string CommentConsecutive = "流程去重：连续同人自动通过";
 
-    public string Name => "sail.process.extra.dedup";
+    public override string Name => "sail.process.extra.dedup";
+    public override string Title => "流程去重自动通过";
 
-    public void Handle(FlowHookContext ctx)
+    public override void Handle(FlowHookContext ctx)
     {
         if (ctx.EventType is not (
             EventFireTypeEnum.OnProcessStarted
@@ -94,13 +95,17 @@ public sealed class SailProcessExtraDedupHook(SailClient sail) : IFlowHook
                 return;
 
             new HookOutboxAutoApproveAnchorStore().Enqueue(sail, anchors, ctx.Kit);
-            Trace.TraceInformation(
-                "[Extra.Dedup] enqueued {0} anchor(s) PI={1} Type={2}",
-                anchors.Count, ctx.ProcessInstanceId, extra.AutoApprovalType);
+            sail.Log?.Message(
+                SailLogCategories.SyncHook,
+                "name={0} enqueued {1} anchor(s) PI={2} Type={3}",
+                Name, anchors.Count, ctx.ProcessInstanceId, extra.AutoApprovalType);
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning("[Extra.Dedup] failed PI={0}: {1}", ctx.ProcessInstanceId, ex.Message);
+            sail.Log?.Warning(
+                SailLogCategories.SyncHook,
+                "name={0} PI={1}: {2}",
+                Name, ctx.ProcessInstanceId, ex.Message);
         }
     }
 

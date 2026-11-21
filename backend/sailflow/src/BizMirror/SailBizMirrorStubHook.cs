@@ -7,10 +7,11 @@ namespace SleveenAdmin.Sailflow.BizMirror;
 /// stub: console-only; real port later。
 /// 伪实现：命中 Continued/终态时仅打控制台，不建表、不投影。
 /// </summary>
-public sealed class SailBizMirrorStubHook : IFlowHook
+public sealed class SailBizMirrorStubHook : FlowHookBase
 {
-    public string Name => "host.sleveen.biz.mirror.stub";
+    public override string Name => "host.sleveen.biz.mirror.stub";
+    public override string Title => "业务镜像（桩）";
 
-    public void Handle(FlowHookContext ctx) =>
+    public override void Handle(FlowHookContext ctx) =>
         SailDevConsole.WriteHook("业务回写", ctx);
 }

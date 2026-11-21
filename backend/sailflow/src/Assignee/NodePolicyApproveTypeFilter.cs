@@ -1,6 +1,7 @@
-using System.Diagnostics;
 using sailflow.assignee;
+using sailflow.engine.Client;
 using sailflow.engine.Common;
+using sailflow.engine.Logging;
 using SleveenAdmin.Sailflow.Utility;
 
 namespace SleveenAdmin.Sailflow.Assignee;
@@ -9,7 +10,7 @@ namespace SleveenAdmin.Sailflow.Assignee;
 /// approveType=3：有人后仍覆盖为策略拒绝人（JobWorker RejectProcess）。
 /// approveType=2 自动通过改由 <see cref="SailNodePolicyAutoApproveHook"/> 入队，本 Filter 不再清人/打锚点。
 /// </summary>
-public sealed class NodePolicyApproveTypeFilter : IAssigneeResolveFilter
+public sealed class NodePolicyApproveTypeFilter(SailClient? sail = null) : IAssigneeResolveFilter
 {
     public void Apply(AssigneeFilterContext ctx)
     {
@@ -29,8 +30,9 @@ public sealed class NodePolicyApproveTypeFilter : IAssigneeResolveFilter
                     SailPolicyConstants.PolicyAutoRejectUserId,
                     SailPolicyConstants.PolicyAutoRejectUserName)
             };
-            Trace.TraceInformation(
-                "[Assignee.Host] ApproveType=3 → policy reject; Activity={0}",
+            sail?.Log?.Message(
+                SailLogCategories.Assignee,
+                "ApproveType=3 → policy reject; Activity={0}",
                 ctx.Request?.ActivityId);
         }
     }

@@ -1,8 +1,8 @@
-using System.Diagnostics;
 using mooSQL.data;
 using sailflow.assignee;
 using sailflow.engine.Client;
 using sailflow.engine.Common;
+using sailflow.engine.Logging;
 using SleveenAdmin.Sailflow.Entity;
 
 namespace SleveenAdmin.Sailflow.Assignee;
@@ -85,8 +85,9 @@ public sealed class SurrogateAssigneeFilter : IAssigneeResolveFilter
         }
         catch (Exception ex)
         {
-            Trace.TraceWarning(
-                "[Assignee.Host] SurrogateAssigneeFilter failed (skip merge): {0}",
+            _sail.Log?.Warning(
+                SailLogCategories.Assignee,
+                "SurrogateAssigneeFilter failed (skip merge): {0}",
                 ex.Message);
             return;
         }
@@ -95,8 +96,9 @@ public sealed class SurrogateAssigneeFilter : IAssigneeResolveFilter
         {
             if (string.Equals(ctx.Source, PerformerSources.Specific, StringComparison.OrdinalIgnoreCase))
                 ctx.RewroteSpecific = true;
-            Trace.TraceInformation(
-                "[Assignee.Host] SurrogateAssigneeFilter added {0} agent(s); ProcessId={1}",
+            _sail.Log?.Message(
+                SailLogCategories.Assignee,
+                "SurrogateAssigneeFilter added {0} agent(s); ProcessId={1}",
                 added, processId);
         }
     }

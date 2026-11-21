@@ -29,6 +29,7 @@ public sealed class FlowEventFileLogHook : BestEffortFlowHookBase<string>
     }
 
     public override string Name => "sleveen.flow.event.filelog";
+    public override string Title => "流程事件文件日志";
 
     protected override bool TryCreatePayload(FlowHookContext ctx, out string payload)
     {
