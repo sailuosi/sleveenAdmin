@@ -1,3 +1,5 @@
+using sailflow.biz.Approval;
+
 namespace SleveenAdmin.Sailflow.FormBiz.Handlers;
 
 /// <summary>
@@ -9,12 +11,12 @@ public sealed class DynamicFormBizHandler : SailFormBizHandlerBase
 
     public override string FormCode => Code;
 
-    public override void OnInit(SailFormBizContext ctx)
+    public override void OnInit(SailApprovalBusinessContext ctx)
     {
         ctx.Data = new { };
     }
 
-    public override void OnSubmit(SailFormBizContext ctx)
+    public override void OnSubmit(SailApprovalBusinessContext ctx)
     {
         ctx.BizChannel = FormCode;
         if (string.IsNullOrWhiteSpace(ctx.BizPK))
@@ -22,13 +24,18 @@ public sealed class DynamicFormBizHandler : SailFormBizHandlerBase
         ctx.Data = ctx.PayloadJson;
     }
 
-    public override void OnStarted(SailFormBizContext ctx)
+    public override void OnStarted(SailApprovalBusinessContext ctx)
     {
         // 无产品表；ProcessInstanceId 已在 ctx
     }
 
-    public override void OnFinish(SailFormBizContext ctx)
+    public override void OnFinish(SailApprovalBusinessContext ctx)
     {
         // 动态表单默认无状态回写；业务可换专用 Handler
+    }
+
+    public override void OnAborted(SailApprovalBusinessContext ctx)
+    {
+        // 动态表单默认无状态回写
     }
 }

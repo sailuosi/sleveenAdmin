@@ -1,20 +1,22 @@
+using sailflow.biz.Approval;
 using sailflow.engine.Event;
 using sailflow.engine.Hooks;
 using SleveenAdmin.Sailflow.Entity;
+using SleveenAdmin.Sailflow.FormBiz.Handlers;
 using SleveenAdmin.Sailflow.Service;
 
 namespace SleveenAdmin.Sailflow.Hooks;
 
 /// <summary>
-/// 请假样例 Status Hook（遗留）。默认宿主已改挂 <c>UseFormBizLifecycleHook</c>；
-/// 本类委托 <see cref="FormBiz.Handlers.LeaveFormBizHandler.OnFinish"/>，避免双写语义分叉。
+/// 请假样例 Status Hook（遗留）。默认宿主已改挂 <c>UseApprovalBusiness</c>；
+/// 本类委托 <see cref="LeaveFormBizHandler"/> 的 Finish/Aborted，避免双写语义分叉。
 /// </summary>
 public sealed class SailLeaveStatusHook : FlowHookBase
 {
-    private readonly FormBiz.Handlers.LeaveFormBizHandler _handler;
+    private readonly LeaveFormBizHandler _handler;
 
     public SailLeaveStatusHook(SailLeaveService leave) =>
-        _handler = new FormBiz.Handlers.LeaveFormBizHandler(
+        _handler = new LeaveFormBizHandler(
             leave ?? throw new ArgumentNullException(nameof(leave)));
 
     public override string Name => "sail.demo.leave.status";
@@ -27,13 +29,24 @@ public sealed class SailLeaveStatusHook : FlowHookBase
         if (string.IsNullOrWhiteSpace(ctx.BizPK))
             return;
 
-        _handler.OnFinish(new FormBiz.SailFormBizContext
+        var decision = SailApprovalLifecycleMapper.Map(ctx.EventType);
+        if (decision.Kind == SailApprovalLifecycleKind.None)
+            return;
+
+        var bizCtx = new SailApprovalBusinessContext
         {
             FormCode = SailLeaveStatus.BizChannel,
             BizChannel = ctx.BizChannel,
             BizPK = ctx.BizPK,
             FinishEvent = ctx.EventType,
+            Outcome = decision.Outcome,
+            AbortKind = decision.AbortKind,
             Kit = ctx.Kit
-        });
+        };
+
+        if (decision.Kind == SailApprovalLifecycleKind.Finish)
+            _handler.OnFinish(bizCtx);
+        else
+            _handler.OnAborted(bizCtx);
     }
 }

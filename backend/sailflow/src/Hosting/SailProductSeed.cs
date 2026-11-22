@@ -37,6 +37,27 @@ public static class SailProductSeed
     public const string UatBProcessId = "sail-uat-b";
     public const string UatCProcessId = "sail-uat-c";
 
+    /// <summary>复杂条件网关（XOR + Inclusive）。</summary>
+    public const string ComplexCondProcessId = "sail-seed-complex-cond";
+    public const string ComplexCondProcessCode = "SEED_COMPLEX_COND";
+
+    /// <summary>嵌套子流程（subProcess 内含节点）。</summary>
+    public const string NestedSubProcessId = "sail-seed-nested-sub";
+    public const string NestedSubProcessCode = "SEED_NESTED_SUB";
+
+    /// <summary>引用子流程-子件（被父流程 sf:subInfoes 绑定）。</summary>
+    public const string RefChildProcessId = "sail-seed-ref-child";
+    public const string RefChildProcessDefId = "c1d2e3f4-a5b6-4789-8abc-def012345601";
+    public const string RefChildProcessCode = "SEED_REF_CHILD";
+
+    /// <summary>引用子流程-父流程。</summary>
+    public const string RefParentProcessId = "sail-seed-ref-parent";
+    public const string RefParentProcessCode = "SEED_REF_PARENT";
+
+    /// <summary>综合：XOR + Parallel + 嵌套子流程 + NodePolicy.skipExpression。</summary>
+    public const string ComplexRouteProcessId = "sail-seed-complex-route";
+    public const string ComplexRouteProcessCode = "SEED_COMPLEX_ROUTE";
+
     const string DefaultExtraJson =
         "{\"allowCancelRunningProcess\":true,\"allowWithdrawTask\":false,\"processIdRule\":{\"enable\":false,\"prefix\":\"\",\"infix\":\"\",\"postfix\":\"\",\"length\":5},\"autoApprovalType\":0,\"titleSetting\":{\"enable\":false,\"title\":\"\"},\"summarySetting\":{\"enable\":false,\"summary\":[]},\"processBeforeTriggerSetting\":null,\"processAfterTriggerSetting\":null,\"taskBeforeTriggerSetting\":null,\"taskAfterTriggerSetting\":null,\"printTemplateSetting\":{\"enable\":false,\"template\":\"\"}}";
 
@@ -53,13 +74,91 @@ public static class SailProductSeed
         n += EnsureUatProcess(kit, UatAProcessId, "SEED_UAT_A", "UAT A 空人同人超时", UatABpmn());
         n += EnsureUatProcess(kit, UatBProcessId, "SEED_UAT_B", "UAT B 终止作废", UatBBpmn());
         n += EnsureUatProcess(kit, UatCProcessId, "SEED_UAT_C", "UAT C 字段权限", UatCBpmn());
+        n += EnsureComplexTestProcesses(kit);
         n += EnsureMeta(kit, HelloMetaId, HelloProcessId, "1");
         n += EnsureMeta(kit, DemoMetaId, DemoProcessId, "1");
         n += EnsureMeta(kit, "uatg-meta-000000000000000000000001", UatGProcessId, "1");
         n += EnsureMeta(kit, "uata-meta-000000000000000000000001", UatAProcessId, "1");
         n += EnsureMeta(kit, "uatb-meta-000000000000000000000001", UatBProcessId, "1");
         n += EnsureMeta(kit, "uatc-meta-000000000000000000000001", UatCProcessId, "1");
+        n += EnsureMeta(kit, "cplxcond-meta-00000000000000000001", ComplexCondProcessId, "1");
+        n += EnsureMeta(kit, "nestedsub-meta-00000000000000000001", NestedSubProcessId, "1");
+        n += EnsureMeta(kit, "refchild-meta-000000000000000000001", RefChildProcessId, "1");
+        n += EnsureMeta(kit, "refparent-meta-00000000000000000001", RefParentProcessId, "1");
+        n += EnsureMeta(kit, "cplxroute-meta-00000000000000000001", ComplexRouteProcessId, "1");
         return n;
+    }
+
+    /// <summary>
+    /// 复杂流程联调种子：条件网关 / 嵌套子流程 / 引用子流程 / 综合路由。
+    /// BPMN 来自 samples/bpmn/logic；按 ProcessId 幂等，已有行不覆盖。
+    /// </summary>
+    static int EnsureComplexTestProcesses(SQLBuilder kit)
+    {
+        var n = 0;
+        n += EnsureFileProcess(kit, ComplexCondProcessId, ComplexCondProcessCode, "复杂条件网关",
+            "bpmn/logic/complexcond.bpmn");
+        n += EnsureFileProcess(kit, NestedSubProcessId, NestedSubProcessCode, "嵌套子流程",
+            "bpmn/logic/nestedsub.bpmn");
+        n += EnsureFileProcess(kit, RefChildProcessId, RefChildProcessCode, "引用子流程-子件",
+            "bpmn/logic/refsubchild.bpmn", RefChildProcessDefId);
+        n += EnsureFileProcess(kit, RefParentProcessId, RefParentProcessCode, "引用子流程-父流程",
+            "bpmn/logic/refsubparent.bpmn");
+        n += EnsureFileProcess(kit, ComplexRouteProcessId, ComplexRouteProcessCode, "综合复杂路由",
+            "bpmn/logic/complexroute.bpmn");
+        return n;
+    }
+
+    static int EnsureFileProcess(
+        SQLBuilder kit,
+        string processId,
+        string code,
+        string name,
+        string relativeUnderSamples,
+        string? processDefId = null)
+    {
+        var repo = kit.useRepo<ProcessEntity>();
+        var existing = repo.GetList(t => t.ProcessId == processId).FirstOrDefault();
+        if (existing != null)
+        {
+            if (NeedsDiagramRepair(existing.XmlContent))
+            {
+                var repaired = ReadSampleText(relativeUnderSamples);
+                if (!string.IsNullOrWhiteSpace(repaired))
+                {
+                    existing.XmlContent = repaired;
+                    existing.UpdatedDateTime = DateTime.UtcNow;
+                    repo.Update(existing);
+                    return 1;
+                }
+            }
+            return 0;
+        }
+
+        var xml = ReadSampleText(relativeUnderSamples);
+        if (string.IsNullOrWhiteSpace(xml))
+            return 0;
+
+        var entity = new ProcessEntity
+        {
+            ProcessId = processId,
+            ProcessName = name,
+            ProcessCode = code,
+            Version = "1",
+            Status = 1,
+            AppType = CategoryCode,
+            XmlFileName = Path.GetFileName(relativeUnderSamples),
+            XmlContent = xml,
+            StartType = 0,
+            EndType = 0,
+            Description = "复杂流程联调种子（可删）",
+            CreatedDateTime = DateTime.UtcNow,
+            UpdatedDateTime = DateTime.UtcNow
+        };
+        if (!string.IsNullOrWhiteSpace(processDefId))
+            entity.ProcessDefId = processDefId;
+
+        return InsertProcesses(kit, new List<ProcessEntity> { entity });
     }
 
     static int EnsureUatProcess(SQLBuilder kit, string processId, string code, string name, string xml)
@@ -327,24 +426,52 @@ public static class SailProductSeed
         return null;
     }
 
+    /// <summary>读取 samples 下相对路径（如 bpmn/logic/complexcond.bpmn）。</summary>
+    static string? ReadSampleText(string relativeUnderSamples)
+    {
+        var rel = relativeUnderSamples.Replace('/', Path.DirectorySeparatorChar);
+        foreach (var root in SampleRoots())
+        {
+            var path = Path.Combine(root, rel);
+            if (File.Exists(path))
+                return File.ReadAllText(path);
+        }
+        return null;
+    }
+
     static IEnumerable<string> SeedDirs()
     {
-        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var list = new List<string>();
-        void Add(string? d)
-        {
-            if (string.IsNullOrWhiteSpace(d)) return;
-            var full = Path.GetFullPath(d);
-            if (seen.Add(full))
-                list.Add(full);
-        }
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var root in SampleRoots())
+            AddDir(seen, list, Path.Combine(root, "seed"));
+        return list;
+    }
 
-        Add(Path.Combine(AppContext.BaseDirectory, "samples", "seed"));
+    static IEnumerable<string> SampleRoots()
+    {
+        var list = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        AddDir(seen, list, Path.Combine(AppContext.BaseDirectory, "samples"));
         var asm = typeof(SailProductSeed).Assembly.Location;
         if (!string.IsNullOrWhiteSpace(asm))
-            Add(Path.Combine(Path.GetDirectoryName(asm)!, "samples", "seed"));
-        Add(Path.Combine(Directory.GetCurrentDirectory(), "samples", "seed"));
+            AddDir(seen, list, Path.Combine(Path.GetDirectoryName(asm)!, "samples"));
+        AddDir(seen, list, Path.Combine(Directory.GetCurrentDirectory(), "samples"));
+        // 开发期：源码树 samples（未 CopyToOutput 时兜底）
+        if (!string.IsNullOrWhiteSpace(asm))
+        {
+            AddDir(seen, list, Path.GetFullPath(Path.Combine(
+                Path.GetDirectoryName(asm)!, "..", "..", "..", "samples")));
+        }
         return list;
+    }
+
+    static void AddDir(HashSet<string> seen, List<string> list, string? d)
+    {
+        if (string.IsNullOrWhiteSpace(d)) return;
+        var full = Path.GetFullPath(d);
+        if (Directory.Exists(full) && seen.Add(full))
+            list.Add(full);
     }
 
     static string MinimalHelloBpmn() =>

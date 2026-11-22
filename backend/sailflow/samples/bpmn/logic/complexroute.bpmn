@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:sf="http://www.sailflow.com/schema/sf"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  id="Definitions_complexroute" targetNamespace="http://bpmn.io/schema/bpmn">
+  <!--
+    综合复杂路由测试（一次覆盖）：
+    1) XOR 条件：days&lt;3 / days&gt;=3
+    2) 节点条件表达式：短路径 Manager 上 NodePolicy.skipExpression = amount &lt; 100
+    3) Parallel 网关：长路径 Dept + HR 并行后汇合
+    4) 嵌套子流程：合规审查（内含 Start→检查→End）
+    发起变量建议：days, amount
+  -->
+  <bpmn:process id="sail-seed-complex-route" name="综合复杂路由" isExecutable="true"
+    sf:code="SEED_COMPLEX_ROUTE" sf:version="1">
+    <bpmn:startEvent id="Start_1" sf:code="Start" name="开始">
+      <bpmn:outgoing>f_start</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Apply" sf:code="apply" name="提交申请">
+      <bpmn:incoming>f_start</bpmn:incoming>
+      <bpmn:outgoing>f_to_xor</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Xor_Split" sf:code="xor_days" name="按天数分支">
+      <bpmn:incoming>f_to_xor</bpmn:incoming>
+      <bpmn:outgoing>f_short</bpmn:outgoing>
+      <bpmn:outgoing>f_long</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <!-- 短路径：节点跳过表达式 amount &lt; 100 时可测策略跳过 -->
+    <bpmn:userTask id="Task_Manager" sf:code="manager" name="经理审批(可跳过)">
+      <bpmn:incoming>f_short</bpmn:incoming>
+      <bpmn:outgoing>f_mgr_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+        <sf:NodePolicy json="{&quot;approveType&quot;:1,&quot;assignEmptyHandlerType&quot;:2,&quot;assignStartUserHandlerType&quot;:1,&quot;skipExpression&quot;:&quot;amount &lt; 100&quot;,&quot;signEnable&quot;:false,&quot;reasonRequire&quot;:false,&quot;fieldsPermission&quot;:[]}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:parallelGateway id="And_Split" sf:code="and_split" name="并行拆分">
+      <bpmn:incoming>f_long</bpmn:incoming>
+      <bpmn:outgoing>f_dept</bpmn:outgoing>
+      <bpmn:outgoing>f_hr</bpmn:outgoing>
+    </bpmn:parallelGateway>
+
+    <bpmn:userTask id="Task_Dept" sf:code="dept" name="部门审批">
+      <bpmn:incoming>f_dept</bpmn:incoming>
+      <bpmn:outgoing>f_dept_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_Hr" sf:code="hr" name="人事审批">
+      <bpmn:incoming>f_hr</bpmn:incoming>
+      <bpmn:outgoing>f_hr_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:parallelGateway id="And_Join" sf:code="and_join" name="并行汇合">
+      <bpmn:incoming>f_dept_join</bpmn:incoming>
+      <bpmn:incoming>f_hr_join</bpmn:incoming>
+      <bpmn:outgoing>f_director</bpmn:outgoing>
+    </bpmn:parallelGateway>
+
+    <bpmn:userTask id="Task_Director" sf:code="director" name="总监审批">
+      <bpmn:incoming>f_director</bpmn:incoming>
+      <bpmn:outgoing>f_dir_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+        <sf:NodePolicy json="{&quot;approveType&quot;:1,&quot;assignEmptyHandlerType&quot;:2,&quot;skipExpression&quot;:&quot;amount &lt; 500&quot;,&quot;signEnable&quot;:true,&quot;reasonRequire&quot;:false,&quot;fieldsPermission&quot;:[]}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Xor_Join" sf:code="xor_join" name="分支汇合">
+      <bpmn:incoming>f_mgr_join</bpmn:incoming>
+      <bpmn:incoming>f_dir_join</bpmn:incoming>
+      <bpmn:outgoing>f_to_sub</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:subProcess id="Sub_Audit" sf:code="sub_audit" name="合规嵌套子流程">
+      <bpmn:incoming>f_to_sub</bpmn:incoming>
+      <bpmn:outgoing>f_from_sub</bpmn:outgoing>
+      <bpmn:startEvent id="SubStart_1" sf:code="SubStart" name="子开始">
+        <bpmn:outgoing>sf1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="SubTask_Audit" sf:code="sub_audit_task" name="合规复核">
+        <bpmn:incoming>sf1</bpmn:incoming>
+        <bpmn:outgoing>sf2</bpmn:outgoing>
+        <bpmn:extensionElements>
+          <sf:assigneeResolve type="ApproverPick" params="" />
+          <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+          <sf:NodePolicy json="{&quot;approveType&quot;:1,&quot;assignEmptyHandlerType&quot;:2,&quot;skipExpression&quot;:&quot;skipAudit=\&quot;Y\&quot;&quot;,&quot;signEnable&quot;:false,&quot;fieldsPermission&quot;:[]}" />
+        </bpmn:extensionElements>
+      </bpmn:userTask>
+      <bpmn:endEvent id="SubEnd_1" sf:code="SubEnd" name="子结束">
+        <bpmn:incoming>sf2</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="sf1" sourceRef="SubStart_1" targetRef="SubTask_Audit" />
+      <bpmn:sequenceFlow id="sf2" sourceRef="SubTask_Audit" targetRef="SubEnd_1" />
+    </bpmn:subProcess>
+
+    <bpmn:userTask id="Task_Final" sf:code="final" name="办结">
+      <bpmn:incoming>f_from_sub</bpmn:incoming>
+      <bpmn:outgoing>f_end</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" sf:code="End" name="结束">
+      <bpmn:incoming>f_end</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="f_start" sourceRef="Start_1" targetRef="Task_Apply" />
+    <bpmn:sequenceFlow id="f_to_xor" sourceRef="Task_Apply" targetRef="Xor_Split" />
+    <bpmn:sequenceFlow id="f_short" name="days&lt;3" sourceRef="Xor_Split" targetRef="Task_Manager">
+      <bpmn:conditionExpression>days &lt; 3</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_long" name="days&gt;=3" sourceRef="Xor_Split" targetRef="And_Split">
+      <bpmn:conditionExpression>days &gt;= 3</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_mgr_join" sourceRef="Task_Manager" targetRef="Xor_Join" />
+    <bpmn:sequenceFlow id="f_dept" sourceRef="And_Split" targetRef="Task_Dept" />
+    <bpmn:sequenceFlow id="f_hr" sourceRef="And_Split" targetRef="Task_Hr" />
+    <bpmn:sequenceFlow id="f_dept_join" sourceRef="Task_Dept" targetRef="And_Join" />
+    <bpmn:sequenceFlow id="f_hr_join" sourceRef="Task_Hr" targetRef="And_Join" />
+    <bpmn:sequenceFlow id="f_director" sourceRef="And_Join" targetRef="Task_Director" />
+    <bpmn:sequenceFlow id="f_dir_join" sourceRef="Task_Director" targetRef="Xor_Join" />
+    <bpmn:sequenceFlow id="f_to_sub" sourceRef="Xor_Join" targetRef="Sub_Audit" />
+    <bpmn:sequenceFlow id="f_from_sub" sourceRef="Sub_Audit" targetRef="Task_Final" />
+    <bpmn:sequenceFlow id="f_end" sourceRef="Task_Final" targetRef="End_1" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="sail-seed-complex-route">
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="132" y="252" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Apply_di" bpmnElement="Task_Apply">
+        <dc:Bounds x="210" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Xor_Split_di" bpmnElement="Xor_Split" isMarkerVisible="true">
+        <dc:Bounds x="360" y="252" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Manager_di" bpmnElement="Task_Manager">
+        <dc:Bounds x="470" y="120" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="And_Split_di" bpmnElement="And_Split">
+        <dc:Bounds x="490" y="340" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Dept_di" bpmnElement="Task_Dept">
+        <dc:Bounds x="600" y="280" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Hr_di" bpmnElement="Task_Hr">
+        <dc:Bounds x="600" y="400" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="And_Join_di" bpmnElement="And_Join">
+        <dc:Bounds x="760" y="340" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Director_di" bpmnElement="Task_Director">
+        <dc:Bounds x="860" y="325" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Xor_Join_di" bpmnElement="Xor_Join" isMarkerVisible="true">
+        <dc:Bounds x="1020" y="252" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Audit_di" bpmnElement="Sub_Audit" isExpanded="true">
+        <dc:Bounds x="1120" y="190" width="280" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubStart_1_di" bpmnElement="SubStart_1">
+        <dc:Bounds x="1145" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubTask_Audit_di" bpmnElement="SubTask_Audit">
+        <dc:Bounds x="1210" y="220" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubEnd_1_di" bpmnElement="SubEnd_1">
+        <dc:Bounds x="1340" y="242" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Final_di" bpmnElement="Task_Final">
+        <dc:Bounds x="1460" y="230" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_1_di" bpmnElement="End_1">
+        <dc:Bounds x="1620" y="252" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="f_start_di" bpmnElement="f_start">
+        <di:waypoint x="168" y="270" /><di:waypoint x="210" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_to_xor_di" bpmnElement="f_to_xor">
+        <di:waypoint x="310" y="270" /><di:waypoint x="360" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_short_di" bpmnElement="f_short">
+        <di:waypoint x="385" y="252" /><di:waypoint x="385" y="160" /><di:waypoint x="470" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_long_di" bpmnElement="f_long">
+        <di:waypoint x="385" y="302" /><di:waypoint x="385" y="365" /><di:waypoint x="490" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_mgr_join_di" bpmnElement="f_mgr_join">
+        <di:waypoint x="590" y="160" /><di:waypoint x="1045" y="160" /><di:waypoint x="1045" y="252" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_dept_di" bpmnElement="f_dept">
+        <di:waypoint x="515" y="340" /><di:waypoint x="515" y="320" /><di:waypoint x="600" y="320" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_hr_di" bpmnElement="f_hr">
+        <di:waypoint x="515" y="390" /><di:waypoint x="515" y="440" /><di:waypoint x="600" y="440" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_dept_join_di" bpmnElement="f_dept_join">
+        <di:waypoint x="700" y="320" /><di:waypoint x="785" y="320" /><di:waypoint x="785" y="340" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_hr_join_di" bpmnElement="f_hr_join">
+        <di:waypoint x="700" y="440" /><di:waypoint x="785" y="440" /><di:waypoint x="785" y="390" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_director_di" bpmnElement="f_director">
+        <di:waypoint x="810" y="365" /><di:waypoint x="860" y="365" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_dir_join_di" bpmnElement="f_dir_join">
+        <di:waypoint x="960" y="365" /><di:waypoint x="1045" y="365" /><di:waypoint x="1045" y="302" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_to_sub_di" bpmnElement="f_to_sub">
+        <di:waypoint x="1070" y="277" /><di:waypoint x="1120" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf1_di" bpmnElement="sf1">
+        <di:waypoint x="1181" y="260" /><di:waypoint x="1210" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf2_di" bpmnElement="sf2">
+        <di:waypoint x="1310" y="260" /><di:waypoint x="1340" y="260" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_from_sub_di" bpmnElement="f_from_sub">
+        <di:waypoint x="1400" y="270" /><di:waypoint x="1460" y="270" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_end_di" bpmnElement="f_end">
+        <di:waypoint x="1560" y="270" /><di:waypoint x="1620" y="270" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

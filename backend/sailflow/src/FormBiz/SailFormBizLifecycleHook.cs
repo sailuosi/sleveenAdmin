@@ -1,39 +1,24 @@
-using sailflow.engine.Event;
+using sailflow.biz.Approval;
 using sailflow.engine.Hooks;
 
 namespace SleveenAdmin.Sailflow.FormBiz;
 
-/// <summary>§H：流程终态 → 按 BizChannel(=FormCode) 调 Handler.OnFinish。</summary>
+/// <summary>
+/// 遗留类型：委托 <see cref="SailApprovalBusinessLifecycleHook"/>。
+/// 新宿主请用 <c>UseApprovalBusiness</c> / <c>UseFormBizLifecycleHook</c>。
+/// </summary>
+[Obsolete("Use sailflow.biz.Approval.SailApprovalBusinessLifecycleHook via UseApprovalBusiness.")]
 public sealed class SailFormBizLifecycleHook : FlowHookBase
 {
-    readonly IReadOnlyDictionary<string, ISailFormBizHandler> _map;
+    readonly SailApprovalBusinessLifecycleHook _inner;
 
     public SailFormBizLifecycleHook(IEnumerable<ISailFormBizHandler> handlers)
     {
-        _map = handlers
-            .Where(h => h != null && !string.IsNullOrWhiteSpace(h.FormCode))
-            .ToDictionary(h => h.FormCode.Trim(), h => h, StringComparer.OrdinalIgnoreCase);
+        _inner = new SailApprovalBusinessLifecycleHook(handlers);
     }
 
-    public override string Name => "sail.formbiz.lifecycle";
-    public override string Title => "表单业务终态回写";
+    public override string Name => _inner.Name;
+    public override string Title => _inner.Title;
 
-    public override void Handle(FlowHookContext ctx)
-    {
-        if (string.IsNullOrWhiteSpace(ctx.BizChannel)) return;
-        if (!_map.TryGetValue(ctx.BizChannel, out var handler)) return;
-        if (string.IsNullOrWhiteSpace(ctx.BizPK)) return;
-
-        handler.OnFinish(new SailFormBizContext
-        {
-            FormCode = handler.FormCode,
-            BizChannel = ctx.BizChannel,
-            BizPK = ctx.BizPK,
-            ProcessInstanceId = string.IsNullOrWhiteSpace(ctx.ProcessInstanceId)
-                ? ""
-                : ctx.ProcessInstanceId.Trim(),
-            FinishEvent = ctx.EventType,
-            Kit = ctx.Kit
-        });
-    }
+    public override void Handle(FlowHookContext ctx) => _inner.Handle(ctx);
 }

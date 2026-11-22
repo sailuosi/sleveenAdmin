@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:sf="http://www.sailflow.com/schema/sf"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  id="Definitions_complexcond" targetNamespace="http://bpmn.io/schema/bpmn">
+  <!--
+    复杂条件路由测试：
+    - XOR：amount / urgency 组合条件（&amp;&amp; / ||）
+    - Inclusive：needLegal / needFinance 多选条件
+    发起时需传入条件变量：amount, urgency, needLegal, needFinance（知会为 Inclusive 默认无条件支路）
+  -->
+  <bpmn:process id="sail-seed-complex-cond" name="复杂条件网关" isExecutable="true"
+    sf:code="SEED_COMPLEX_COND" sf:version="1">
+    <bpmn:startEvent id="Start_1" sf:code="Start" name="开始">
+      <bpmn:outgoing>f_start</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Apply" sf:code="apply" name="填写申请">
+      <bpmn:incoming>f_start</bpmn:incoming>
+      <bpmn:outgoing>f_to_xor</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Xor_Split" sf:code="xor_amount" name="金额紧急度">
+      <bpmn:incoming>f_to_xor</bpmn:incoming>
+      <bpmn:outgoing>f_fast</bpmn:outgoing>
+      <bpmn:outgoing>f_normal</bpmn:outgoing>
+      <bpmn:outgoing>f_high</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:userTask id="Task_Fast" sf:code="fast" name="快速通道">
+      <bpmn:incoming>f_fast</bpmn:incoming>
+      <bpmn:outgoing>f_fast_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_Normal" sf:code="normal" name="常规审批">
+      <bpmn:incoming>f_normal</bpmn:incoming>
+      <bpmn:outgoing>f_normal_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_High" sf:code="highrisk" name="高风险审批">
+      <bpmn:incoming>f_high</bpmn:incoming>
+      <bpmn:outgoing>f_high_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:exclusiveGateway id="Xor_Join" sf:code="xor_join" name="金额汇合">
+      <bpmn:incoming>f_fast_join</bpmn:incoming>
+      <bpmn:incoming>f_normal_join</bpmn:incoming>
+      <bpmn:incoming>f_high_join</bpmn:incoming>
+      <bpmn:outgoing>f_to_or</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+
+    <bpmn:inclusiveGateway id="Or_Split" sf:code="or_review" name="会签部门">
+      <bpmn:incoming>f_to_or</bpmn:incoming>
+      <bpmn:outgoing>f_legal</bpmn:outgoing>
+      <bpmn:outgoing>f_finance</bpmn:outgoing>
+      <bpmn:outgoing>f_notify</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+
+    <bpmn:userTask id="Task_Legal" sf:code="legal" name="法务审核">
+      <bpmn:incoming>f_legal</bpmn:incoming>
+      <bpmn:outgoing>f_legal_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_Finance" sf:code="finance" name="财务审核">
+      <bpmn:incoming>f_finance</bpmn:incoming>
+      <bpmn:outgoing>f_finance_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:userTask id="Task_Notify" sf:code="notify" name="知会登记">
+      <bpmn:incoming>f_notify</bpmn:incoming>
+      <bpmn:outgoing>f_notify_join</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:inclusiveGateway id="Or_Join" sf:code="or_join" name="部门汇合">
+      <bpmn:incoming>f_legal_join</bpmn:incoming>
+      <bpmn:incoming>f_finance_join</bpmn:incoming>
+      <bpmn:incoming>f_notify_join</bpmn:incoming>
+      <bpmn:outgoing>f_to_archive</bpmn:outgoing>
+    </bpmn:inclusiveGateway>
+
+    <bpmn:userTask id="Task_Archive" sf:code="archive" name="归档">
+      <bpmn:incoming>f_to_archive</bpmn:incoming>
+      <bpmn:outgoing>f_end</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" sf:code="End" name="结束">
+      <bpmn:incoming>f_end</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="f_start" sourceRef="Start_1" targetRef="Task_Apply" />
+    <bpmn:sequenceFlow id="f_to_xor" sourceRef="Task_Apply" targetRef="Xor_Split" />
+    <bpmn:sequenceFlow id="f_fast" name="小额且低紧急" sourceRef="Xor_Split" targetRef="Task_Fast">
+      <bpmn:conditionExpression>amount &lt; 1000 &amp;&amp; urgency = "low"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_normal" name="常规金额" sourceRef="Xor_Split" targetRef="Task_Normal">
+      <bpmn:conditionExpression>amount &gt;= 1000 &amp;&amp; amount &lt; 50000</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_high" name="大额或高紧急" sourceRef="Xor_Split" targetRef="Task_High">
+      <bpmn:conditionExpression>amount &gt;= 50000 || urgency = "high"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_fast_join" sourceRef="Task_Fast" targetRef="Xor_Join" />
+    <bpmn:sequenceFlow id="f_normal_join" sourceRef="Task_Normal" targetRef="Xor_Join" />
+    <bpmn:sequenceFlow id="f_high_join" sourceRef="Task_High" targetRef="Xor_Join" />
+    <bpmn:sequenceFlow id="f_to_or" sourceRef="Xor_Join" targetRef="Or_Split" />
+    <bpmn:sequenceFlow id="f_legal" name="需要法务" sourceRef="Or_Split" targetRef="Task_Legal">
+      <bpmn:conditionExpression>needLegal = "Y"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="f_finance" name="需要财务" sourceRef="Or_Split" targetRef="Task_Finance">
+      <bpmn:conditionExpression>needFinance = "Y"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <!-- 无条件：Inclusive 下始终走知会，避免三条件皆空时无出路 -->
+    <bpmn:sequenceFlow id="f_notify" name="默认知会" sourceRef="Or_Split" targetRef="Task_Notify" />
+    <bpmn:sequenceFlow id="f_legal_join" sourceRef="Task_Legal" targetRef="Or_Join" />
+    <bpmn:sequenceFlow id="f_finance_join" sourceRef="Task_Finance" targetRef="Or_Join" />
+    <bpmn:sequenceFlow id="f_notify_join" sourceRef="Task_Notify" targetRef="Or_Join" />
+    <bpmn:sequenceFlow id="f_to_archive" sourceRef="Or_Join" targetRef="Task_Archive" />
+    <bpmn:sequenceFlow id="f_end" sourceRef="Task_Archive" targetRef="End_1" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="sail-seed-complex-cond">
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="152" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Apply_di" bpmnElement="Task_Apply">
+        <dc:Bounds x="230" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Xor_Split_di" bpmnElement="Xor_Split" isMarkerVisible="true">
+        <dc:Bounds x="380" y="212" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Fast_di" bpmnElement="Task_Fast">
+        <dc:Bounds x="490" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Normal_di" bpmnElement="Task_Normal">
+        <dc:Bounds x="490" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_High_di" bpmnElement="Task_High">
+        <dc:Bounds x="490" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Xor_Join_di" bpmnElement="Xor_Join" isMarkerVisible="true">
+        <dc:Bounds x="650" y="212" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Or_Split_di" bpmnElement="Or_Split">
+        <dc:Bounds x="760" y="212" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Legal_di" bpmnElement="Task_Legal">
+        <dc:Bounds x="870" y="80" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Finance_di" bpmnElement="Task_Finance">
+        <dc:Bounds x="870" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Notify_di" bpmnElement="Task_Notify">
+        <dc:Bounds x="870" y="320" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Or_Join_di" bpmnElement="Or_Join">
+        <dc:Bounds x="1030" y="212" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Archive_di" bpmnElement="Task_Archive">
+        <dc:Bounds x="1140" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_1_di" bpmnElement="End_1">
+        <dc:Bounds x="1300" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="f_start_di" bpmnElement="f_start">
+        <di:waypoint x="188" y="230" /><di:waypoint x="230" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_to_xor_di" bpmnElement="f_to_xor">
+        <di:waypoint x="330" y="230" /><di:waypoint x="380" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_fast_di" bpmnElement="f_fast">
+        <di:waypoint x="405" y="212" /><di:waypoint x="405" y="120" /><di:waypoint x="490" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_normal_di" bpmnElement="f_normal">
+        <di:waypoint x="430" y="237" /><di:waypoint x="490" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_high_di" bpmnElement="f_high">
+        <di:waypoint x="405" y="262" /><di:waypoint x="405" y="360" /><di:waypoint x="490" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_fast_join_di" bpmnElement="f_fast_join">
+        <di:waypoint x="590" y="120" /><di:waypoint x="675" y="120" /><di:waypoint x="675" y="212" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_normal_join_di" bpmnElement="f_normal_join">
+        <di:waypoint x="590" y="230" /><di:waypoint x="650" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_high_join_di" bpmnElement="f_high_join">
+        <di:waypoint x="590" y="360" /><di:waypoint x="675" y="360" /><di:waypoint x="675" y="262" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_to_or_di" bpmnElement="f_to_or">
+        <di:waypoint x="700" y="237" /><di:waypoint x="760" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_legal_di" bpmnElement="f_legal">
+        <di:waypoint x="785" y="212" /><di:waypoint x="785" y="120" /><di:waypoint x="870" y="120" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_finance_di" bpmnElement="f_finance">
+        <di:waypoint x="810" y="237" /><di:waypoint x="870" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_notify_di" bpmnElement="f_notify">
+        <di:waypoint x="785" y="262" /><di:waypoint x="785" y="360" /><di:waypoint x="870" y="360" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_legal_join_di" bpmnElement="f_legal_join">
+        <di:waypoint x="970" y="120" /><di:waypoint x="1055" y="120" /><di:waypoint x="1055" y="212" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_finance_join_di" bpmnElement="f_finance_join">
+        <di:waypoint x="970" y="230" /><di:waypoint x="1030" y="237" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_notify_join_di" bpmnElement="f_notify_join">
+        <di:waypoint x="970" y="360" /><di:waypoint x="1055" y="360" /><di:waypoint x="1055" y="262" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_to_archive_di" bpmnElement="f_to_archive">
+        <di:waypoint x="1080" y="237" /><di:waypoint x="1140" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f_end_di" bpmnElement="f_end">
+        <di:waypoint x="1240" y="230" /><di:waypoint x="1300" y="230" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

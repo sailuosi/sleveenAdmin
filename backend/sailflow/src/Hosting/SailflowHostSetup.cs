@@ -65,7 +65,7 @@ public static class SailflowHostSetup
                 .UseDebugConsoleHook() // 开发核验：流程 Hook + 待办 Notifier → TP 风格控制台
                 .UseEndTextLocalize() // Host：按 EndType 写 tk_end_text（同事务 Sync）
                 .UseFlowEventFileLog() // BestEffort：流程事件 Channel → 串行写文件（可丢）
-                .UseFormBizLifecycleHook() // §H：FormCode → OnFinish（含请假 Status）
+                .UseApprovalBusinessForHostFormBiz() // §H：Finish/Aborted + Completing（请假/Dynamic）
                 .UseBizMirrorHook() // stub: console-only; real port later
                 .UseNodePolicyTimeoutStamp() // §A：NodePolicy 超时 → DueAt
                 .UseNodePolicyAutoApproveHook() // 发送成功 → 同人/空人/approveType 入队 AutoApprove

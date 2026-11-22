@@ -1,18 +1,18 @@
 using System.Text.Json;
+using sailflow.biz.Approval;
 using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Service;
-using sailflow.engine.Event;
 
 namespace SleveenAdmin.Sailflow.FormBiz.Handlers;
 
-/// <summary>§H 请假样例：一业务一类；结束态回写 Status。</summary>
+/// <summary>§H 请假样例：一业务一类；Finish/Aborted 回写 Status。</summary>
 public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHandlerBase
 {
     static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
 
     public override string FormCode => SailLeaveStatus.BizChannel;
 
-    public override void OnInit(SailFormBizContext ctx)
+    public override void OnInit(SailApprovalBusinessContext ctx)
     {
         ctx.Data = new
         {
@@ -23,7 +23,7 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
         };
     }
 
-    public override void OnQuery(SailFormBizContext ctx)
+    public override void OnQuery(SailApprovalBusinessContext ctx)
     {
         leave.EnsureTable();
         if (string.IsNullOrWhiteSpace(ctx.BizPK))
@@ -36,7 +36,7 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
             ctx.Error = "not found";
     }
 
-    public override void OnSubmit(SailFormBizContext ctx)
+    public override void OnSubmit(SailApprovalBusinessContext ctx)
     {
         leave.EnsureTable();
         var req = ParsePayload(ctx.PayloadJson);
@@ -66,7 +66,7 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
         ctx.Data = row;
     }
 
-    public override void OnStarted(SailFormBizContext ctx)
+    public override void OnStarted(SailApprovalBusinessContext ctx)
     {
         if (ctx.Data is not SailLeaveEntity row) return;
         if (string.IsNullOrWhiteSpace(ctx.ProcessInstanceId)) return;
@@ -75,18 +75,27 @@ public sealed class LeaveFormBizHandler(SailLeaveService leave) : SailFormBizHan
         ctx.Data = row;
     }
 
-    public override void OnFinish(SailFormBizContext ctx)
+    public override void OnFinish(SailApprovalBusinessContext ctx)
     {
         if (string.IsNullOrWhiteSpace(ctx.BizPK)) return;
-        var status = ctx.FinishEvent switch
-        {
-            EventFireTypeEnum.OnProcessCompleted => SailLeaveStatus.Approved,
-            EventFireTypeEnum.OnProcessRejected => SailLeaveStatus.Rejected,
-            EventFireTypeEnum.OnProcessClosed => SailLeaveStatus.Closed,
-            _ => 0
-        };
+        var status = ResolveFinishStatus(ctx);
         if (status <= 0) return;
         leave.ApplyStatusByBizPK(ctx.BizPK, status, ctx.Kit);
+    }
+
+    public override void OnAborted(SailApprovalBusinessContext ctx)
+    {
+        if (string.IsNullOrWhiteSpace(ctx.BizPK)) return;
+        leave.ApplyStatusByBizPK(ctx.BizPK, SailLeaveStatus.Closed, ctx.Kit);
+    }
+
+    static int ResolveFinishStatus(SailApprovalBusinessContext ctx)
+    {
+        if (string.Equals(ctx.Outcome, ApprovalOutcomeCodes.Approved, StringComparison.OrdinalIgnoreCase))
+            return SailLeaveStatus.Approved;
+        if (string.Equals(ctx.Outcome, ApprovalOutcomeCodes.Rejected, StringComparison.OrdinalIgnoreCase))
+            return SailLeaveStatus.Rejected;
+        return 0;
     }
 
     static LeaveSubmitPayload ParsePayload(string? json)

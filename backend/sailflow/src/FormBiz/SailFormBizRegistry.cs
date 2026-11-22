@@ -1,24 +1,23 @@
+using sailflow.biz.Approval;
+using sailflow.engine.Hooks;
+
 namespace SleveenAdmin.Sailflow.FormBiz;
 
-/// <summary>§H：按 FormCode 路由到唯一业务 Handler。</summary>
+/// <summary>§H：按 FormCode 路由；同码重复登记失败。</summary>
 public sealed class SailFormBizRegistry
 {
-    readonly Dictionary<string, ISailFormBizHandler> _map;
+    readonly SailApprovalBusinessRegistry _inner;
 
     public SailFormBizRegistry(IEnumerable<ISailFormBizHandler> handlers)
     {
-        _map = new Dictionary<string, ISailFormBizHandler>(StringComparer.OrdinalIgnoreCase);
-        foreach (var h in handlers)
-        {
-            if (h == null || string.IsNullOrWhiteSpace(h.FormCode)) continue;
-            _map[h.FormCode.Trim()] = h;
-        }
+        _inner = new SailApprovalBusinessRegistry(handlers);
     }
 
     public ISailFormBizHandler? TryGet(string? formCode)
     {
-        if (string.IsNullOrWhiteSpace(formCode)) return null;
-        return _map.TryGetValue(formCode.Trim(), out var h) ? h : null;
+        var h = _inner.TryGet(formCode);
+        if (h == null) return null;
+        return h as ISailFormBizHandler ?? new Wrapper(h);
     }
 
     public ISailFormBizHandler GetRequired(string formCode)
@@ -30,5 +29,21 @@ public sealed class SailFormBizRegistry
         return h;
     }
 
-    public IReadOnlyCollection<string> RegisteredCodes => _map.Keys.ToList();
+    public IReadOnlyCollection<string> RegisteredCodes => _inner.RegisteredCodes;
+
+    sealed class Wrapper(ISailApprovalBusiness inner) : ISailFormBizHandler
+    {
+        public string FormCode => inner.FormCode;
+        public void OnInit(SailApprovalBusinessContext ctx) => inner.OnInit(ctx);
+        public void OnQuery(SailApprovalBusinessContext ctx) => inner.OnQuery(ctx);
+        public void OnSubmit(SailApprovalBusinessContext ctx) => inner.OnSubmit(ctx);
+        public void OnStarted(SailApprovalBusinessContext ctx) => inner.OnStarted(ctx);
+        public void OnConsent(SailApprovalBusinessContext ctx) => inner.OnConsent(ctx);
+        public void OnBackToModify(SailApprovalBusinessContext ctx) => inner.OnBackToModify(ctx);
+        public void OnCancel(SailApprovalBusinessContext ctx) => inner.OnCancel(ctx);
+        public void OnFinish(SailApprovalBusinessContext ctx) => inner.OnFinish(ctx);
+        public void OnAborted(SailApprovalBusinessContext ctx) => inner.OnAborted(ctx);
+        public HookResult? OnCompleting(FlowOperation operation, SailApprovalBusinessContext ctx)
+            => inner.OnCompleting(operation, ctx);
+    }
 }

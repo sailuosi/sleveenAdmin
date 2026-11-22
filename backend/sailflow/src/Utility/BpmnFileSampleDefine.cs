@@ -19,8 +19,13 @@ public static class BpmnFileSampleDefine
             ["warehousing"] = "samples/bpmn/business/warehousing.bpmn",
             ["andsplitmi"] = "samples/bpmn/logic/andsplitmi.bpmn",
             ["complex"] = "samples/bpmn/logic/complex.bpmn",
+            ["complexcond"] = "samples/bpmn/logic/complexcond.bpmn",
+            ["complexroute"] = "samples/bpmn/logic/complexroute.bpmn",
             ["gateway"] = "samples/bpmn/logic/gateway.bpmn",
             ["multipleinstance"] = "samples/bpmn/logic/multipleinstance.bpmn",
+            ["nestedsub"] = "samples/bpmn/logic/nestedsub.bpmn",
+            ["refsubchild"] = "samples/bpmn/logic/refsubchild.bpmn",
+            ["refsubparent"] = "samples/bpmn/logic/refsubparent.bpmn",
             ["sequence"] = "samples/bpmn/logic/sequence.bpmn",
             ["subprocess"] = "samples/bpmn/logic/subprocess.bpmn"
         };

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:sf="http://www.sailflow.com/schema/sf"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  id="Definitions_refsubparent" targetNamespace="http://bpmn.io/schema/bpmn">
+  <!--
+    引用外部子流程测试：通过 sf:subInfoes 绑定 SEED_REF_CHILD
+    subId = 子流程 ProcessDefId；subProcessId = 子流程 ProcessId
+  -->
+  <bpmn:process id="sail-seed-ref-parent" name="引用子流程-父流程" isExecutable="true"
+    sf:code="SEED_REF_PARENT" sf:version="1">
+    <bpmn:startEvent id="Start_1" sf:code="Start" name="开始">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_Prepare" sf:code="prepare" name="父流程准备">
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:subProcess id="Sub_Ref" sf:code="sub_ref" name="调用子流程">
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:subInfoes>
+          <sf:subInfo subId="c1d2e3f4-a5b6-4789-8abc-def012345601"
+            subProcessId="sail-seed-ref-child"
+            subProcessName="引用子流程-子件"
+            subType="ProcessId"
+            subVar="" />
+        </sf:subInfoes>
+      </bpmn:extensionElements>
+    </bpmn:subProcess>
+
+    <bpmn:userTask id="Task_Finish" sf:code="finish" name="父流程收尾">
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" sf:code="End" name="结束">
+      <bpmn:incoming>f4</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="f1" sourceRef="Start_1" targetRef="Task_Prepare" />
+    <bpmn:sequenceFlow id="f2" sourceRef="Task_Prepare" targetRef="Sub_Ref" />
+    <bpmn:sequenceFlow id="f3" sourceRef="Sub_Ref" targetRef="Task_Finish" />
+    <bpmn:sequenceFlow id="f4" sourceRef="Task_Finish" targetRef="End_1" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="sail-seed-ref-parent">
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="152" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Prepare_di" bpmnElement="Task_Prepare">
+        <dc:Bounds x="230" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Ref_di" bpmnElement="Sub_Ref">
+        <dc:Bounds x="390" y="140" width="120" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Finish_di" bpmnElement="Task_Finish">
+        <dc:Bounds x="570" y="140" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_1_di" bpmnElement="End_1">
+        <dc:Bounds x="730" y="162" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1">
+        <di:waypoint x="188" y="180" /><di:waypoint x="230" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2">
+        <di:waypoint x="330" y="180" /><di:waypoint x="390" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3">
+        <di:waypoint x="510" y="180" /><di:waypoint x="570" y="180" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4">
+        <di:waypoint x="670" y="180" /><di:waypoint x="730" y="180" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

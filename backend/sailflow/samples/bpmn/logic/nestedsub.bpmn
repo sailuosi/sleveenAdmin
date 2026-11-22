@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:sf="http://www.sailflow.com/schema/sf"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  id="Definitions_nestedsub" targetNamespace="http://bpmn.io/schema/bpmn">
+  <!--
+    嵌套子流程测试：subProcess 内含 Start → 审核 → End（Nested，非引用外部定义）
+  -->
+  <bpmn:process id="sail-seed-nested-sub" name="嵌套子流程" isExecutable="true"
+    sf:code="SEED_NESTED_SUB" sf:version="1">
+    <bpmn:startEvent id="Start_1" sf:code="Start" name="开始">
+      <bpmn:outgoing>f1</bpmn:outgoing>
+    </bpmn:startEvent>
+
+    <bpmn:userTask id="Task_ParentIn" sf:code="parent_in" name="父流程受理">
+      <bpmn:incoming>f1</bpmn:incoming>
+      <bpmn:outgoing>f2</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:subProcess id="Sub_Compliance" sf:code="sub_compliance" name="合规子流程">
+      <bpmn:incoming>f2</bpmn:incoming>
+      <bpmn:outgoing>f3</bpmn:outgoing>
+      <bpmn:startEvent id="SubStart_1" sf:code="SubStart" name="子开始">
+        <bpmn:outgoing>sf1</bpmn:outgoing>
+      </bpmn:startEvent>
+      <bpmn:userTask id="SubTask_Check" sf:code="sub_check" name="合规检查">
+        <bpmn:incoming>sf1</bpmn:incoming>
+        <bpmn:outgoing>sf2</bpmn:outgoing>
+        <bpmn:extensionElements>
+          <sf:assigneeResolve type="ApproverPick" params="" />
+          <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+        </bpmn:extensionElements>
+      </bpmn:userTask>
+      <bpmn:userTask id="SubTask_Sign" sf:code="sub_sign" name="合规签字">
+        <bpmn:incoming>sf2</bpmn:incoming>
+        <bpmn:outgoing>sf3</bpmn:outgoing>
+        <bpmn:extensionElements>
+          <sf:assigneeResolve type="ApproverPick" params="" />
+          <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+        </bpmn:extensionElements>
+      </bpmn:userTask>
+      <bpmn:endEvent id="SubEnd_1" sf:code="SubEnd" name="子结束">
+        <bpmn:incoming>sf3</bpmn:incoming>
+      </bpmn:endEvent>
+      <bpmn:sequenceFlow id="sf1" sourceRef="SubStart_1" targetRef="SubTask_Check" />
+      <bpmn:sequenceFlow id="sf2" sourceRef="SubTask_Check" targetRef="SubTask_Sign" />
+      <bpmn:sequenceFlow id="sf3" sourceRef="SubTask_Sign" targetRef="SubEnd_1" />
+    </bpmn:subProcess>
+
+    <bpmn:userTask id="Task_ParentOut" sf:code="parent_out" name="父流程收尾">
+      <bpmn:incoming>f3</bpmn:incoming>
+      <bpmn:outgoing>f4</bpmn:outgoing>
+      <bpmn:extensionElements>
+        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
+      </bpmn:extensionElements>
+    </bpmn:userTask>
+
+    <bpmn:endEvent id="End_1" sf:code="End" name="结束">
+      <bpmn:incoming>f4</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="f1" sourceRef="Start_1" targetRef="Task_ParentIn" />
+    <bpmn:sequenceFlow id="f2" sourceRef="Task_ParentIn" targetRef="Sub_Compliance" />
+    <bpmn:sequenceFlow id="f3" sourceRef="Sub_Compliance" targetRef="Task_ParentOut" />
+    <bpmn:sequenceFlow id="f4" sourceRef="Task_ParentOut" targetRef="End_1" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="sail-seed-nested-sub">
+      <bpmndi:BPMNShape id="Start_1_di" bpmnElement="Start_1">
+        <dc:Bounds x="152" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ParentIn_di" bpmnElement="Task_ParentIn">
+        <dc:Bounds x="230" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Sub_Compliance_di" bpmnElement="Sub_Compliance" isExpanded="true">
+        <dc:Bounds x="380" y="120" width="420" height="220" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubStart_1_di" bpmnElement="SubStart_1">
+        <dc:Bounds x="410" y="202" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubTask_Check_di" bpmnElement="SubTask_Check">
+        <dc:Bounds x="480" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubTask_Sign_di" bpmnElement="SubTask_Sign">
+        <dc:Bounds x="620" y="180" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="SubEnd_1_di" bpmnElement="SubEnd_1">
+        <dc:Bounds x="750" y="202" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_ParentOut_di" bpmnElement="Task_ParentOut">
+        <dc:Bounds x="860" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="End_1_di" bpmnElement="End_1">
+        <dc:Bounds x="1020" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="f1_di" bpmnElement="f1">
+        <di:waypoint x="188" y="230" /><di:waypoint x="230" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f2_di" bpmnElement="f2">
+        <di:waypoint x="330" y="230" /><di:waypoint x="380" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf1_di" bpmnElement="sf1">
+        <di:waypoint x="446" y="220" /><di:waypoint x="480" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf2_di" bpmnElement="sf2">
+        <di:waypoint x="580" y="220" /><di:waypoint x="620" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="sf3_di" bpmnElement="sf3">
+        <di:waypoint x="720" y="220" /><di:waypoint x="750" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f3_di" bpmnElement="f3">
+        <di:waypoint x="800" y="230" /><di:waypoint x="860" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="f4_di" bpmnElement="f4">
+        <di:waypoint x="960" y="230" /><di:waypoint x="1020" y="230" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

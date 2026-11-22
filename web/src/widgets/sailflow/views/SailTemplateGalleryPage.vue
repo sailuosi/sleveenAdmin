@@ -119,7 +119,12 @@ const STD_TEMPLATES = [
   { name: 'MultipleInstance', label: '会签' },
   { name: 'AndSplitMI', label: '并行会签' },
   { name: 'SubProcess', label: '子流程' },
-  { name: 'Complex', label: '综合' }
+  { name: 'Complex', label: '综合' },
+  { name: 'ComplexCond', label: '复杂条件' },
+  { name: 'NestedSub', label: '嵌套子流程' },
+  { name: 'RefSubChild', label: '引用子件' },
+  { name: 'RefSubParent', label: '引用父流程' },
+  { name: 'ComplexRoute', label: '综合复杂路由' }
 ];
 
 const BIZ_TEMPLATES = [
