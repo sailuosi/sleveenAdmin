@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using sailflow.engine.Client;
 using sailflow.engine.Common;
 using sailflow.engine.Result;
 using sailflow.engine.Service;
@@ -27,11 +28,16 @@ public class WfBizStartController : ControllerBase
 {
     private readonly SailReleaseService _release;
     private readonly IWorkflowService _wf;
+    private readonly SailClient _sail;
 
-    public WfBizStartController(SailReleaseService release, IWorkflowService wf)
+    public WfBizStartController(
+        SailReleaseService release,
+        IWorkflowService wf,
+        SailClient sail)
     {
         _release = release;
         _wf = wf;
+        _sail = sail;
     }
 
     /// <summary>POST api/WfBizStart/Resolve</summary>

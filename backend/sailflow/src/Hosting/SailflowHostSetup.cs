@@ -16,6 +16,7 @@ using sailflow.hub.Hosting;
 using SleveenAdmin.Foundation.Data;
 using SleveenAdmin.Sailflow.Assignee;
 using SleveenAdmin.Sailflow.BizMirror;
+using SleveenAdmin.Sailflow.ConditionVars;
 using SleveenAdmin.Sailflow.FormBiz;
 using SleveenAdmin.Sailflow.Hooks;
 using SleveenAdmin.Sailflow.Integration.UnifiedReport;
@@ -113,6 +114,9 @@ public static class SailflowHostSetup
             client.UseSleveenNodePolicyAssignee(configuration);
             // 实例预选：Type=Preselect → sf_preselect_assignee（Store 与 DI Scoped 同实现类，此处用新实例绑同一 SailClient）
             client.UseSleveenPreselectAssignees(new SleveenPreselectAssigneeStore(client));
+
+            // 业务表单 → 网关 Conditions（原生 NextStepPrepare）
+            client.UseSailBizConditionPrepares();
 
             // LogSinkKind=HostLogger 时转发 ILogger；Table/File 由 UseBizData PostBuild 处理
             if (client.DataLifecycleOptions?.LogSinkKind == EngineLogSinkKind.HostLogger)
