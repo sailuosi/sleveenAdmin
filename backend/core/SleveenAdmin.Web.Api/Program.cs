@@ -15,6 +15,7 @@ using SleveenAdmin.Foundation.AspNet;
 using SleveenAdmin.Foundation.Auth;
 using SleveenAdmin.Foundation.Configuration;
 using SleveenAdmin.Foundation.Data;
+using SleveenAdmin.Foundation.Diagnostics;
 using SleveenAdmin.Foundation.Models;
 using SleveenAdmin.Foundation.Options;
 using SleveenAdmin.Foundation.Storage;
@@ -33,6 +34,9 @@ using SleveenAdmin.Web.Api.Swagger;
 using SleveenAdmin.Web.Api.Spa;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (builder.Environment.IsDevelopment())
+    builder.Logging.AddDevConsoleFormatter();
 
 builder.Configuration.AddMooJsonShards(builder.Environment);
 // 兼容旧路径 Configration/llm.json（ModelProvider 覆盖 Ai 密钥）

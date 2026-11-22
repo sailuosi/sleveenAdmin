@@ -130,6 +130,21 @@ public partial class Wf2XmlController
         }
     }
 
+    /// <summary>POST api/Wf2Xml/AddAssigneeProcess · 加人（扁节点增量）</summary>
+    [HttpPost]
+    public async Task<ResponseResult> AddAssigneeProcess([FromBody] FlowCommandContext runner)
+    {
+        try
+        {
+            SailAuthIdentity.BindRunner(User, runner);
+            return FromExecuted(await _workflowService.AddAssigneeProcessAsync(runner, HttpContext.RequestAborted));
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult.Error(ex.Message);
+        }
+    }
+
     /// <summary>POST api/Wf2Xml/UrgeProcess · 催办</summary>
     [HttpPost]
     public async Task<ResponseResult> UrgeProcess([FromBody] FlowCommandContext runner)
@@ -1122,7 +1137,7 @@ public partial class Wf2XmlController
 
     static bool IsConsultLockedButton(string? id) =>
         id is "Approve" or "Reject" or "SendBack" or "SignForward" or "RemoveAssignee"
-            or "ChangeAssignee" or "Urge" or "Transfer" or "Delegate"
+            or "ChangeAssignee" or "AddAssignee" or "Urge" or "Transfer" or "Delegate"
             or "Revise" or "Resend" or "Jump" or "Close";
 
     private static ResponseResult FromExecuted(WfExecutedResult wfResult)

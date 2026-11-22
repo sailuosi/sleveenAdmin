@@ -69,6 +69,14 @@ export const SAIL_BUTTON_CATALOG: SailButtonDef[] = [
     note: '管理向：NextActivityPerformers=新办理人全集（差量增删）'
   },
   {
+    id: 'AddAssignee',
+    displayName: '加人',
+    engine: 'AddAssigneeProcess',
+    contexts: ['handle', 'admin'],
+    defaultEnable: false,
+    note: '扁节点追加普通办理人（增量）；也可经加签对话框「普通加人」路由；不压加签栈'
+  },
+  {
     id: 'Urge',
     displayName: '催办',
     engine: 'UrgeProcess',

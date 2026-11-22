@@ -24,6 +24,8 @@ public static class SailButtonsCatalog
         new() { Id = "RemoveAssignee", DisplayName = "减签", Enable = true, Engine = "RemoveAssigneeProcess" },
         // 管理向：默认关；节点显式启用
         new() { Id = "ChangeAssignee", DisplayName = "改派", Enable = false, Engine = "ChangeAssigneeProcess" },
+        // 管理向：扁节点追加普通办理人；也可经加签对话框「普通加人」路由
+        new() { Id = "AddAssignee", DisplayName = "加人", Enable = false, Engine = "AddAssigneeProcess" },
         new() { Id = "Urge", DisplayName = "催办", Enable = false, Engine = "UrgeProcess" },
         new() { Id = "Transfer", DisplayName = "转办", Enable = true, Engine = "TransferProcess" },
         // 默认关：与转办易混；办完自动回转原人

@@ -247,6 +247,14 @@
           {{ btnLabel('ChangeAssignee') }}
         </el-button>
         <el-button
+          v-if="btnOn('AddAssignee') && !consultPending"
+          plain
+          :loading="loading"
+          @click="openAddAssignee"
+        >
+          {{ btnLabel('AddAssignee') }}
+        </el-button>
+        <el-button
           v-if="btnOn('Urge') && !consultPending"
           plain
           :loading="loading"
@@ -458,6 +466,41 @@
       </template>
     </el-dialog>
 
+    <!-- 加人：扁节点增量追加 -->
+    <el-dialog
+      v-model="addVisible"
+      :title="btnLabel('AddAssignee')"
+      width="520px"
+      destroy-on-close
+    >
+      <el-form label-width="100px">
+        <el-form-item label="追加办理人" required>
+          <el-select
+            v-model="addUserIds"
+            multiple
+            filterable
+            style="width: 100%"
+            placeholder="选择要追加的办理人"
+          >
+            <el-option
+              v-for="u in addCandidateOptions"
+              :key="userKey(u)"
+              :label="userLabel(u)"
+              :value="userKey(u)"
+            />
+          </el-select>
+          <div class="sf-op-pop__hint">仅扁节点；按节点 Leave 计票，不压加签栈</div>
+        </el-form-item>
+        <el-form-item label="意见">
+          <el-input v-model="addComment" type="textarea" :rows="2" placeholder="可选" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="addVisible = false">取消</el-button>
+        <el-button type="primary" :loading="loading" @click="onAddAssignee">确认加人</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 催办 -->
     <el-dialog v-model="urgeVisible" :title="btnLabel('Urge')" width="480px" destroy-on-close>
       <el-form label-width="90px">
@@ -486,7 +529,7 @@
       </template>
     </el-dialog>
 
-    <!-- 加签 -->
+    <!-- 加签（含「普通加人」UX 路由 → AddAssignee） -->
     <el-dialog v-model="signVisible" title="加签" width="520px" destroy-on-close>
       <el-form label-width="90px">
         <el-form-item label="加签类型">
@@ -494,9 +537,13 @@
             <el-radio value="SignForwardParallel">并加签</el-radio>
             <el-radio value="SignForwardBefore">前加签</el-radio>
             <el-radio value="SignForwardBehind">后加签</el-radio>
+            <el-radio value="AddAssignee">普通加人</el-radio>
           </el-radio-group>
+          <div v-if="signForwardType === 'AddAssignee'" class="sf-op-pop__hint">
+            扁节点追加普通办理人，不压加签栈；次序跟节点 Leave
+          </div>
         </el-form-item>
-        <el-form-item label="加签人" required>
+        <el-form-item :label="signForwardType === 'AddAssignee' ? '办理人' : '加签人'" required>
           <el-select
             v-model="signUserIds"
             multiple
@@ -513,7 +560,7 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item v-if="signUserIds.length" label="票权">
+        <el-form-item v-if="signUserIds.length && signForwardType !== 'AddAssignee'" label="票权">
           <div class="sf-sign-weights">
             <div v-for="uid in signUserIds" :key="uid" class="sf-sign-weights__row">
               <span>{{ signUserLabel(uid) }}</span>
@@ -531,7 +578,9 @@
       </el-form>
       <template #footer>
         <el-button @click="signVisible = false">取消</el-button>
-        <el-button type="primary" :loading="loading" @click="onSignForward">确认加签</el-button>
+        <el-button type="primary" :loading="loading" @click="onSignForward">
+          {{ signForwardType === 'AddAssignee' ? '确认加人' : '确认加签' }}
+        </el-button>
       </template>
     </el-dialog>
 
@@ -820,6 +869,9 @@ const removeComment = ref('');
 const changeVisible = ref(false);
 const changeUserIds = ref<string[]>([]);
 const changeComment = ref('');
+const addVisible = ref(false);
+const addUserIds = ref<string[]>([]);
+const addComment = ref('');
 const urgeVisible = ref(false);
 const urgeUserIds = ref<string[]>([]);
 const router = useRouter();
@@ -849,6 +901,18 @@ const changeCandidateOptions = computed(() => {
     }
   }
   return Array.from(map.values());
+});
+/** 加人候选：排除当前已打开办理人 */
+const addCandidateOptions = computed(() => {
+  const open = new Set(
+    currentAssignees.value
+      .map(u => String(u.UserId || u.userId || ''))
+      .filter(Boolean)
+  );
+  return allUsers.value.filter(u => {
+    const k = userKey(u as never);
+    return k && !open.has(k);
+  });
 });
 
 async function loadMySignature() {
@@ -894,7 +958,7 @@ const sendBackVisible = ref(false);
 const sendBackActivityId = ref('');
 const sendBackUserIds = ref<string[]>([]);
 const signVisible = ref(false);
-/** 对齐引擎 SignForwardTypeEnum：SignForwardParallel / Before / Behind */
+/** 前三对齐 SignForwardTypeEnum；AddAssignee 为 UX 路由（不进 SignForwardType） */
 const signForwardType = ref('SignForwardParallel');
 const signUserIds = ref<string[]>([]);
 /** 加签人票权；默认 1 */
@@ -1301,6 +1365,40 @@ async function onChangeAssignee() {
   }
 }
 
+function openAddAssignee() {
+  addUserIds.value = [];
+  addComment.value = '';
+  addVisible.value = true;
+}
+
+async function onAddAssignee() {
+  if (!addUserIds.value.length) {
+    ElMessage.warning('请选择要追加的办理人');
+    return;
+  }
+  const activityId =
+    pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'add';
+  const runner = buildRunner({
+    NextActivityPerformers: withNextPerformers(
+      String(activityId),
+      addUserIds.value,
+      addCandidateOptions.value as never[]
+    )
+  });
+  if (addComment.value.trim()) {
+    runner.Conditions = {
+      ...(runner.Conditions || {}),
+      comment: addComment.value.trim()
+    };
+  }
+  const ok = await execButton('AddAssignee', runner, '已加人');
+  if (ok) {
+    addVisible.value = false;
+    addUserIds.value = [];
+    addComment.value = '';
+  }
+}
+
 function openUrge() {
   urgeUserIds.value = [];
   urgeVisible.value = true;
@@ -1385,13 +1483,32 @@ function signUserLabel(uid: string) {
 
 async function onSignForward() {
   if (!signUserIds.value.length) {
-    ElMessage.warning('请选择加签人');
+    ElMessage.warning(signForwardType.value === 'AddAssignee' ? '请选择办理人' : '请选择加签人');
     return;
   }
-  syncSignWeights();
   const activityId = String(
     pickField(props.task, 'ActivityId', 'activityId') || selectedActivityId.value || 'sign'
   );
+  // 普通加人：UX 融进加签对话框，底层走 AddAssignee（不传 SignForwardType）
+  if (signForwardType.value === 'AddAssignee') {
+    const okAdd = await execButton(
+      'AddAssignee',
+      buildRunner({
+        NextActivityPerformers: withNextPerformers(
+          activityId,
+          signUserIds.value,
+          allUsers.value as never[]
+        )
+      }),
+      '已加人'
+    );
+    if (okAdd) {
+      signVisible.value = false;
+      signUserIds.value = [];
+    }
+    return;
+  }
+  syncSignWeights();
   // 只传子型：前/后由引擎写 Sequence+Count=席位数；并加签写 Parallel+Percentage=1。禁 count/1。
   const ok = await execButton(
     'SignForward',
