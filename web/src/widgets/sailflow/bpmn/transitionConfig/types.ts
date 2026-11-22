@@ -1,4 +1,4 @@
-/** 连接线（SequenceFlow）配置模型，对齐侧栏「转移」+ 芋道流转条件 */
+/** 连接线（SequenceFlow）配置模型，对齐侧栏「转移」+ 流转条件 */
 
 export type SailFlowType = 'normal' | 'default' | 'condition';
 

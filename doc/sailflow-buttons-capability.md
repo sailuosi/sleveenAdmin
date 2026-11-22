@@ -1,6 +1,6 @@
 # Sail 办理按钮管理与能力对齐
 
-> 对照 n_flowable / 芋道「操作按钮设置」，在 Sail 侧用 **引擎真实命令** 建码表，设计器可按节点启停/改名，办理条按配置 + 运行态上下文显隐。  
+> 对照 n_flowable「操作按钮设置」，在 Sail 侧用 **引擎真实命令** 建码表，设计器可按节点启停/改名，办理条按配置 + 运行态上下文显隐。  
 > 日期：2026-11-01
 
 ---
@@ -12,7 +12,7 @@
 | 能力对齐 | 按钮一一对应 `IWorkflowService` / Host 产品 API，禁止空壳按钮 |
 | 节点可配 | BPMN `sf:ButtonsSetting`：enable + displayName |
 | 办理消费 | `GetApprovalWorkbench.ButtonsSetting` → `SailOperationBar` |
-| 与芋道差异 | 不照搬转办/委派语义；Sail 特有撤回/重发/跳转/修订/反转进码表 |
+| 与参照差异 | 不照搬转办/委派语义；Sail 特有撤回/重发/跳转/修订/反转进码表 |
 
 ---
 

@@ -21,10 +21,10 @@
 |---|------|------|
 | C1 | **引擎不换** | 禁止把 `mooSQL.NFlow.Pure` / Activiti 形状引擎迁入替换 `sailflow.engine`；运行语义继续是 Slickflow/Sail 系：`Start/Run/Reject/SendBack/Withdraw/Jump/SignForward…` |
 | C2 | **Host 可加厚** | `backend/sailflow` 只做 HTTP 适配：补齐分页待办、任务视图、下一跳树、表单 CRUD/字段权、实例详情、Outbox 管理等；业务查询优先落 `sailflow.biz.query` |
-| C3 | **前端可整包复刻 UX** | 交互与信息架构对齐 n_flowable（芋道 BPM 壳），但 API 契约改为 Sail 形状（`ResponseResult` / `FlowCommandContext` / `TaskViewEntity`），**不**照搬 `/bpm/*` 到引擎内 |
-| C4 | **设计器双轨** | **保留**现有 `widgets/sailflow` BPMN 设计器（Performers / AI / RuleTask / Variables / Multisign…）；n_flowable 的 Simple 设计器与表单设计器按需引入；**不**用芋道 BPMN 面板整体替换 Sail 设计器 |
+| C3 | **前端可整包复刻 UX** | 交互与信息架构对齐 n_flowable（BPM 办理壳），但 API 契约改为 Sail 形状（`ResponseResult` / `FlowCommandContext` / `TaskViewEntity`），**不**照搬 `/bpm/*` 到引擎内 |
+| C4 | **设计器双轨** | **保留**现有 `widgets/sailflow` BPMN 设计器（Performers / AI / RuleTask / Variables / Multisign…）；n_flowable 的 Simple 设计器与表单设计器按需引入；**不**用外部 BPMN 面板整体替换 Sail 设计器 |
 | C5 | **特色必保** | 规则集、AI 模型、知识库、AxConfig、Hook/Gate/Outbox、模板库、变量表——菜单与能力不得因复刻被删掉 |
-| C6 | **组织/权限走宿主** | 选人/选部门/角色对齐 sleveen 现有 HR/用户 API（对标 n_flowable `adapters/`），不引入芋道系统域 |
+| C6 | **组织/权限走宿主** | 选人/选部门/角色对齐 sleveen 现有 HR/用户 API（对标 n_flowable `adapters/`），不引入外部 BPM 系统域 |
 
 ### 复刻策略（三层）
 
@@ -42,7 +42,7 @@ Engine / 存储语义     ← 保持 sailflow；语义映射而非协议克隆
 
 | 能力域 | n_flowable | 当前 Sailflow@sleveen | 差距性质 |
 |--------|------------|------------------------|----------|
-| BPMN 设计（专业画布） | bpmn-js + 芋道属性面板 | **已有且更深**（`sf:` AI/规则/会签/通知…） | 保留增强，非替换 |
+| BPMN 设计（专业画布） | bpmn-js + 参照属性面板 | **已有且更深**（`sf:` AI/规则/会签/通知…） | 保留增强，非替换 |
 | 简易流程设计 | SimpleProcessDesignerV2 | 无 | 可选复刻（P2） |
 | 流程模型/定义管理 | 分类、四步向导、发布/停用 | 列表 + 设计跳转（弱） | 管理壳需补强 |
 | 表单设计 | form-create designer | 仅 FormPicker 绑 ID | **重大缺口** |
@@ -72,7 +72,7 @@ n_flowable 按钮 → Sail Host（已有或待补）：
 | UX 操作 | n_flowable API | Sail 对应 | 备注 |
 |---------|----------------|-----------|------|
 | 通过 / 同意 | `PUT /bpm/task/approve` | `POST Wf2Xml/RunProcess` | runner + 条件/下一跳/办理人 |
-| 驳回 | `reject` | `RejectProcess` | Sail 驳回语义与芋道「删实例」不同，UI 文案按 Sail |
+| 驳回 | `reject` | `RejectProcess` | Sail 驳回语义与参照「删实例」不同，UI 文案按 Sail |
 | 退回 | `return` + `list-by-return` | `SendBackProcess` + 待补「可退回节点」查询 | 需 Host 暴露上一跳/可退节点 |
 | 转办 | `transfer` | 待补或映射 `ReviseProcess` / 设办理人 API | 以引擎现有能力为准，缺则 Host 封装 |
 | 委派 | `delegate` | 待核实引擎；无则阶段后期 | 不强行伪造语义 |
@@ -201,7 +201,7 @@ web/src/widgets/sailflow/
 ### 5.3 明确禁止
 
 - 替换 `SailClient` / `WorkflowService` 实现为 NFlow `IProcessEngine`
-- 在 `core/pure` 引入芋道表结构或 `/bpm` 合同作为引擎契约
+- 在 `core/pure` 引入外部 BPM 表结构或 `/bpm` 合同作为引擎契约
 - 删除或旁路 AI / Rule / Form / Hook 插槽
 
 ---
@@ -361,11 +361,11 @@ Host：
 
 | 风险 | 影响 | 应对 |
 |------|------|------|
-| 芋道「驳回=结束实例」vs Sail `RejectProcess` | 用户预期不一致 | UI 文案与确认框按 Sail；文档写清 |
+| 参照「驳回=结束实例」vs Sail `RejectProcess` | 用户预期不一致 | UI 文案与确认框按 Sail；文档写清 |
 | `get-approval-detail` 字段多，一次做不完 | S1 延期 | Workbench 分阶段字段；前端兼容空 formConf |
 | form-create 与现有 `sf:forms` 双模型 | 绑定混乱 | 约定：运行时以 Form 表 conf 为准；设计器 FormId 关联 |
 | 照搬 Simple 设计器无法生成合法 Sail XML | 无用功 | S6 先做映射 POC，失败则放弃主路径 |
-| 大段移植 nflow 导致样式/权限指令污染宿主 | 回归 | 严格 `adapters/` + `installSailflow` 隔离；不引入芋道 layout |
+| 大段移植 nflow 导致样式/权限指令污染宿主 | 回归 | 严格 `adapters/` + `installSailflow` 隔离；不引入外部 BPM layout |
 | 为抄送/分类改 pure | 违 C1 | 产品表只放 Host/biz |
 | 并行开发冲掉 AI 设计器 | 特色回退 | PR 门禁：设计器 providers 变更需列出特色回归项 |
 
@@ -419,7 +419,7 @@ Host：
 ### n_flowable
 
 - `doc/progress/README.md`（M0–M5 / M-A / Shell UX）
-- `doc/design/yudao-frontend-nflow-shell-impl.md`
+- `doc/design/nflow-shell-impl.md`（n_flowable 办理壳实现说明）
 - `doc/design/api-gap-bpm.md`
 - `doc/design/nflow-menu-mount.md`
 - `pcweb/src/widgets/nflow/**`

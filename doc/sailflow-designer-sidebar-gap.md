@@ -1,7 +1,7 @@
 # Sail 设计器侧栏 vs 引擎 / n_flowable 缺口表
 
 > 日期：2026-11-01 · 配套实施：图元覆盖（D）+ 各图元齿轮弹窗（C）  
-> 原则：坚持 `sf:` + Host 消费；不整体移植芋道 `bpmnProcessDesigner`。
+> 原则：坚持 `sf:` + Host 消费；不整体移植外部 `bpmnProcessDesigner`。
 
 ## 1. 矩阵
 
@@ -28,7 +28,7 @@
 1. **两套超时**：用户任务逾期 = `sf:Boundaries` + ISO8601 Duration（`PT10M`）；中间定时事件 = BPMN `TimerEventDefinition`（`timeDate` / `timeDuration` / `timeCycle`）。
 2. **表单**：侧栏写 `sf:Forms`；引擎 `ConvertForms()` 仍空——发起/办理以 Host Workbench 读扩展 + Form 服务为准。
 3. **子流程**：Sail 用 `bpmn:SubProcess` + `sf:SubInfoes`，不是 Camunda `CallActivity`/`calledElement`。
-4. **待办人**：不映射芋道 CandidateStrategy 数值枚举；表单字段算人走 `Expression` / `BusinessCallback`。
+4. **待办人**：不映射参照 CandidateStrategy 数值枚举；表单字段算人走 `Expression` / `BusinessCallback`。
 
 ## 3. 本轮不做 / 另开
 

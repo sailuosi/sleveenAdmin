@@ -634,7 +634,7 @@ div.mainpan-lv2{
 	border-radius: 10px;
 	min-width: 0;
 }
-/* nflow 菜单页：多根芋道组件需占满整宽，避免被横向 flex 挤成窄列 */
+/* nflow 菜单页：多根组件需占满整宽，避免被横向 flex 挤成窄列 */
 .mainpan-lv2 > .nflow-bpo-page {
   width: 100%;
   flex: 1 1 auto;

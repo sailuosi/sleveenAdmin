@@ -57,7 +57,7 @@
         <el-alert type="info" :closable="false" show-icon title="变量存 wf_variable，不写入 BPMN XML" />
       </el-card>
 
-      <!-- 2 审批类型（对照芋道） -->
+      <!-- 2 审批类型（对照参照产品） -->
       <el-card shadow="never" class="sf-node-config__card">
         <template #header><span class="sf-node-config__h">审批类型</span></template>
         <el-radio-group v-model="model.policy.approveType">
@@ -99,7 +99,7 @@
             type="info"
             :closable="false"
             show-icon
-            title="Type 为 string 码（非芋道枚举）；RoleGroup≈角色，FixedUsers≈用户，UnitMap/JobRelative≈映射，Expression/BusinessCallback≈表单字段或回调"
+            title="Type 为 string 码（非数值策略枚举）；RoleGroup≈角色，FixedUsers≈用户，UnitMap/JobRelative≈映射，Expression/BusinessCallback≈表单字段或回调"
           />
         </el-card>
 

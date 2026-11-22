@@ -14,7 +14,7 @@
 
 ## 1. 产品一句话
 
-在 sleveen-admin 内提供完整的 **流程工作台**：设计 BPMN（含 AI / 规则 / 会签等 Sail 扩展）→ 设计动态表单 → 发布流程 → 发起与待办办理 → 实例追溯与运维（Outbox / 报表 / 分类），运行语义始终走 **Sail 引擎命令**（`Start/Run/Reject/SendBack/…`），前端 UX 对齐芋道式办理壳，但 API 为 Sail 形状。
+在 sleveen-admin 内提供完整的 **流程工作台**：设计 BPMN（含 AI / 规则 / 会签等 Sail 扩展）→ 设计动态表单 → 发布流程 → 发起与待办办理 → 实例追溯与运维（Outbox / 报表 / 分类），运行语义始终走 **Sail 引擎命令**（`Start/Run/Reject/SendBack/…`），前端 UX 对齐 n_flowable 式办理壳，但 API 为 Sail 形状。
 
 ---
 
@@ -82,7 +82,7 @@
 | 流程分类 | 可用 | `sf_process_category` + AppType 绑定；拖拽树未做 |
 | 流程模板库 | 可用 | `/sail/templates` + `CreateProcessByTemplate` |
 | 简易流程设计器 | 暂缓 | 无无损 Sail XML 映射前不进菜单 |
-| 芋道 BPMN 面板整体替换 | **禁止** | 保留现有 `widgets/sailflow` 设计器 |
+| 外部 BPMN 面板整体替换 | **禁止** | 保留现有 `widgets/sailflow` 设计器 |
 
 ### 3.3 表单
 
@@ -141,7 +141,7 @@
 UX / 页面          ← widgets/sailflow（可对齐 n_flowable 信息架构）
 Host API           ← backend/sailflow（ResponseResult / FlowCommandContext）
 Engine / 存储      ← sailflow（语义映射，禁止换引擎）
-组织 / 登录        ← sleveen 宿主（adapters；勿引入芋道系统域）
+组织 / 登录        ← sleveen 宿主（adapters；勿引入外部 BPM 系统域）
 ```
 
 | ID | 约束 |
@@ -238,12 +238,12 @@ web/src/widgets/sailflow/
 
 ## 8. 办理操作语义（用户可见文案）
 
-Sail 与芋道 BPM 按钮同名时，**语义可能不同**，产品文案必须以 Sail 为准：
+Sail 与常见 BPM 按钮同名时，**语义可能不同**，产品文案必须以 Sail 为准：
 
 | 操作 | Sail 行为要点 | 勿误解为 |
 |------|---------------|----------|
 | 通过 | `RunProcess`，可带条件、下一跳活动与办理人 | — |
-| 驳回 | `RejectProcess` | 芋道「驳回即删/结束整单」的默认预期 |
+| 驳回 | `RejectProcess` | 「驳回即删/结束整单」的默认预期 |
 | 退回 | `SendBackProcess` + 选可退节点 | 与驳回不同：回到历史节点继续 |
 | 撤回 / 重发 | `WithdrawProcess` / `ResendProcess` | Sail 特色路径，办理条按状态显隐 |
 | 加签 | `SignForwardProcess` | 对齐 `sf:multisign` / 会签，非简单抄送 |
