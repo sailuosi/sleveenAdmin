@@ -15,7 +15,7 @@ public static class SailCandidateSelectorCatalog
             doc.LoadXml(xml);
             var nsmgr = new XmlNamespaceManager(doc.NameTable);
             nsmgr.AddNamespace("bpmn", "http://www.omg.org/spec/BPMN/20100524/MODEL");
-            nsmgr.AddNamespace("sf", "http://www.saiflow.com/schema/sf");
+            nsmgr.AddNamespace("sf", "http://www.sailflow.com/schema/sf");
 
             XmlNode? activity =
                 doc.SelectSingleNode($"//*[@id='{EscapeXPath(activityId)}']") ??
@@ -23,8 +23,8 @@ public static class SailCandidateSelectorCatalog
                 doc.SelectSingleNode($"//bpmn:task[@id='{EscapeXPath(activityId)}']", nsmgr);
             if (activity == null) return (null, null);
 
-            XmlNode? sel =
-                activity.SelectSingleNode(".//*[local-name()='CandidateSelector']");
+            XmlNode? sel = activity.SelectSingleNode(
+                ".//*[local-name()='CandidateSelector' or local-name()='candidateSelector']");
             if (sel == null) return (null, null);
 
             var type = sel.Attributes?["type"]?.Value

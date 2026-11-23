@@ -113,7 +113,8 @@ public static class SailNodePolicyCatalog
             doc.LoadXml(xml);
             var nsmgr = new XmlNamespaceManager(doc.NameTable);
             nsmgr.AddNamespace("bpmn", "http://www.omg.org/spec/BPMN/20100524/MODEL");
-            nsmgr.AddNamespace("sf", "http://www.saiflow.com/schema/sf");
+            // 设计器写出 sailflow；历史误写 saiflow 一并注册
+            nsmgr.AddNamespace("sf", "http://www.sailflow.com/schema/sf");
 
             XmlNode? activity =
                 doc.SelectSingleNode($"//*[@id='{EscapeXPath(activityId)}']") ??
@@ -121,11 +122,13 @@ public static class SailNodePolicyCatalog
                 doc.SelectSingleNode($"//bpmn:task[@id='{EscapeXPath(activityId)}']", nsmgr);
 
             if (activity == null)
-                return Merge(null);
+                return ParseJsonRegex(xml!, activityId!);
 
-            XmlNode? policy = activity.SelectSingleNode(".//*[local-name()='NodePolicy']");
+            // bpmn-js 常序列化为 sf:nodePolicy（camelCase）；XPath local-name 大小写敏感
+            XmlNode? policy = activity.SelectSingleNode(
+                ".//*[local-name()='NodePolicy' or local-name()='nodePolicy']");
             if (policy == null)
-                return Merge(null);
+                return ParseJsonRegex(xml!, activityId!);
 
             var json = policy.Attributes?["json"]?.Value
                        ?? policy.Attributes?["sf:json"]?.Value

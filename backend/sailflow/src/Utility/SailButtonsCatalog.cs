@@ -74,7 +74,7 @@ public static class SailButtonsCatalog
             doc.LoadXml(xml);
             var nsmgr = new XmlNamespaceManager(doc.NameTable);
             nsmgr.AddNamespace("bpmn", "http://www.omg.org/spec/BPMN/20100524/MODEL");
-            nsmgr.AddNamespace("sf", "http://www.saiflow.com/schema/sf");
+            nsmgr.AddNamespace("sf", "http://www.sailflow.com/schema/sf");
 
             XmlNode? activity =
                 doc.SelectSingleNode($"//*[@id='{EscapeXPath(activityId)}']") ??
@@ -82,12 +82,12 @@ public static class SailButtonsCatalog
                 doc.SelectSingleNode($"//bpmn:task[@id='{EscapeXPath(activityId)}']", nsmgr);
 
             if (activity == null)
-                return Merge(null);
+                return ParseJsonRegex(xml!, activityId!);
 
-            XmlNode? buttons =
-                activity.SelectSingleNode(".//*[local-name()='ButtonsSetting']");
+            XmlNode? buttons = activity.SelectSingleNode(
+                ".//*[local-name()='ButtonsSetting' or local-name()='buttonsSetting']");
             if (buttons == null)
-                return Merge(null);
+                return ParseJsonRegex(xml!, activityId!);
 
             var json = buttons.Attributes?["json"]?.Value
                        ?? buttons.Attributes?["sf:json"]?.Value
