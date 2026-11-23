@@ -5,8 +5,9 @@ import {
 } from '@sail/bpmn/buttonsCatalog';
 
 /**
- * 从流程 XmlContent 解析指定活动的 sf:ButtonsSetting。
+ * 从流程 XmlContent 解析指定活动的 sf:ButtonsSetting / sf:buttonsSetting。
  * 兼容 attribute json= 与子文本；活动未配置时返回默认码表。
+ * 注意：text/xml 下 querySelector 大小写敏感；bpmn-js 常写出 camelCase。
  */
 export function parseButtonsSettingForActivity(
   xml: string | null | undefined,
@@ -24,25 +25,32 @@ export function parseButtonsSettingForActivity(
       doc.querySelectorAll('userTask, task, *[id]')
     ) as Element[];
     const activity = nodes.find(n => n.getAttribute('id') === activityId);
-    if (!activity) return defaultButtonsSetting();
+    if (!activity) return parseButtonsSettingRegex(xml, activityId);
 
-    const ext =
-      activity.querySelector('ButtonsSetting') ||
-      activity.getElementsByTagNameNS('*', 'ButtonsSetting')[0] ||
-      null;
-    if (!ext) return defaultButtonsSetting();
+    const ext = findButtonsSettingEl(activity);
+    if (!ext) return parseButtonsSettingRegex(xml, activityId);
 
     const json =
       ext.getAttribute('json') ||
       ext.getAttributeNS('*', 'json') ||
       ext.textContent?.trim() ||
       '';
-    if (!json) return defaultButtonsSetting();
+    if (!json) return parseButtonsSettingRegex(xml, activityId);
     const arr = JSON.parse(json) as SailButtonSetting[];
     return mergeButtonsSetting(Array.isArray(arr) ? arr : null);
   } catch {
     return parseButtonsSettingRegex(xml, activityId);
   }
+}
+
+function findButtonsSettingEl(activity: Element): Element | null {
+  const kids = Array.from(activity.getElementsByTagName('*')) as Element[];
+  return (
+    kids.find(el => {
+      const local = el.localName || el.tagName?.split(':').pop() || '';
+      return local.toLowerCase() === 'buttonssetting';
+    }) || null
+  );
 }
 
 function parseButtonsSettingRegex(xml: string, activityId: string): SailButtonSetting[] {
