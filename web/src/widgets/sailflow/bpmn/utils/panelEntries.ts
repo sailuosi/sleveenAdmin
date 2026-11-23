@@ -14,6 +14,7 @@ import {
   getExtension,
   optionName,
   optionValue,
+  removeChildExtension,
   type SelectOption
 } from './sfExtension';
 
@@ -26,6 +27,8 @@ export function makeSelectOnExtension(cfg: {
   extensionType: string;
   prop: string;
   options: SelectOption[];
+  /** Selecting these values removes the whole extension instead of writing the prop. */
+  clearValues?: string[];
 }) {
   function Field(props: { element: unknown; id: string }) {
     const { element, id } = props;
@@ -38,11 +41,23 @@ export function makeSelectOnExtension(cfg: {
       const ext = bo.extensionElements
         ? (bo.extensionElements.values || []).find((e: any) => e.$instanceOf?.(cfg.extensionType))
         : undefined;
-      return optionValue(cfg.options, String(ext?.[cfg.prop] ?? ''));
+      if (!ext && cfg.clearValues?.length) {
+        return cfg.clearValues[0];
+      }
+      const raw = String(ext?.[cfg.prop] ?? '');
+      // Prefer name→value; also accept raw numeric/value already stored on the extension
+      const byName = optionValue(cfg.options, raw);
+      if (byName) return byName;
+      if (cfg.options.some(o => o.value === raw)) return raw;
+      return byName;
     };
 
     const setValue = (value: string) => {
       const bo = getBo(element);
+      if (cfg.clearValues?.includes(value)) {
+        removeChildExtension(bo, cfg.extensionType);
+        return modeling.updateProperties(element, { extensionElements: bo.extensionElements });
+      }
       const ext = ensureChildExtension(bo, cfg.extensionType, moddle);
       ext[cfg.prop] = optionName(cfg.options, value);
       return modeling.updateProperties(element, { extensionElements: bo.extensionElements });

@@ -166,7 +166,7 @@
             <el-col :span="12">
               <el-form-item label="会签类型">
                 <el-select v-model="model.multiSign.complexType" style="width: 100%">
-                  <el-option label="默认" value="0" />
+                  <el-option label="不启用" value="0" />
                   <el-option label="会签" value="1" />
                   <el-option label="加签" value="2" />
                 </el-select>

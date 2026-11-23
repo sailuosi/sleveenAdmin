@@ -50,8 +50,26 @@ export function ensureChildExtension(
   if (!child) {
     child = moddle.create(type);
     (ee.values as ModdleEl[]).push(child);
+  } else if (typeof child.$type === 'string' && child.$type !== type) {
+    // Reuse case-variant (AssigneeResolve vs assigneeResolve); keep camelCase $type from create()
+    const created = moddle.create(type);
+    if (typeof created.$type === 'string') child.$type = created.$type;
   }
   return child;
+}
+
+/** Remove a child extension by type; clear extensionElements when empty. */
+export function removeChildExtension(bo: ModdleEl, type: string): void {
+  const ee = bo.extensionElements;
+  const values = ee?.values;
+  if (!values?.length) return;
+  const next = values.filter(e => !e.$instanceOf?.(type));
+  if (next.length === values.length) return;
+  if (next.length === 0) {
+    bo.extensionElements = undefined;
+  } else {
+    ee!.values = next;
+  }
 }
 
 /**

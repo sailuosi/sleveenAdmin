@@ -19,13 +19,37 @@ export type VueModdleEl = {
 const SF_NS = 'http://www.saiflow.com/schema/sf';
 const BPMN_NS = 'http://www.omg.org/spec/BPMN/20100524/MODEL';
 
+/** Skip when serializing moddle-like objects to XML attrs/children. */
+const SERIALIZE_SKIP = new Set([
+  '$type',
+  '$instanceOf',
+  '$parent',
+  'get',
+  'set',
+  'extensionElements',
+  'values',
+  'actions',
+]);
+
 function localOf(name: string): string {
   return name.includes(':') ? name.split(':')[1]! : name;
 }
 
+/** First-letter lower: AssigneeResolve → assigneeResolve (engine/sample contract). */
+function toCamelLocal(local: string): string {
+  if (!local) return local;
+  return local.charAt(0).toLowerCase() + local.slice(1);
+}
+
+/** Normalize sf: PascalCase types to camelCase so tags match XPath/samples. */
+function normalizeSfType(type: string): string {
+  if (!type.startsWith('sf:')) return type;
+  return `sf:${toCamelLocal(type.slice(3))}`;
+}
+
 function qName(type: string): { prefix: string; local: string; ns: string } {
   if (type.startsWith('sf:')) {
-    return { prefix: 'sf', local: type.slice(3), ns: SF_NS };
+    return { prefix: 'sf', local: toCamelLocal(type.slice(3)), ns: SF_NS };
   }
   if (type.startsWith('bpmn:')) {
     return { prefix: 'bpmn', local: type.slice(5), ns: BPMN_NS };
@@ -33,21 +57,54 @@ function qName(type: string): { prefix: string; local: string; ns: string } {
   return { prefix: '', local: type, ns: '' };
 }
 
+function normalizePropKeys(props: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(props)) {
+    if (k.startsWith('$') || k === 'get' || k === 'set' || k === 'values' || k === 'actions') {
+      out[k] = v;
+      continue;
+    }
+    if (typeof v === 'object' || typeof v === 'function') {
+      out[k] = v;
+      continue;
+    }
+    // Scalar attrs: keep only camelCase key (Type → type)
+    out[toCamelLocal(k)] = v;
+  }
+  return out;
+}
+
 export function createVueModdleEl(type: string, props: Record<string, unknown> = {}): VueModdleEl {
-  const data: Record<string, unknown> = { ...props };
+  const normalizedType = normalizeSfType(type);
+  const normalizedProps = normalizePropKeys(props);
+  const data: Record<string, unknown> = { ...normalizedProps };
   const el: VueModdleEl = {
-    $type: type,
+    $type: normalizedType,
     $instanceOf(t: string) {
-      return el.$type === t || localOf(el.$type) === localOf(t);
+      const a = localOf(el.$type);
+      const b = localOf(t);
+      return el.$type === t || a === b || a.toLowerCase() === b.toLowerCase();
     },
     get(name: string) {
-      return data[name];
+      if (name in data) return data[name];
+      const camel = toCamelLocal(name);
+      if (camel !== name && camel in data) return data[camel];
+      return undefined;
     },
     set(name: string, value: unknown) {
-      data[name] = value;
-      (el as any)[name] = value;
+      const key = toCamelLocal(name);
+      data[key] = value;
+      (el as any)[key] = value;
+      // Drop PascalCase twin so serialize cannot emit duplicate attrs
+      if (key !== name && name in data) {
+        delete data[name];
+        delete (el as any)[name];
+      }
+      if (key !== name) {
+        delete (el as any)[name];
+      }
     },
-    ...props
+    ...normalizedProps
   };
   return el;
 }
@@ -55,31 +112,58 @@ export function createVueModdleEl(type: string, props: Record<string, unknown> =
 function nodeToModdle(node: Element): VueModdleEl {
   const prefix = node.prefix || (node.namespaceURI === SF_NS ? 'sf' : '');
   const local = node.localName || node.nodeName.replace(/^.*:/, '');
-  const type = prefix ? `${prefix}:${local}` : local.startsWith('sf') ? `sf:${local}` : `bpmn:${local}`;
+  const rawType = prefix ? `${prefix}:${local}` : local.startsWith('sf') ? `sf:${local}` : `bpmn:${local}`;
+  const type = normalizeSfType(rawType);
   const props: Record<string, unknown> = {};
   const attrs = node.attributes;
   if (attrs) {
     for (let i = 0; i < attrs.length; i++) {
       const a = attrs.item(i)!;
       const an = a.localName || a.name;
-      // Prefer camelCase keys used by Sail (Type → type via lowercasing first letter of BPMN attrs)
-      const key = an.charAt(0).toLowerCase() + an.slice(1);
+      // Only camelCase keys (Type → type); never store both or serialize duplicates
+      const key = toCamelLocal(an);
       props[key] = a.value;
-      props[an] = a.value;
     }
   }
   const childEls = Array.from(node.childNodes)
     .filter(n => n.nodeType === 1)
     .map(n => n as unknown as Element);
-  const values = childEls.map(nodeToModdle);
+  const values = dedupeExtensionValues(childEls.map(nodeToModdle));
   if (values.length) {
     props.values = values;
     // Sail Actions uses `actions` list prop
-    if (type === 'sf:Actions') props.actions = values;
+    if (localOf(type).toLowerCase() === 'actions') props.actions = values;
   }
   const el = createVueModdleEl(type, props);
   for (const c of values) c.$parent = el;
   return el;
+}
+
+/**
+ * Merge extension children that differ only by local-name casing
+ * (e.g. assigneeResolve + AssigneeResolve → one camelCase node).
+ */
+function dedupeExtensionValues(values: VueModdleEl[]): VueModdleEl[] {
+  const byKey = new Map<string, VueModdleEl>();
+  for (const v of values) {
+    const key = localOf(v.$type).toLowerCase();
+    const existing = byKey.get(key);
+    if (!existing) {
+      v.$type = normalizeSfType(v.$type);
+      byKey.set(key, v);
+      continue;
+    }
+    // Prefer non-empty scalar props from the newer duplicate
+    for (const [k, val] of Object.entries(v)) {
+      if (SERIALIZE_SKIP.has(k) || typeof val === 'function' || typeof val === 'object') continue;
+      const cur = existing[k];
+      if (cur == null || cur === '') {
+        existing[k] = val;
+        existing.set(k, val);
+      }
+    }
+  }
+  return Array.from(byKey.values());
 }
 
 function parseExtensionElements(xmlFragment: string | undefined): VueModdleEl | undefined {
@@ -99,9 +183,11 @@ function parseExtensionElements(xmlFragment: string | undefined): VueModdleEl | 
     }
   }
   if (!eeNode) return undefined;
-  const values = Array.from(eeNode.childNodes)
-    .filter(n => n.nodeType === 1)
-    .map(n => nodeToModdle(n as unknown as Element));
+  const values = dedupeExtensionValues(
+    Array.from(eeNode.childNodes)
+      .filter(n => n.nodeType === 1)
+      .map(n => nodeToModdle(n as unknown as Element)),
+  );
   const ee = createVueModdleEl('bpmn:ExtensionElements', { values });
   for (const v of values) v.$parent = ee;
   return ee;
@@ -110,32 +196,33 @@ function parseExtensionElements(xmlFragment: string | undefined): VueModdleEl | 
 function serializeModdle(el: VueModdleEl): string {
   const { prefix, local } = qName(el.$type);
   const tag = prefix ? `${prefix}:${local}` : local;
-  const skip = new Set([
-    '$type',
-    '$instanceOf',
-    '$parent',
-    'get',
-    'set',
-    'extensionElements',
-    'values',
-    'actions'
-  ]);
+  const seenAttrs = new Set<string>();
   const attrParts: string[] = [];
   for (const [k, v] of Object.entries(el)) {
-    if (skip.has(k) || v == null || typeof v === 'object' || typeof v === 'function') continue;
-    // Prefer PascalCase for sf attrs as in existing BPMN (Type, Params)
-    const attrName = k === 'type' ? 'Type' : k === 'params' ? 'Params' : k === 'json' ? 'json' : k;
+    if (SERIALIZE_SKIP.has(k) || v == null || typeof v === 'object' || typeof v === 'function') continue;
+    // Engine/samples use lowercase type/params (not Type/Params)
+    const attrName = toCamelLocal(k);
+    if (seenAttrs.has(attrName.toLowerCase())) continue;
+    seenAttrs.add(attrName.toLowerCase());
     attrParts.push(` ${attrName}="${escapeXml(String(v))}"`);
   }
-  const list =
+  const rawList =
     (el.values as VueModdleEl[] | undefined) ||
     (el.actions as VueModdleEl[] | undefined) ||
     [];
+  const list = dedupeExtensionValues(rawList);
   if (!list.length) {
     return `<${tag}${attrParts.join('')} />`;
   }
   const inner = list.map(serializeModdle).join('');
   return `<${tag}${attrParts.join('')}>${inner}</${tag}>`;
+}
+
+/** Serialize extensionElements.values with case-dedupe (safe for polluted BOs). */
+function serializeExtensionInner(ee: VueModdleEl): string {
+  const values = dedupeExtensionValues((ee.values || []) as VueModdleEl[]);
+  ee.values = values;
+  return values.map(serializeModdle).join('');
 }
 
 function escapeXml(s: string): string {
@@ -324,13 +411,11 @@ export function createVueModelingBridge(store: DiagramStore) {
         const ee = p.extensionElements as VueModdleEl;
         view.businessObject.extensionElements = ee;
         view.businessObject.set('extensionElements', ee);
-        const values = (ee.values || []) as VueModdleEl[];
-        const inner = values.map(serializeModdle).join('');
+        const inner = serializeExtensionInner(ee);
         next.opaqueInnerXml = replaceExtensionInOpaque(next.opaqueInnerXml, inner);
       } else if (view.businessObject.extensionElements) {
         const ee = view.businessObject.extensionElements;
-        const values = (ee.values || []) as VueModdleEl[];
-        const inner = values.map(serializeModdle).join('');
+        const inner = serializeExtensionInner(ee);
         next.opaqueInnerXml = replaceExtensionInOpaque(next.opaqueInnerXml, inner);
       }
 

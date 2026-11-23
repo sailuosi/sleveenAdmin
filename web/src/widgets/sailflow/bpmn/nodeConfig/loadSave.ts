@@ -4,6 +4,7 @@ import {
   ensureExtensionElements,
   getBo,
   getExtension,
+  removeChildExtension,
   type ModdleEl
 } from '../utils/sfExtension';
 import {
@@ -230,11 +231,17 @@ export function saveNodeConfig(
   leave.type = model.leaveJudgeType;
   leave.params = model.leaveJudgeParams;
 
-  const ms = ensureChildExtension(bo, 'sf:MultiSignDetail', moddle);
-  ms.complexType = model.multiSign.complexType;
-  ms.mergeType = model.multiSign.mergeType;
-  ms.compareType = model.multiSign.compareType;
-  ms.completeOrder = model.multiSign.completeOrder;
+  // 仅有效会签类型写入 MultiSignDetail；0/空视为不启用并移除扩展
+  const msComplex = String(model.multiSign?.complexType ?? '').trim();
+  if (msComplex === '1' || msComplex === '2') {
+    const ms = ensureChildExtension(bo, 'sf:MultiSignDetail', moddle);
+    ms.complexType = model.multiSign.complexType;
+    ms.mergeType = model.multiSign.mergeType;
+    ms.compareType = model.multiSign.compareType;
+    ms.completeOrder = model.multiSign.completeOrder;
+  } else {
+    removeChildExtension(bo, 'sf:MultiSignDetail');
+  }
 
   const buttons = ensureChildExtension(bo, 'sf:ButtonsSetting', moddle);
   buttons.json = JSON.stringify(model.buttons?.length ? model.buttons : defaultButtonsSetting());

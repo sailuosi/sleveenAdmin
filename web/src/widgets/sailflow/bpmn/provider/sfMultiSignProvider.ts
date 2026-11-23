@@ -6,8 +6,9 @@ const complexEntry = makeSelectOnExtension({
   label: '会签类型',
   extensionType: 'sf:MultiSignDetail',
   prop: 'complexType',
+  clearValues: ['0'],
   options: [
-    { label: '默认', value: '0', name: 'Optiondefault' },
+    { label: '不启用', value: '0', name: 'Optiondefault' },
     { label: '会签', value: '1', name: 'SignTogether' },
     { label: '加签', value: '2', name: 'SignForward' }
   ]
