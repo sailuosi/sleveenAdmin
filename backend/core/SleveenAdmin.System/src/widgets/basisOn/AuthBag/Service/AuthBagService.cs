@@ -11,7 +11,6 @@ using SleveenAdmin.System.Author.AuthBag;
 using SleveenAdmin.System.Menu.DBLayer;
 using mooSQL.data;
 using mooSQL.utils;
-using mooSQL.data;
 
 namespace SleveenAdmin.System.AuthBag.Service;
 

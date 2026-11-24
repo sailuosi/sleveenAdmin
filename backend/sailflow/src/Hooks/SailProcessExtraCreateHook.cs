@@ -1,6 +1,6 @@
 using mooSQL.data;
 using sailflow.engine.Client;
-using sailflow.engine.Hooks;
+using sailflow.hooks;
 using SleveenAdmin.Sailflow.Dto;
 using SleveenAdmin.Sailflow.Entity;
 using SleveenAdmin.Sailflow.Service;
@@ -45,7 +45,7 @@ public sealed class SailProcessExtraCreateHook(SailClient sail) : ProcessInstanc
         if (string.IsNullOrWhiteSpace(ctx.Instance.Title))
             ctx.Instance.Title = ctx.Instance.ProcessName;
 
-        ctx.Runner ??= new sailflow.engine.Common.FlowCommandContext();
+        ctx.Runner ??= new sailflow.utils.FlowCommandContext();
         ctx.Runner.Conditions ??= new Dictionary<string, string>();
 
         // 摘要：写入 Conditions，由 Host PersistConditions 落库（此时尚无实例 Id）

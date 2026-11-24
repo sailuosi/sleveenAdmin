@@ -1,6 +1,6 @@
 using sailflow.engine.Client;
-using sailflow.engine.Hosting;
-using sailflow.engine.NextStep;
+using sailflow.hosting;
+using sailflow.nextStep;
 
 namespace SleveenAdmin.Sailflow.ConditionVars;
 

@@ -12,7 +12,7 @@ public class DevConsoleFormatterTests
         var formatter = new DevConsoleFormatter();
         using var writer = new StringWriter();
 
-        var state = "Executing ObjectResult, writing value of type 'sailflow.WebUtility.ResponseResult'.";
+        var state = "Executing ObjectResult, writing value of type 'sailflow.utils.ResponseResult'.";
         var entry = new LogEntry<string>(
             LogLevel.Information,
             "Microsoft.AspNetCore.Mvc.Infrastructure.ObjectResultExecutor",

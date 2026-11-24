@@ -1,9 +1,9 @@
 using mooSQL.data;
 using sailflow.engine.Client;
-using sailflow.engine.Entity;
-using sailflow.engine.Event;
-using sailflow.engine.Hooks;
-using sailflow.engine.Logging;
+using sailflow.data;
+using sailflow.events;
+using sailflow.hooks;
+using sailflow.log;
 
 namespace SleveenAdmin.Sailflow.Hooks;
 

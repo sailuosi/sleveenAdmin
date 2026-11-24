@@ -1,8 +1,8 @@
-using sailflow.engine.Common;
+using sailflow.utils;
 
 namespace SleveenAdmin.Sailflow.Utility;
 
-// FlowCommandContext / ControlParameterSheet / RejectModeCodes：sailflow.engine.Common
+// FlowCommandContext / ControlParameterSheet / RejectModeCodes：sailflow.utils
 
 /// <summary>
 /// NodePolicy.rejectHandlerType → 引擎 <see cref="RejectModeCodes"/>。

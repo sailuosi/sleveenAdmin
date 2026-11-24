@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using sailflow.assignee;
 using sailflow.assignee.Builtin;
-using sailflow.engine.Assignee;
 using sailflow.engine.Client;
 using sailflow.engine.Service;
 using SleveenAdmin.Sailflow.Utility;

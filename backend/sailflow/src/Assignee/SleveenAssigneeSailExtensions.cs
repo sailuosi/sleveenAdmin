@@ -122,7 +122,7 @@ public static class SleveenAssigneeSailExtensions
     {
         ArgumentNullException.ThrowIfNull(client);
         client.Log?.Warning(
-            sailflow.engine.Logging.SailLogCategories.Assignee,
+            sailflow.log.SailLogCategories.Assignee,
             "UseSleveenAssigneeAutoApproveJob: Host SailNodePolicyJobWorker already drains "
             + "AssigneeAutoApprove. Prefer 单消费者；仅在未挂 JobWorker 时启用 AutoStart.");
         return client.UseAssign(a =>

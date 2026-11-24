@@ -1,7 +1,7 @@
 using sailflow.engine.Client;
-using sailflow.engine.Event;
-using sailflow.engine.Hosting;
-using sailflow.engine.Hooks;
+using sailflow.events;
+using sailflow.hosting;
+using sailflow.hooks;
 
 namespace SleveenAdmin.Sailflow.Hooks;
 
