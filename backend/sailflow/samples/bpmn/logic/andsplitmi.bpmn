@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.slickflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.sailflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Process_1182_8925" sf:code="AndSplitMI_Code_1182_8925" name="AndSplitMI_1182_8925" isExecutable="true" sf:version="1">
     <bpmn:startEvent id="StartNode_2265" sf:code="Start" name="start">
       <bpmn:outgoing>Flow_1754</bpmn:outgoing>
@@ -7,7 +7,8 @@
     <bpmn:task id="TaskNode_1983" sf:code="task001" name="Task-001">
       <bpmn:incoming>Flow_1754</bpmn:incoming>
       <bpmn:outgoing>Flow_1918</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:parallelGateway id="GatewayNode_8862" sf:code="andsplit001" name="and-split">
       <bpmn:extensionElements />
       <bpmn:incoming>Flow_1918</bpmn:incoming>
@@ -16,11 +17,13 @@
     <bpmn:task id="TaskNode_2480" sf:code="task010" name="task-010">
       <bpmn:incoming>Flow_9472</bpmn:incoming>
       <bpmn:outgoing>Flow_7451</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_6754" sf:code="task011" name="task-011">
       <bpmn:incoming>Flow_7451</bpmn:incoming>
       <bpmn:outgoing>Flow_5483</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:parallelGateway id="GatewayNode_4096" sf:code="andjoin001" name="and-join">
       <bpmn:extensionElements />
       <bpmn:incoming>Flow_5483</bpmn:incoming>
@@ -29,7 +32,8 @@
     <bpmn:task id="TaskNode_4214" sf:code="task100" name="task-100">
       <bpmn:incoming>Flow_1486</bpmn:incoming>
       <bpmn:outgoing>Flow_2026</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:endEvent id="EndNode_9550" sf:code="End" name="end">
       <bpmn:incoming>Flow_2026</bpmn:incoming>
     </bpmn:endEvent>

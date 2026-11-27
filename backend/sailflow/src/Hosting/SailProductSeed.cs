@@ -492,7 +492,7 @@ public static class SailProductSeed
         "<bpmn:incoming>Flow_start_task</bpmn:incoming>" +
         "<bpmn:outgoing>Flow_task_end</bpmn:outgoing>" +
         "<bpmn:extensionElements>" +
-        "<sf:assigneeResolve type=\"ApproverPick\" params=\"\" />" +
+        "<sf:assigneeResolve type=\"\" selectModel=\"Pick\" params=\"\" />" +
         "<sf:leaveJudge type=\"Collaborate\" params=\"{&quot;completeRate&quot;:1}\" />" +
         "</bpmn:extensionElements>" +
         "</bpmn:userTask>" +
@@ -585,31 +585,95 @@ public static class SailProductSeed
         "<di:waypoint x=\"480\" y=\"178\" /><di:waypoint x=\"550\" y=\"178\" />" +
         "</bpmndi:BPMNEdge>";
 
-    static string Ext(string assignee, string leave, string? buttonsJson, string? policyJson)
+    /// <param name="modeOrScope">
+    /// <c>Pick</c>/<c>Preselect</c>/<c>Fixed</c>/空 → 作 selectModel（Scope 空）；
+    /// 其它字符串视为 Scope Type，selectModel=Fixed。
+    /// </param>
+    static string Ext(string modeOrScope, string leave, string? buttonsJson, string? policyJson)
     {
+        var raw = modeOrScope?.Trim() ?? "";
+        string type;
+        string selectModel;
+        if (string.IsNullOrEmpty(raw)
+            || string.Equals(raw, "Pick", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(raw, "ApproverPick", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(raw, "StarterPick", StringComparison.OrdinalIgnoreCase))
+        {
+            type = "";
+            selectModel = "Pick";
+        }
+        else if (string.Equals(raw, "Preselect", StringComparison.OrdinalIgnoreCase))
+        {
+            type = "";
+            selectModel = "Preselect";
+        }
+        else if (string.Equals(raw, "Fixed", StringComparison.OrdinalIgnoreCase))
+        {
+            type = "";
+            selectModel = "Fixed";
+        }
+        else
+        {
+            type = raw;
+            selectModel = "Fixed";
+        }
+
         var sb = "<bpmn:extensionElements>";
-        sb += "<sf:assigneeResolve type=\"" + assignee + "\" params=\"\" />";
+        sb += "<sf:assigneeResolve type=\"" + type + "\" selectModel=\"" + selectModel + "\" params=\"\" />";
         sb += "<sf:leaveJudge type=\"" + leave + "\" params=\"{&quot;completeRate&quot;:1}\" />";
         if (!string.IsNullOrWhiteSpace(buttonsJson))
-            sb += "<sf:ButtonsSetting json=\"" + buttonsJson.Replace("\"", "&quot;") + "\" />";
+            sb += ButtonsSettingXmlFromJson(buttonsJson);
         if (!string.IsNullOrWhiteSpace(policyJson))
             sb += "<sf:NodePolicy json=\"" + policyJson.Replace("\"", "&quot;") + "\" />";
         sb += "</bpmn:extensionElements>";
         return sb;
     }
 
+    /// <summary>seed 用：旧 JSON 数组 → ButtonsSetting/button 子元素 XML。</summary>
+    static string ButtonsSettingXmlFromJson(string buttonsJson)
+    {
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(buttonsJson);
+            if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array)
+                return "<sf:ButtonsSetting />";
+            var sb = new System.Text.StringBuilder("<sf:ButtonsSetting>");
+            foreach (var el in doc.RootElement.EnumerateArray())
+            {
+                var id = el.TryGetProperty("id", out var idEl) ? idEl.GetString() : null;
+                if (string.IsNullOrWhiteSpace(id))
+                    continue;
+                var enable = !el.TryGetProperty("enable", out var en) || en.ValueKind != System.Text.Json.JsonValueKind.False;
+                var name = el.TryGetProperty("displayName", out var dn) ? dn.GetString() : id;
+                sb.Append("<sf:button id=\"")
+                    .Append(System.Security.SecurityElement.Escape(id))
+                    .Append("\" enable=\"")
+                    .Append(enable ? "true" : "false")
+                    .Append("\" displayName=\"")
+                    .Append(System.Security.SecurityElement.Escape(name ?? id))
+                    .Append("\" />");
+            }
+
+            sb.Append("</sf:ButtonsSetting>");
+            return sb.ToString();
+        }
+        catch
+        {
+            return "<sf:ButtonsSetting />";
+        }
+    }
+
     static string UatGBpmn()
     {
-        var pick = "ApproverPick";
         var body =
             "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
             "<bpmn:userTask id=\"UserTask_A\" name=\"一级审批\">" +
             "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
-            Ext(pick, "Collaborate", null, null) +
+            Ext("Pick", "Collaborate", null, null) +
             "</bpmn:userTask>" +
             "<bpmn:userTask id=\"UserTask_B\" name=\"二级审批\">" +
             "<bpmn:incoming>f2</bpmn:incoming><bpmn:outgoing>f3</bpmn:outgoing>" +
-            Ext(pick, "Collaborate", null, null) +
+            Ext("Pick", "Collaborate", null, null) +
             "</bpmn:userTask>" +
             "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f3</bpmn:incoming></bpmn:endEvent>" +
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_A\" />" +
@@ -629,7 +693,7 @@ public static class SailProductSeed
             "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
             "<bpmn:userTask id=\"UserTask_1\" name=\"策略节点\">" +
             "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
-            Ext("ApproverPick", "Collaborate", null, policy) +
+            Ext("Pick", "Collaborate", null, policy) +
             "</bpmn:userTask>" +
             "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
@@ -647,7 +711,7 @@ public static class SailProductSeed
             "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
             "<bpmn:userTask id=\"UserTask_1\" name=\"管理闸\">" +
             "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
-            Ext("ApproverPick", "Collaborate", buttons, null) +
+            Ext("Pick", "Collaborate", buttons, null) +
             "</bpmn:userTask>" +
             "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +
@@ -669,7 +733,7 @@ public static class SailProductSeed
             "<bpmn:startEvent id=\"StartEvent_1\" name=\"Start\"><bpmn:outgoing>f1</bpmn:outgoing></bpmn:startEvent>" +
             "<bpmn:userTask id=\"UserTask_1\" name=\"字段权限\">" +
             "<bpmn:incoming>f1</bpmn:incoming><bpmn:outgoing>f2</bpmn:outgoing>" +
-            Ext("ApproverPick", "Collaborate", null, policy) +
+            Ext("Pick", "Collaborate", null, policy) +
             "</bpmn:userTask>" +
             "<bpmn:endEvent id=\"EndEvent_1\" name=\"End\"><bpmn:incoming>f2</bpmn:incoming></bpmn:endEvent>" +
             "<bpmn:sequenceFlow id=\"f1\" sourceRef=\"StartEvent_1\" targetRef=\"UserTask_1\" />" +

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.slickflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.sailflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Process_6274_9275" sf:code="AskforLeave_Code_6274_9275" name="AskforLeave_6274_9275" isExecutable="true" sf:version="1">
     <bpmn:startEvent id="StartNode_1548" sf:code="Start" name="start">
       <bpmn:outgoing>Flow_4898</bpmn:outgoing>
@@ -7,7 +7,8 @@
     <bpmn:task id="TaskNode_9008" sf:code="task001" name="Apply Submit">
       <bpmn:incoming>Flow_4898</bpmn:incoming>
       <bpmn:outgoing>Flow_5871</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:exclusiveGateway id="GatewayNode_6887" sf:code="xorsplit001" name="XOr-Split">
       <bpmn:incoming>Flow_5871</bpmn:incoming>
       <bpmn:outgoing>Flow_2311</bpmn:outgoing>
@@ -16,11 +17,13 @@
     <bpmn:task id="TaskNode_7321" sf:code="task010" name="Dept Manager Approval">
       <bpmn:incoming>Flow_2311</bpmn:incoming>
       <bpmn:outgoing>Flow_8261</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_7595" sf:code="task020" name="CEO Approval">
       <bpmn:incoming>Flow_6824</bpmn:incoming>
       <bpmn:outgoing>Flow_7227</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:exclusiveGateway id="GatewayNode_2245" sf:code="xorjoin001" name="XOr-Join">
       <bpmn:incoming>Flow_7227</bpmn:incoming>
       <bpmn:incoming>Flow_8261</bpmn:incoming>
@@ -29,7 +32,8 @@
     <bpmn:task id="TaskNode_8674" sf:code="task100" name="HR Approval">
       <bpmn:incoming>Flow_7556</bpmn:incoming>
       <bpmn:outgoing>Flow_1759</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:endEvent id="EndNode_6749" sf:code="End" name="end">
       <bpmn:incoming>Flow_1759</bpmn:incoming>
     </bpmn:endEvent>

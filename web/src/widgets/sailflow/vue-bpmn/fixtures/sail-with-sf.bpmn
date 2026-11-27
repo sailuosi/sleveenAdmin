@@ -4,7 +4,7 @@
   xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
   xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
   xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
-  xmlns:sf="http://www.saiflow.com/schema/sf"
+  xmlns:sf="http://www.sailflow.com/schema/sf"
   id="Definitions_SailSf"
   targetNamespace="http://bpmn.io/schema/bpmn">
   <bpmn:process id="Process_1" name="Process_1" isExecutable="true" sf:code="Process_1" sf:version="1">
@@ -13,8 +13,8 @@
       <bpmn:incoming>Flow_1</bpmn:incoming>
       <bpmn:outgoing>Flow_2</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:AssigneeResolve Type="ApproverPick" Params="{}" />
-        <sf:LeaveJudge Type="Collaborate" Params="{&quot;completeRate&quot;:1}" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="{}" />
+        <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
     <bpmn:endEvent id="EndEvent_1" name="结束">

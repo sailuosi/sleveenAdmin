@@ -22,7 +22,7 @@
       <bpmn:incoming>f_start</bpmn:incoming>
       <bpmn:outgoing>f_to_xor</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -38,7 +38,7 @@
       <bpmn:incoming>f_fast</bpmn:incoming>
       <bpmn:outgoing>f_fast_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -47,7 +47,7 @@
       <bpmn:incoming>f_normal</bpmn:incoming>
       <bpmn:outgoing>f_normal_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -56,7 +56,7 @@
       <bpmn:incoming>f_high</bpmn:incoming>
       <bpmn:outgoing>f_high_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -79,7 +79,7 @@
       <bpmn:incoming>f_legal</bpmn:incoming>
       <bpmn:outgoing>f_legal_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -88,7 +88,7 @@
       <bpmn:incoming>f_finance</bpmn:incoming>
       <bpmn:outgoing>f_finance_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -97,7 +97,7 @@
       <bpmn:incoming>f_notify</bpmn:incoming>
       <bpmn:outgoing>f_notify_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -113,7 +113,7 @@
       <bpmn:incoming>f_to_archive</bpmn:incoming>
       <bpmn:outgoing>f_end</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>

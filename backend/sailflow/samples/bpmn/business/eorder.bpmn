@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.slickflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.sailflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Process_6498_8755" sf:code="EOrder_Code_6498_8755" name="EOrder_6498_8755" isExecutable="true" sf:version="1">
     <bpmn:startEvent id="StartNode_6707" sf:code="Start" name="start">
       <bpmn:outgoing>Flow_7298</bpmn:outgoing>
@@ -7,7 +7,8 @@
     <bpmn:task id="TaskNode_9526" sf:code="task001" name="Dispatch Order">
       <bpmn:incoming>Flow_7298</bpmn:incoming>
       <bpmn:outgoing>Flow_1809</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:inclusiveGateway id="GatewayNode_1229" sf:code="orsplit001" name="Or-Split">
       <bpmn:incoming>Flow_1809</bpmn:incoming>
       <bpmn:outgoing>Flow_3738</bpmn:outgoing>
@@ -16,23 +17,28 @@
     <bpmn:task id="TaskNode_9305" sf:code="task010" name="Print Delivery Note">
       <bpmn:incoming>Flow_3738</bpmn:incoming>
       <bpmn:outgoing>Flow_5938</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_3881" sf:code="task020" name="Sample Making">
       <bpmn:incoming>Flow_7442</bpmn:incoming>
       <bpmn:outgoing>Flow_1195</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_1848" sf:code="task030" name="Produce">
       <bpmn:incoming>Flow_1195</bpmn:incoming>
       <bpmn:outgoing>Flow_6421</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_3473" sf:code="task040" name="QA">
       <bpmn:incoming>Flow_6421</bpmn:incoming>
       <bpmn:outgoing>Flow_7277</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_7623" sf:code="task050" name="Weight">
       <bpmn:incoming>Flow_7277</bpmn:incoming>
       <bpmn:outgoing>Flow_9747</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:inclusiveGateway id="GatewayNode_4976" sf:code="orjoin001" name="Or-Join">
       <bpmn:incoming>Flow_9747</bpmn:incoming>
       <bpmn:incoming>Flow_5938</bpmn:incoming>

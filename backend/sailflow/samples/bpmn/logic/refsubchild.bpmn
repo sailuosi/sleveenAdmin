@@ -16,7 +16,7 @@
       <bpmn:incoming>f1</bpmn:incoming>
       <bpmn:outgoing>f2</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -24,7 +24,7 @@
       <bpmn:incoming>f2</bpmn:incoming>
       <bpmn:outgoing>f3</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>

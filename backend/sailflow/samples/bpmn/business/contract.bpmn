@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.slickflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.sailflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Process_6312_7354" sf:code="Contract_Code_6312_7354" name="Contract_6312_7354" isExecutable="true" sf:version="1">
     <bpmn:startEvent id="StartNode_7352" sf:code="Start" name="start">
       <bpmn:outgoing>Flow_7221</bpmn:outgoing>
@@ -7,11 +7,13 @@
     <bpmn:task id="TaskNode_3781" sf:code="task001" name="Contract Draft">
       <bpmn:incoming>Flow_7221</bpmn:incoming>
       <bpmn:outgoing>Flow_1371</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_8128" sf:code="task002" name="Approved by BA Manager">
       <bpmn:incoming>Flow_1371</bpmn:incoming>
       <bpmn:outgoing>Flow_3141</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:parallelGateway id="GatewayNode_8676" sf:code="andsplit001" name="And-Split">
       <bpmn:incoming>Flow_3141</bpmn:incoming>
       <bpmn:outgoing>Flow_9687</bpmn:outgoing>
@@ -21,15 +23,18 @@
     <bpmn:task id="TaskNode_4328" sf:code="task010" name="Contract Department Review">
       <bpmn:incoming>Flow_9687</bpmn:incoming>
       <bpmn:outgoing>Flow_4197</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_8653" sf:code="task020" name="Financial Department Review">
       <bpmn:incoming>Flow_8753</bpmn:incoming>
       <bpmn:outgoing>Flow_3176</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_1207" sf:code="task030" name="Group Headquarters Review">
       <bpmn:incoming>Flow_5363</bpmn:incoming>
       <bpmn:outgoing>Flow_2428</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:parallelGateway id="GatewayNode_8354" sf:code="andjoin001" name="And-Join">
       <bpmn:incoming>Flow_2428</bpmn:incoming>
       <bpmn:incoming>Flow_3176</bpmn:incoming>
@@ -39,7 +44,8 @@
     <bpmn:task id="TaskNode_9441" sf:code="task007" name="Contract Archived">
       <bpmn:incoming>Flow_2936</bpmn:incoming>
       <bpmn:outgoing>Flow_4431</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:endEvent id="EndNode_4459" sf:code="End" name="end">
       <bpmn:incoming>Flow_4431</bpmn:incoming>
     </bpmn:endEvent>

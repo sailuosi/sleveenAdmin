@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.slickflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:sf="http://www.sailflow.com/schema/sf" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="bpmn-diagram" targetNamespace="http://bpmn.io/schema/bpmn" schemaLocation="http://www.omg.org/spec/BPMN/20100524/MODEL BPMN20.xsd">
   <bpmn:process id="Process_8754_2583" sf:code="MultipleInstance_Code_8754_2583" name="MultipleInstance_8754_2583" isExecutable="true" sf:version="1">
     <bpmn:startEvent id="StartNode_7969" sf:code="Start" name="Start">
       <bpmn:outgoing>Flow_5825</bpmn:outgoing>
@@ -7,16 +7,19 @@
     <bpmn:task id="TaskNode_7521" sf:code="task001" name="Task-001">
       <bpmn:incoming>Flow_5825</bpmn:incoming>
       <bpmn:outgoing>Flow_1548</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="MultiSignNode_5897" sf:code="MI001" name="Sign Together">
       <bpmn:incoming>Flow_1548</bpmn:incoming>
       <bpmn:outgoing>Flow_4383</bpmn:outgoing>
       <bpmn:multiInstanceLoopCharacteristics />
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:task id="TaskNode_8262" sf:code="task003" name="Task-003">
       <bpmn:incoming>Flow_4383</bpmn:incoming>
       <bpmn:outgoing>Flow_5331</bpmn:outgoing>
-    </bpmn:task>
+    
+      <bpmn:extensionElements><sf:assigneeResolve type="" selectModel="Pick" params="" /><sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" /><sf:ButtonsSetting /></bpmn:extensionElements></bpmn:task>
     <bpmn:endEvent id="EndNode_8541" sf:code="End" name="End">
       <bpmn:incoming>Flow_5331</bpmn:incoming>
     </bpmn:endEvent>

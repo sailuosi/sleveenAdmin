@@ -24,7 +24,7 @@
       <bpmn:incoming>f_start</bpmn:incoming>
       <bpmn:outgoing>f_to_xor</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -40,7 +40,7 @@
       <bpmn:incoming>f_short</bpmn:incoming>
       <bpmn:outgoing>f_mgr_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
         <sf:NodePolicy json="{&quot;approveType&quot;:1,&quot;assignEmptyHandlerType&quot;:2,&quot;assignStartUserHandlerType&quot;:1,&quot;skipExpression&quot;:&quot;amount &lt; 100&quot;,&quot;signEnable&quot;:false,&quot;reasonRequire&quot;:false,&quot;fieldsPermission&quot;:[]}" />
       </bpmn:extensionElements>
@@ -56,7 +56,7 @@
       <bpmn:incoming>f_dept</bpmn:incoming>
       <bpmn:outgoing>f_dept_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -65,7 +65,7 @@
       <bpmn:incoming>f_hr</bpmn:incoming>
       <bpmn:outgoing>f_hr_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
@@ -80,7 +80,7 @@
       <bpmn:incoming>f_director</bpmn:incoming>
       <bpmn:outgoing>f_dir_join</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
         <sf:NodePolicy json="{&quot;approveType&quot;:1,&quot;assignEmptyHandlerType&quot;:2,&quot;skipExpression&quot;:&quot;amount &lt; 500&quot;,&quot;signEnable&quot;:true,&quot;reasonRequire&quot;:false,&quot;fieldsPermission&quot;:[]}" />
       </bpmn:extensionElements>
@@ -102,7 +102,7 @@
         <bpmn:incoming>sf1</bpmn:incoming>
         <bpmn:outgoing>sf2</bpmn:outgoing>
         <bpmn:extensionElements>
-          <sf:assigneeResolve type="ApproverPick" params="" />
+          <sf:assigneeResolve type="" selectModel="Pick" params="" />
           <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
           <sf:NodePolicy json="{&quot;approveType&quot;:1,&quot;assignEmptyHandlerType&quot;:2,&quot;skipExpression&quot;:&quot;skipAudit=\&quot;Y\&quot;&quot;,&quot;signEnable&quot;:false,&quot;fieldsPermission&quot;:[]}" />
         </bpmn:extensionElements>
@@ -118,7 +118,7 @@
       <bpmn:incoming>f_from_sub</bpmn:incoming>
       <bpmn:outgoing>f_end</bpmn:outgoing>
       <bpmn:extensionElements>
-        <sf:assigneeResolve type="ApproverPick" params="" />
+        <sf:assigneeResolve type="" selectModel="Pick" params="" />
         <sf:leaveJudge type="Collaborate" params="{&quot;completeRate&quot;:1}" />
       </bpmn:extensionElements>
     </bpmn:userTask>
